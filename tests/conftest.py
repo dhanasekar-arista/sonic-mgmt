@@ -3613,3 +3613,60 @@ def pytest_runtest_setup(item):
         if fixturedef.argname == "setup_dualtor_mux_ports":
             fixtureinfo.names_closure.remove("setup_dualtor_mux_ports")
             fixtureinfo.names_closure.append("setup_dualtor_mux_ports")
+
+import contextvars
+from functools import wraps
+
+# A new fixture is created to manage the context.
+# This fixture will set the loganalyzer at the start of a test and
+# clean it up at the end.
+@pytest.fixture(autouse=True) 
+def loganalyzer_context_manager(loganalyzer):
+    """
+    An autouse fixture that puts the main 'loganalyzer' fixture into the
+    context, making it available to the decorator.
+    """
+    # Set the context variable and store the token to reset it later
+    token = loganalyzer_context.set(loganalyzer)
+    # Yield to the test
+    yield
+    # After the test, reset the context variable to its previous state
+    loganalyzer_context.reset(token)
+
+
+# A context variable is created. This acts as a thread-safe global
+# that holds the loganalyzer instance for the scope of a single test.
+loganalyzer_context = contextvars.ContextVar('loganalyzer', default=None)
+
+def wrap_in_marker(func):
+    """
+        A decorator that wraps a command execution function to add start/end markers
+        to the DUT's syslog. It automatically gets the loganalyzer from a context
+        variable, which is set by a pytest fixture.
+    """
+    @wraps(func)
+    def decorated(instance, *args, **kwargs):
+        # The decorator retrieves the loganalyzer from the context.
+        loganalyzer = loganalyzer_context.get()
+
+        # The actual command string is expected to be the first positional arg.
+        if loganalyzer and args:
+            cmd_str = args[0]
+            # Sanitize the command string to create a valid marker name.
+            cmd_marker = cmd_str.replace(' ', '_').replace('/', '-').replace('"', '')
+            loganalyzer.add_command_start_mark(cmd_marker)
+        else:
+            cmd_marker = None
+
+        try:
+            # Execute the original function. 
+            result = func(instance, *args, **kwargs)
+        finally:
+            # This block runs even if the command above raises an exception.
+            if loganalyzer and cmd_marker is not None:
+                loganalyzer.add_command_end_mark()
+
+        return result
+
+    return decorated
+

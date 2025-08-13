@@ -288,6 +288,41 @@ class LogAnalyzer:
 
         return self._setup_marker(log_files=log_files)
 
+    def add_command_start_mark(self, cmd_marker, log_files=None):
+        """
+        Adds the command start marker to the log files
+        """
+        # We copy 'loganalyzer.py' to /tmp dir during loganalyzer initialization,
+        # but the file could be auto removed by rebooting device,
+        # always copy script to make sure the marker can be added successfully.
+        self.ansible_host.copy(src=ANSIBLE_LOGANALYZER_MODULE, dest=os.path.join(self.dut_run_dir, "loganalyzer.py"))
+        add_start_ignore_mark = ".".join((cmd_marker, time.strftime("%Y-%m-%d-%H:%M:%S", time.gmtime())))
+        cmd = "python {run_dir}/loganalyzer.py --action add_start_ignore_mark --run_id {add_start_ignore_mark}"\
+            .format(run_dir=self.dut_run_dir, add_start_ignore_mark=add_start_ignore_mark)
+        if log_files:
+            cmd += " --logs {}".format(','.join(log_files))
+
+        logging.debug("Adding start ignore marker '{}'".format(add_start_ignore_mark))
+        self.ansible_host.command(cmd)
+        self._markers.append(add_start_ignore_mark)
+
+    def add_command_end_mark(self, cmd_marker, log_files=None):
+        """
+        Adds the end ignore marker to the log files
+        """
+        # We copy 'loganalyzer.py' to /tmp dir during loganalyzer initialization,
+        # but the file could be auto removed by rebooting device,
+        # always copy script to make sure the marker can be added successfully.
+        self.ansible_host.copy(src=ANSIBLE_LOGANALYZER_MODULE, dest=os.path.join(self.dut_run_dir, "loganalyzer.py"))
+        marker = self._markers.pop()
+        cmd = "python {run_dir}/loganalyzer.py --action add_end_ignore_mark --run_id {marker}"\
+            .format(run_dir=self.dut_run_dir, marker=marker)
+        if log_files:
+            cmd += " --logs {}".format(','.join(log_files))
+
+        logging.debug("Adding end ignore marker '{}'".format(marker))
+        self.ansible_host.command(cmd)
+
     def add_start_ignore_mark(self, log_files=None):
         """
         Adds the start ignore marker to the log files

@@ -9,6 +9,8 @@ from tests.common.helpers.cache_utils import sonic_asic_zone_getter
 from tests.common.helpers.constants import DEFAULT_NAMESPACE, NAMESPACE_PREFIX
 from tests.common.errors import RunAnsibleModuleFail
 from tests.common.platform.ssh_utils import ssh_authorize_local_user
+from common.plugins.loganalyzer.conftest import wrap_in_marker
+
 
 logger = logging.getLogger(__name__)
 
@@ -420,6 +422,7 @@ class SonicAsic(object):
              " -L *:{}:{}:{} localhost").format(self.get_rpc_port_ssh_tunnel(), ns_docker_if_ipv4,
                                                 self._RPC_PORT_FOR_SSH_TUNNEL))
 
+    @wrap_in_marker
     def command(self, cmdstr, new_format=False):
         """
             Prepend 'ip netns' option for commands meant for this ASIC
@@ -441,6 +444,7 @@ class SonicAsic(object):
 
         return self.sonichost.command(cmdstr)
 
+    @wrap_in_marker
     def run_vtysh(self, cmdstr):
         """
             Add -n option with ASIC instance on multi ASIC
