@@ -77,7 +77,10 @@ class LogAnalyzer:
     def __init__(self, ansible_host, marker_prefix, request=None, dut_run_dir="/tmp", start_marker=None,
                  additional_files={},
                  bughandler: BugHandler = get_bughandler_instance({"type": "noop"})):
-        self.ansible_host = ansible_host
+        if hasattr(ansible_host, 'sonichost'):
+            self.ansible_host = ansible_host.sonichost
+        else:
+            self.ansible_host = ansible_host
         ansible_host.loganalyzer = self
         self.dut_run_dir = dut_run_dir
         self.extracted_syslog = os.path.join(self.dut_run_dir, "syslog")
@@ -306,7 +309,7 @@ class LogAnalyzer:
         self.ansible_host.command(cmd)
         self._markers.append(add_start_ignore_mark)
 
-    def add_command_end_mark(self, cmd_marker, log_files=None):
+    def add_command_end_mark(self, log_files=None):
         """
         Adds the end ignore marker to the log files
         """

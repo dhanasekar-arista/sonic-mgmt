@@ -9,6 +9,7 @@ from tests.common.devices.sonic_asic import SonicAsic
 from tests.common.helpers.assertions import pytest_assert
 from tests.common.helpers.constants import DEFAULT_ASIC_ID, DEFAULT_NAMESPACE, ASICS_PRESENT
 from tests.common.platform.interface_utils import get_dut_interfaces_status
+from tests.common.plugins.loganalyzer.utils import loganalyzer_context
 
 logger = logging.getLogger(__name__)
 
@@ -323,11 +324,18 @@ class MultiAsicSonicHost(object):
         return json.loads(self.shell('vtysh {} -c "{} {} json"'.format(ns_prefix, cmd, prefix))['stdout'])
 
     def __getattr__(self, attr):
+        """ To support calling an ansible module on a MultiAsicSonicHost.
+
+        Args:
+            attr: attribute to get
+
+        Returns:
+            if attr doesn't start with '_' and is a method of SonicAsic,
+            attr will be ansible module that has dependency on ASIC,
+                return the output of the ansible module on asics requested - using _run_on_asics method.
+            else
+                return the attribute from SonicHost.
         """
-        This version is modified to wrap both ASIC-specific calls and generic
-        fallback calls with syslog markers.
-        """
-        # --- Path 1: Logic for ASIC-specific methods ---
         sonic_asic_attr = getattr(SonicAsic, attr, None)
         if not attr.startswith("_") and sonic_asic_attr and callable(sonic_asic_attr):
             self.multi_asic_attr = attr
@@ -340,10 +348,9 @@ class MultiAsicSonicHost(object):
                 loganalyzers = loganalyzer_context.get()
                 args_str = ' '.join(map(str, args))
                 # Use the original attribute name for a clear marker
-                cmd_marker = f"ASIC_{attr}_{args_str}".replace(' ', '_').replace('"', '')
+                cmd_marker = f"{attr}_{args_str}".replace(' ', '_').replace('"', '')
 
                 if loganalyzers:
-                    breakpoint()
                     for dut in loganalyzers:
                         loganalyzers[dut].add_command_start_mark(cmd_marker)
                 try:
@@ -357,10 +364,7 @@ class MultiAsicSonicHost(object):
 
             # Return the newly created wrapper function
             return asic_wrapper
-
-        # --- Path 2: Logic for generic fallback methods (like .command()) ---
         else:
-            # Get the attribute from the underlying sonichost
             original_generic_method = getattr(self.sonichost, attr)
 
             # We only want to wrap methods, not other types of attributes
@@ -374,7 +378,6 @@ class MultiAsicSonicHost(object):
                 cmd_marker = f"{attr}_{args_str}".replace(' ', '_').replace('"', '')
 
                 if loganalyzers:
-                    breakpoint()
                     for dut in loganalyzers:
                         loganalyzers[dut].add_command_start_mark(cmd_marker)
                 try:
@@ -388,6 +391,7 @@ class MultiAsicSonicHost(object):
 
             # Return the newly created wrapper function
             return generic_wrapper
+
 
     def get_asic_or_sonic_host(self, asic_id):
         if asic_id == DEFAULT_ASIC_ID:
