@@ -3,6 +3,7 @@ Test the feature of container_checker
 """
 import time
 import logging
+import json
 
 import pytest
 
@@ -16,6 +17,7 @@ from tests.common.plugins.loganalyzer.loganalyzer import LogAnalyzer
 from tests.common.utilities import wait_until
 from tests.common.helpers.dut_utils import get_disabled_container_list
 from tests.common.helpers.multi_thread_utils import SafeThreadPoolExecutor
+from tests.common.helpers.mux_health_monitor import enhanced_config_reload_with_monitoring
 
 logger = logging.getLogger(__name__)
 
@@ -264,8 +266,12 @@ def test_container_checker_telemetry(duthosts, rand_one_dut_hostname):
     duthost = duthosts[rand_one_dut_hostname]
     container_name = "telemetry"
 
-    # Reload config to restore the container
-    config_reload(duthost, safe_reload=True)
+    # Enhanced config reload with mux monitoring
+    iteration_num = getattr(test_container_checker_telemetry, '_iteration_counter', 0) + 1
+    test_container_checker_telemetry._iteration_counter = iteration_num
+    
+    logger.info(f"=== Container Checker Telemetry Test - Iteration {iteration_num}/30 ===")
+    enhanced_config_reload_with_monitoring(duthost, iteration_num, safe_reload=True)
     # Monit needs 300 seconds to start monitoring the container
     time.sleep(300)
 
