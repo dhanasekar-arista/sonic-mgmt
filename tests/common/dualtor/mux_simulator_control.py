@@ -608,19 +608,44 @@ def _toggle_all_simulator_ports_to_target_dut(target_dut_hostname, duthosts, mux
 
     # Allow retry for mux cable toggling
     is_toggle_done = False
+    post_failures = 0
     for attempt in range(1, 4):
         logger.info('attempt={}, toggle active side of all muxcables to {} from mux simulator'.format(
             attempt,
             data['active_side']
         ))
-        _post(mux_server_url, data)
+        
+        # Check if POST request succeeded before attempting verification
+        post_success = _post(mux_server_url, data)
+        if not post_success:
+            post_failures += 1
+            logger.warning('POST request to mux simulator failed on attempt {} (failures: {}/3)'.format(
+                attempt, post_failures))
+            # Fail fast if all POST requests are failing
+            if post_failures >= 3:
+                pytest_assert(False, 
+                    "All POST requests to mux simulator failed - server may be unreachable at {}".format(mux_server_url))
+            continue  # Skip verification if POST failed
+        
+        logger.info('POST request succeeded, verifying mux cable state change...')
         if utilities.wait_until(15, 5, 0, _check_toggle_done, duthosts, target_dut_hostname, probe=True):
+            logger.info('Mux toggle verification successful on attempt {}'.format(attempt))
             is_toggle_done = True
             break
+        else:
+            logger.warning('Mux toggle verification failed on attempt {} - cables did not switch to expected state'.format(attempt))
 
-    if not is_toggle_done and \
-            not utilities.wait_until(120, 10, 0, _check_toggle_done, duthosts, target_dut_hostname, probe=True):
-        pytest_assert(False, "Failed to toggle all ports to {} from mux simulator".format(target_dut_hostname))
+    if not is_toggle_done:
+        logger.warning('All {} attempts failed, trying final extended timeout of 120s'.format(3))
+        if not utilities.wait_until(120, 10, 0, _check_toggle_done, duthosts, target_dut_hostname, probe=True):
+            if post_failures > 0:
+                pytest_assert(False, 
+                    "Failed to toggle all ports to {} from mux simulator - {} POST request failures, mux state verification failed".format(
+                        target_dut_hostname, post_failures))
+            else:
+                pytest_assert(False, 
+                    "Failed to toggle all ports to {} from mux simulator - POST requests succeeded but mux cables did not switch state".format(
+                        target_dut_hostname))
 
 
 @pytest.fixture
