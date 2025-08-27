@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SONiC Test Dashboard Portal</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .portal-container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.2em;
+        }
+        .subtitle {
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        .date-input-group {
+            margin-bottom: 30px;
+        }
+        .date-input-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .date-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            text-align: center;
+        }
+        .date-input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        .buttons-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+        .btn-success:hover {
+            background: #229954;
+        }
+        .status-message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+        .status-message.info {
+            background: #e3f2fd;
+            color: #1976d2;
+            border-left: 4px solid #2196f3;
+        }
+        .status-message.success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            border-left: 4px solid #4caf50;
+        }
+        .status-message.error {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #f44336;
+        }
+        .recent-dashboards {
+            margin-top: 30px;
+            text-align: left;
+        }
+        .recent-dashboards h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+        }
+        .dashboard-link {
+            display: block;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            color: #3498db;
+            text-decoration: none;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            transition: background 0.3s;
+        }
+        .dashboard-link:hover {
+            background: #e9ecef;
+        }
+        .server-badge {
+            background: #3498db;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="portal-container">
+        <h1>🧪 SONiC Dashboard Portal</h1>
+        <p class="subtitle">Test Results Analysis & Reporting</p>
+        
+        <div class="date-input-group">
+            <label for="testDate">Select Test Run Date:</label>
+            <input type="date" id="testDate" class="date-input" value="">
+        </div>
+        
+        <div class="buttons-group">
+            <button class="btn btn-primary" onclick="viewDashboard()">📊 View Dashboard</button>
+            <button class="btn btn-success" onclick="generateDashboard()">🔄 Generate New</button>
+            <button class="btn btn-secondary" onclick="listAvailable()">📋 List Available</button>
+        </div>
+        
+        <div id="statusMessage" class="status-message"></div>
+        
+        <div class="recent-dashboards">
+            <h3>Recent Dashboards</h3>
+            <div id="recentDashboardsList">
+                <p style="color: #7f8c8d; font-style: italic;">Loading...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Set default date to today
+        document.getElementById('testDate').value = new Date().toISOString().split('T')[0];
+        
+        function showMessage(message, type = 'info') {
+            const messageDiv = document.getElementById('statusMessage');
+            messageDiv.textContent = message;
+            messageDiv.className = `status-message ${type}`;
+            messageDiv.style.display = 'block';
+            
+            if (type !== 'error') {
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+        
+        async function viewDashboard() {
+            const date = document.getElementById('testDate').value;
+            if (!date) {
+                showMessage('Please select a test date', 'error');
+                return;
+            }
+            
+            showMessage('Checking for existing dashboard...', 'info');
+            
+            // Try to access dashboard directly
+            const servers = ['tst-esx-60', 'tst-esx-61', 'tst-esx-62'];
+            let found = false;
+            
+            for (const server of servers) {
+                const serverShort = server.replace('tst-esx-', 'tst');
+                const dashboardUrl = `dashboards/${date}/sonic_dashboard_${serverShort}_${date}.html`;
+                
+                try {
+                    const response = await fetch(dashboardUrl, { method: 'HEAD' });
+                    if (response.ok) {
+                        window.open(dashboardUrl, '_blank');
+                        showMessage(`Opening dashboard for ${server}`, 'success');
+                        found = true;
+                        break;
+                    }
+                } catch (e) {
+                    // Continue checking other servers
+                }
+            }
+            
+            if (!found) {
+                showMessage('No dashboard found for this date. Click "Generate New" to create one.', 'error');
+            }
+        }
+        
+        async function generateDashboard() {
+            const date = document.getElementById('testDate').value;
+            if (!date) {
+                showMessage('Please select a test date', 'error');
+                return;
+            }
+            
+            showMessage('Starting dashboard generation... This may take a few minutes.', 'info');
+            
+            try {
+                // Call generation API
+                const response = await fetch(`/api/generate?date=${date}`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    showMessage(result.message || 'Dashboard generation started', 'success');
+                    
+                    // Refresh recent dashboards list
+                    setTimeout(() => {
+                        loadRecentDashboards();
+                    }, 2000);
+                } else {
+                    throw new Error(`Generation failed: ${response.status}`);
+                }
+            } catch (error) {
+                showMessage(`Generation failed: ${error.message}. Try manual generation.`, 'error');
+            }
+        }
+        
+        async function listAvailable() {
+            showMessage('Loading available dashboards...', 'info');
+            await loadRecentDashboards();
+        }
+        
+        async function loadRecentDashboards() {
+            const listDiv = document.getElementById('recentDashboardsList');
+            
+            try {
+                const response = await fetch('/api/dashboards');
+                if (response.ok) {
+                    const dashboards = await response.json();
+                    
+                    if (dashboards.length === 0) {
+                        listDiv.innerHTML = '<p style="color: #7f8c8d; font-style: italic;">No dashboards available</p>';
+                        return;
+                    }
+                    
+                    listDiv.innerHTML = '';
+                    dashboards.forEach(dashboard => {
+                        const link = document.createElement('a');
+                        link.href = dashboard.url;
+                        link.className = 'dashboard-link';
+                        link.target = '_blank';
+                        link.innerHTML = `
+                            <span class="server-badge">${dashboard.server}</span>
+                            ${dashboard.date} - ${dashboard.stats}
+                        `;
+                        listDiv.appendChild(link);
+                    });
+                    
+                    showMessage(`Found ${dashboards.length} available dashboards`, 'success');
+                } else {
+                    throw new Error('Failed to load dashboard list');
+                }
+            } catch (error) {
+                listDiv.innerHTML = `
+                    <div class="dashboard-link">
+                        <span class="server-badge">tst60</span>
+                        2025-08-07 - 4583 tests, 99% pass rate
+                    </div>
+                    <p style="color: #7f8c8d; font-style: italic; margin-top: 10px;">
+                        API not available - showing sample data
+                    </p>
+                `;
+            }
+        }
+        
+        // Load recent dashboards on page load
+        window.addEventListener('load', () => {
+            loadRecentDashboards();
+        });
+    </script>
+</body>
+</html>
