@@ -16,6 +16,24 @@ logger = logging.getLogger(__name__)
 
 CUSTOMIZED_BGP_ROUTER_ID = "8.8.8.8"
 
+@pytest.fixture(scope="module", autouse=True)
+def enable_bgp_debug(duthosts):
+    cmd = ("vtysh "
+          "-c 'configure terminal' "
+          "-c 'debug zebra neigh' "
+          "-c 'debug bgp neighbor-event' "
+          "-c 'debug bgp update-groups' "
+          "-c 'debug bgp updates in' "
+          "-c 'debug bgp updates out' "
+          "-c 'debug bgp zebra' ")
+    for duthost in duthosts:
+        duthost.shell(cmd)
+
+
+@pytest.fixture(scope="module", autouse=True)
+def fixt_run_bgp_facts(duthost, enum_asic_index):
+    run_bgp_facts(duthost, enum_asic_index)
+
 
 def verify_bgp(enum_asic_index, duthost, expected_bgp_router_id, neighbor_type, nbrhosts):
     output = duthost.shell("show ip bgp summary", module_ignore_errors=True)["stdout"]
@@ -50,9 +68,6 @@ def verify_bgp(enum_asic_index, duthost, expected_bgp_router_id, neighbor_type, 
             
             interface_status = duthost.shell("show interface status", module_ignore_errors=True)["stdout"] 
             logger.error(f"Interface Status at failure:\n{interface_status}")
-            
-            recent_logs = duthost.shell("journalctl -u bgp --since '5 minutes ago' --no-pager", module_ignore_errors=True)["stdout"]
-            logger.error(f"Recent BGP service logs:\n{recent_logs}")
             
         except Exception as debug_err:
             logger.error(f"Failed to collect additional debug info: {debug_err}")

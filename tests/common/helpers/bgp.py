@@ -35,6 +35,8 @@ def collect_bgp_debug_info(duthost, neighbor_ip, namespace=None):
         "mux_state": "",
         "connectivity_test": "",
         "bgp_logs": "",
+        "frr_logs": "",
+        "zebra_logs": "",
         "state_db_info": {},
         "config_db_info": {}
     }
@@ -57,12 +59,13 @@ def collect_bgp_debug_info(duthost, neighbor_ip, namespace=None):
         debug_info["connectivity_test"] = duthost.shell(f"ping -c 3 {neighbor_ip}", module_ignore_errors=True)["stdout"]
         
         # BGP logs from container
-        debug_info["bgp_logs"] = duthost.shell("docker exec bgp tail -50 /var/log/frr/bgpd.log", module_ignore_errors=True)["stdout"]
+        debug_info["bgp_logs"] = duthost.shell("sudo tail -n 100 /var/log/frr/bgpd.log", module_ignore_errors=True)["stdout"]
+        debug_info["frr_logs"] = duthost.shell("docker exec bgp ls -l /var/log/frr && docker exec bgp tail -n 100 /var/log/frr/frr.log", module_ignore_errors=True)["stdout"]
+        debug_info["zebra_logs"] = duthost.shell("sudo tail -n 100 /var/log/frr/zebra.log", module_ignore_errors=True)["stdout"]
         
         # Detailed STATE_DB information
         state_commands = [
             f'{sonic_db_cmd} STATE_DB HGETALL "NEIGH_STATE_TABLE|{neighbor_ip}"',
-            f'{sonic_db_cmd} STATE_DB HGETALL "BGP_STATE_TABLE|{neighbor_ip}"',
             f'{sonic_db_cmd} STATE_DB KEYS "*{neighbor_ip}*"'
         ]
         
@@ -97,22 +100,26 @@ def run_bgp_facts(duthost, enum_asic_index):
     failed_neighbors = []
     
     for k, v in list(bgp_facts['bgp_neighbors'].items()):
+
+        debug_info = collect_bgp_debug_info(duthost, k, namespace)
+        logger.info(f"BGP DEBUG INFO for neighbor {k}:")
+        logger.info(f"Timestamp: {debug_info['timestamp']}")
+        logger.info(f"BGP Summary:\n{debug_info['bgp_summary']}")
+        logger.info(f"Neighbor Details:\n{debug_info['neighbor_details']}")
+        logger.info(f"Interface Status:\n{debug_info['interface_status']}")
+        logger.info(f"Routing Table:\n{debug_info['routing_table']}")
+        logger.info(f"MUX State:\n{debug_info['mux_state']}")
+        logger.info(f"Connectivity Test:\n{debug_info['connectivity_test']}")
+        logger.info(f"BGP Logs:\n{debug_info['bgp_logs']}")
+        logger.info(f"FRR Logs:\n{debug_info['frr_logs']}")
+        logger.info(f"ZEBRA Logs:\n{debug_info['zebra_logs']}")
+        logger.info(f"STATE_DB Info: {debug_info['state_db_info']}")
+        logger.info(f"CONFIG_DB Info: {debug_info['config_db_info']}")
+        
         # Verify bgp sessions are established
         if v['state'] != 'established':
             failed_neighbors.append(k)
-            debug_info = collect_bgp_debug_info(duthost, k, namespace)
-            logger.error(f"BGP DEBUG INFO for neighbor {k}:")
-            logger.error(f"Timestamp: {debug_info['timestamp']}")
-            logger.error(f"BGP Summary:\n{debug_info['bgp_summary']}")
-            logger.error(f"Neighbor Details:\n{debug_info['neighbor_details']}")
-            logger.error(f"Interface Status:\n{debug_info['interface_status']}")
-            logger.error(f"Routing Table:\n{debug_info['routing_table']}")
-            logger.error(f"MUX State:\n{debug_info['mux_state']}")
-            logger.error(f"Connectivity Test:\n{debug_info['connectivity_test']}")
-            logger.error(f"BGP Logs:\n{debug_info['bgp_logs']}")
-            logger.error(f"STATE_DB Info: {debug_info['state_db_info']}")
-            logger.error(f"CONFIG_DB Info: {debug_info['config_db_info']}")
-            
+
         assert v['state'] == 'established', (
             "BGP session not established for neighbor {}. Expected 'established', got '{}'."
         ).format(k, v['state'])
