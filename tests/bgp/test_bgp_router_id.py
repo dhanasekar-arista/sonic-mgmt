@@ -4,7 +4,7 @@ import re
 import time
 
 from tests.common.helpers.assertions import pytest_require, pytest_assert
-from tests.common.helpers.bgp import run_bgp_facts
+from tests.common.helpers.bgp import run_bgp_facts, collect_bgp_debug_info
 from tests.common.utilities import wait_until
 
 
@@ -31,8 +31,33 @@ def verify_bgp(enum_asic_index, duthost, expected_bgp_router_id, neighbor_type, 
         "BGP router id unexpected, expected: {}, actual: {}. "
     ).format(expected_bgp_router_id, match.group(1)))
 
+    # Collect pre-test state for debugging
+    logger.info(f"Pre-BGP verification - DUT: {duthost.hostname}, Router ID: {expected_bgp_router_id}")
+    logger.info(f"BGP Summary before verification:\n{output}")
+    
     # Verify BGP sessions are established
-    run_bgp_facts(duthost, enum_asic_index)
+    try:
+        run_bgp_facts(duthost, enum_asic_index)
+    except AssertionError as e:
+        # Additional context collection on BGP failure
+        logger.error(f"BGP verification failed on {duthost.hostname}")
+        logger.error(f"Testbed topology info: {duthost.get_facts().get('ansible_facts', {}).get('topo_type', 'unknown')}")
+        
+        # Collect system-wide debug info on failure
+        try:
+            mux_status = duthost.shell("show mux status", module_ignore_errors=True)["stdout"]
+            logger.error(f"MUX Status at failure:\n{mux_status}")
+            
+            interface_status = duthost.shell("show interface status", module_ignore_errors=True)["stdout"] 
+            logger.error(f"Interface Status at failure:\n{interface_status}")
+            
+            recent_logs = duthost.shell("journalctl -u bgp --since '5 minutes ago' --no-pager", module_ignore_errors=True)["stdout"]
+            logger.error(f"Recent BGP service logs:\n{recent_logs}")
+            
+        except Exception as debug_err:
+            logger.error(f"Failed to collect additional debug info: {debug_err}")
+        
+        raise
 
     # Verify from peer device side to check
     if neighbor_type not in ["sonic", "eos"]:

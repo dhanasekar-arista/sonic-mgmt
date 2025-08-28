@@ -4,6 +4,8 @@ import requests
 
 from tests.common.utilities import wait_tcp_connection
 
+logger = logging.getLogger(__name__)
+
 
 NEIGHBOR_SAVE_DEST_TMPL = "/tmp/neighbor_%s.j2"
 BGP_SAVE_DEST_TMPL = "/tmp/bgp_%s.j2"
@@ -20,6 +22,70 @@ def _write_variable_from_j2_to_configdb(duthost, template_file, **kwargs):
         duthost.file(path=save_dest_path, state="absent")
 
 
+def collect_bgp_debug_info(duthost, neighbor_ip, namespace=None):
+    """Collect comprehensive debug information for BGP neighbor failures"""
+    sonic_db_cmd = "sonic-db-cli {}".format("-n " + namespace if namespace else "")
+    debug_info = {
+        "neighbor_ip": neighbor_ip,
+        "timestamp": duthost.shell("date", module_ignore_errors=True)["stdout"],
+        "bgp_summary": "",
+        "neighbor_details": "",
+        "interface_status": "",
+        "routing_table": "",
+        "mux_state": "",
+        "connectivity_test": "",
+        "bgp_logs": "",
+        "state_db_info": {},
+        "config_db_info": {}
+    }
+    
+    try:
+        # BGP summary and neighbor details
+        debug_info["bgp_summary"] = duthost.shell("show ip bgp summary", module_ignore_errors=True)["stdout"]
+        debug_info["neighbor_details"] = duthost.shell(f"show ip bgp neighbor {neighbor_ip}", module_ignore_errors=True)["stdout"]
+        
+        # Interface status for potential BGP connection issues
+        debug_info["interface_status"] = duthost.shell("show interface status", module_ignore_errors=True)["stdout"]
+        
+        # Routing table to check reachability 
+        debug_info["routing_table"] = duthost.shell(f"ip route get {neighbor_ip}", module_ignore_errors=True)["stdout"]
+        
+        # MUX state information for dual ToR scenarios
+        debug_info["mux_state"] = duthost.shell("show mux status", module_ignore_errors=True)["stdout"]
+        
+        # Test connectivity to neighbor
+        debug_info["connectivity_test"] = duthost.shell(f"ping -c 3 {neighbor_ip}", module_ignore_errors=True)["stdout"]
+        
+        # BGP logs from container
+        debug_info["bgp_logs"] = duthost.shell("docker exec bgp tail -50 /var/log/frr/bgpd.log", module_ignore_errors=True)["stdout"]
+        
+        # Detailed STATE_DB information
+        state_commands = [
+            f'{sonic_db_cmd} STATE_DB HGETALL "NEIGH_STATE_TABLE|{neighbor_ip}"',
+            f'{sonic_db_cmd} STATE_DB HGETALL "BGP_STATE_TABLE|{neighbor_ip}"',
+            f'{sonic_db_cmd} STATE_DB KEYS "*{neighbor_ip}*"'
+        ]
+        
+        for cmd in state_commands:
+            result = duthost.shell(cmd, module_ignore_errors=True)
+            debug_info["state_db_info"][cmd] = result["stdout"]
+            
+        # CONFIG_DB information
+        config_commands = [
+            f'{sonic_db_cmd} CONFIG_DB HGETALL "BGP_NEIGHBOR|{neighbor_ip}"',
+            f'{sonic_db_cmd} CONFIG_DB KEYS "*BGP*"'
+        ]
+        
+        for cmd in config_commands:
+            result = duthost.shell(cmd, module_ignore_errors=True)
+            debug_info["config_db_info"][cmd] = result["stdout"]
+            
+    except Exception as e:
+        debug_info["error"] = f"Debug collection failed: {str(e)}"
+        
+    return debug_info
+
+
 def run_bgp_facts(duthost, enum_asic_index):
     """compare the bgp facts between observed states and target state"""
 
@@ -27,34 +93,65 @@ def run_bgp_facts(duthost, enum_asic_index):
     namespace = duthost.get_namespace_from_asic_id(enum_asic_index)
     config_facts = duthost.config_facts(host=duthost.hostname, source="running", namespace=namespace)['ansible_facts']
     sonic_db_cmd = "sonic-db-cli {}".format("-n " + namespace if namespace else "")
+    
+    failed_neighbors = []
+    
     for k, v in list(bgp_facts['bgp_neighbors'].items()):
         # Verify bgp sessions are established
+        if v['state'] != 'established':
+            failed_neighbors.append(k)
+            debug_info = collect_bgp_debug_info(duthost, k, namespace)
+            logger.error(f"BGP DEBUG INFO for neighbor {k}:")
+            logger.error(f"Timestamp: {debug_info['timestamp']}")
+            logger.error(f"BGP Summary:\n{debug_info['bgp_summary']}")
+            logger.error(f"Neighbor Details:\n{debug_info['neighbor_details']}")
+            logger.error(f"Interface Status:\n{debug_info['interface_status']}")
+            logger.error(f"Routing Table:\n{debug_info['routing_table']}")
+            logger.error(f"MUX State:\n{debug_info['mux_state']}")
+            logger.error(f"Connectivity Test:\n{debug_info['connectivity_test']}")
+            logger.error(f"BGP Logs:\n{debug_info['bgp_logs']}")
+            logger.error(f"STATE_DB Info: {debug_info['state_db_info']}")
+            logger.error(f"CONFIG_DB Info: {debug_info['config_db_info']}")
+            
         assert v['state'] == 'established', (
-            "BGP session not established for neighbor. Expected 'established', got '{}'."
-        ).format(v['state'])
+            "BGP session not established for neighbor {}. Expected 'established', got '{}'."
+        ).format(k, v['state'])
+        
         # Verify local ASNs in bgp sessions
         assert v['local AS'] == int(config_facts['DEVICE_METADATA']['localhost']['bgp_asn'].encode().decode("utf-8")), (
-            "Local AS mismatch for neighbor. Expected '{}', got '{}'."
+            "Local AS mismatch for neighbor {}. Expected '{}', got '{}'."
         ).format(
+            k,
             int(config_facts['DEVICE_METADATA']['localhost']['bgp_asn'].encode().decode("utf-8")),
             v['local AS']
         )
+        
         # Check bgpmon functionality by validate STATE DB contains this neighbor as well
         state_fact = duthost.shell('{} STATE_DB HGET "NEIGH_STATE_TABLE|{}" "state"'
                                    .format(sonic_db_cmd, k), module_ignore_errors=False)['stdout_lines']
         peer_type = duthost.shell('{} STATE_DB HGET "NEIGH_STATE_TABLE|{}" "peerType"'
                                   .format(sonic_db_cmd, k),
                                   module_ignore_errors=False)['stdout_lines']
+        
+        # Enhanced debug for STATE_DB mismatches
+        if state_fact[0] != "Established":
+            debug_info = collect_bgp_debug_info(duthost, k, namespace)
+            logger.error(f"STATE_DB BGP DEBUG INFO for neighbor {k}:")
+            logger.error(f"Expected: Established, Got: {state_fact[0]}")
+            logger.error(f"Full debug info: {debug_info}")
+            
         assert state_fact[0] == "Established", (
-            "BGP neighbor state in STATE_DB is not 'Established' for neighbor. "
-            "Expected: 'Established', got: '{}'."
+            "BGP neighbor state in STATE_DB is not 'Established' for neighbor {}. "
+            "Expected: 'Established', got: '{}'. Debug info collected above."
         ).format(
+            k,
             state_fact[0] if state_fact else "No state found"
         )
         assert peer_type[0] == ("i-BGP" if v['remote AS'] == v['local AS'] else "e-BGP"), (
-            "BGP peer type mismatch for neighbor. "
+            "BGP peer type mismatch for neighbor {}. "
             "Expected '{}', got '{}'."
         ).format(
+            k,
             "i-BGP" if v['remote AS'] == v['local AS'] else "e-BGP",
             peer_type[0] if peer_type else "No peer type found"
         )
