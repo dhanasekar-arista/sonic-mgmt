@@ -22,7 +22,9 @@ pip3 install requests unidiff rich pyyaml
 
 ### GitHub Access (for PR creation)
 1. **Personal Access Token**: Generate at `https://github.com/settings/tokens`
-2. **Permissions Required**: `repo`, `workflow`
+2. **Permissions Required**: 
+   - ✅ **`repo`** - Required to create branches, push code, and open PRs
+   - ✅ **`workflow`** - SONiC repos have GitHub Actions triggered by PRs. Without this permission, PRs might fail to trigger builds/tests
 3. **Fork Repositories**: Fork `sonic-net/sonic-buildimage`, `sonic-net/sonic-utilities`, etc.
 
 ## 🔧 Setup
@@ -117,14 +119,18 @@ Mapped cleanup_crashkernel_from_kernel_cmdline_append_file.patch → sonic-utili
 
 ## ⚙️ Configuration
 
-### Repository Mapping
-Edit `component_map.yml` to control which patches go to which SONiC repository:
+### Automatic Repository Detection
+The tools automatically detect target repository and branch from patch file paths:
 
-```yaml
-# Maps file paths in patches to target repositories
-orchagent/: sonic-swss
-scripts/sonic-kdump-config: sonic-utilities
-build_image.sh: sonic-buildimage
+```
+patches/<branch-name>/<repo-name>/<patch-name>
+
+Examples:
+patches/master/sonic-buildimage/enable_kdump_by_default.patch
+→ Creates PR against master branch in sonic-buildimage
+
+patches/msft-202405/sonic-mgmt/add-macsec-test.patch
+→ Creates PR against msft-202405 branch in sonic-mgmt
 ```
 
 ### Advanced Options
