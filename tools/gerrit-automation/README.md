@@ -131,7 +131,6 @@ Mapped cleanup_crashkernel_from_kernel_cmdline_append_file.patch → sonic-utili
 - **`gerrit_review_plugin.py`** - Base code review plugin with diff analysis
 - **`gerrit_to_pr.py`** - Standalone script for creating GitHub PRs from Gerrit
 - **`gerrit_config.json`** - Configuration template for Gerrit credentials
-- **`component_map.yml`** - Maps patch paths to SONiC repositories
 - **`requirements_gerrit.txt`** - Python dependencies
 
 ## ⚙️ Configuration

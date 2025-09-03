@@ -1,0 +1,14 @@
+SONiC Dashboard Management Server
+=================================
+Starting on port 8085
+Dashboard directory: /Users/dhanasekar/Documents/GitHub/sonic-mgmt/tools/dashboard/dashboards
+
+Available endpoints:
+  GET  /api/dashboards       - List available dashboards
+  POST /api/generate?date=X  - Generate dashboard for date
+  GET  /api/health           - Health check
+  GET  /dashboards/*         - Serve dashboard files
+
+Access portal: http://localhost:8085/index.html
+
+Server error: [Errno 48] Address already in use
