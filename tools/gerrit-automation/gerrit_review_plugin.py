@@ -21,17 +21,26 @@ from pathlib import Path
 
 # Enhanced diff analysis dependencies
 try:
-    from sonic_rule_engine import RuleEngine, KnowledgeBase
-    RULE_ENGINE_AVAILABLE = True
-except ImportError:
-    RULE_ENGINE_AVAILABLE = False
-    print("Warning: sonic_rule_engine not available. Functional analysis disabled.")
-try:
     from unidiff import PatchSet
     UNIDIFF_AVAILABLE = True
 except ImportError:
     UNIDIFF_AVAILABLE = False
     print("Warning: unidiff not available. Install with: pip install unidiff")
+
+# Try to import rule engine from multiple locations
+RULE_ENGINE_AVAILABLE = False
+try:
+    from sonic_rule_engine import RuleEngine, KnowledgeBase
+    RULE_ENGINE_AVAILABLE = True
+except ImportError:
+    try:
+        import sys
+        import os
+        sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+        from sonic_rule_engine import RuleEngine, KnowledgeBase
+        RULE_ENGINE_AVAILABLE = True
+    except ImportError:
+        print("Warning: sonic_rule_engine not available. Functional analysis disabled.")
 
 try:
     from rich.console import Console
@@ -135,23 +144,40 @@ class GerritClient:
             elif response_text.startswith(")]}' "):
                 response_text = response_text[5:]
             
+            # Debug: Show raw response info
+            print(f"DEBUG: Response length: {len(response_text)}, starts with: {repr(response_text[:50])}")
+            
             # Check if content is already plain text (not base64)
             if response_text.startswith(('#', 'From:', 'diff', '---', '+++')):
                 # Content is already plain text
                 return response_text
             
-            # Try base64 decoding
+            # Try base64 decoding first
             try:
                 # Fix base64 padding if needed
                 missing_padding = len(response_text) % 4
                 if missing_padding:
                     response_text += '=' * (4 - missing_padding)
                 
-                return base64.b64decode(response_text).decode('utf-8')
+                decoded = base64.b64decode(response_text).decode('utf-8')
+                print(f"DEBUG: Successfully base64 decoded content")
+                return decoded
             except Exception as e:
-                # If base64 fails, assume it's plain text
-                print(f"DEBUG: Base64 decode failed, treating as plain text: {e}")
-                return response_text
+                print(f"DEBUG: Base64 decode failed: {e}")
+                
+                # Try treating as raw text with encoding fixes
+                try:
+                    # Handle various encoding issues
+                    if isinstance(response_text, bytes):
+                        return response_text.decode('utf-8', errors='replace')
+                    else:
+                        # Try to fix common encoding issues
+                        fixed_text = response_text.encode('latin1').decode('utf-8', errors='replace')
+                        return fixed_text
+                except Exception as e2:
+                    print(f"DEBUG: Encoding fix failed: {e2}")
+                    # Last resort - return as-is and let caller handle
+                    return response_text
         else:
             print(f"DEBUG: Failed to get {file_path}: {response.status_code} - {response.text[:200]}")
             raise Exception(f"Failed to get file content: {response.status_code}")
@@ -198,14 +224,6 @@ class SONiCCodeReviewer:
             ],
             'required_markers': ['@pytest.mark.topology']
         }
-        
-        # Initialize functional analysis components
-        if RULE_ENGINE_AVAILABLE:
-            self.knowledge_base = KnowledgeBase()
-            self.rule_engine = RuleEngine(self.knowledge_base)
-        else:
-            self.knowledge_base = None
-            self.rule_engine = None
     
     def _generate_diffstat(self, files: Dict[str, str]) -> List[DiffStat]:
         """Generate diffstat information for patch files"""
@@ -299,27 +317,8 @@ class SONiCCodeReviewer:
         
         return preview
 
-    def _run_functional_analysis(self, files: Dict[str, str]) -> List[ReviewComment]:
-        """Run SONiC-aware functional analysis on patch files"""
-        functional_comments = []
-        
-        if not self.rule_engine:
-            return functional_comments
-        
-        for file_path, content in files.items():
-            if not file_path.endswith('.patch'):
-                continue
-            
-            # Parse patch with unidiff for functional analysis
-            patch_set = self._parse_patch_with_unidiff(content)
-            if patch_set:
-                rule_comments = self.rule_engine.analyze_patchset(patch_set)
-                functional_comments.extend(rule_comments)
-        
-        return functional_comments
-
     def review_sonic_patch(self, files: Dict[str, str]) -> ReviewResult:
-        """Review SONiC patch files with enhanced functional analysis"""
+        """Review SONiC patch files with enhanced visualization"""
         comments = []
         score = 0
         issues = []
@@ -330,7 +329,6 @@ class SONiCCodeReviewer:
         patch_files = 0
         python_files = 0
         
-        # Run syntax/style analysis (existing)
         for file_path, content in files.items():
             file_comments = self._review_file(file_path, content)
             comments.extend(file_comments)
@@ -343,17 +341,12 @@ class SONiCCodeReviewer:
             if file_path.endswith('.py'):
                 python_files += 1
         
-        # Run functional analysis (new)
-        functional_comments = self._run_functional_analysis(files)
-        comments.extend(functional_comments)
-        
         # Generate diffstats for better understanding
         diffstats = self._generate_diffstat(files)
         
         # Calculate overall score based on issues found
         error_count = len([c for c in comments if c.severity == 'error'])
         warning_count = len([c for c in comments if c.severity == 'warning'])
-        info_count = len([c for c in comments if c.severity == 'info'])
         
         if error_count > 0:
             score = -1
@@ -368,25 +361,8 @@ class SONiCCodeReviewer:
             score = +1
             issues.append("Code looks good!")
         
-        # Create enhanced summary with functional insights
-        message = "🤖 **SONiC Functional Code Review**\n\n"
-        
-        # Add functional analysis summary
-        if self.rule_engine and functional_comments:
-            func_errors = len([c for c in functional_comments if c.severity == 'error'])
-            func_warnings = len([c for c in functional_comments if c.severity == 'warning'])
-            func_info = len([c for c in functional_comments if c.severity == 'info'])
-            
-            message += "**🔍 Functional Analysis:**\n"
-            if func_errors > 0:
-                message += f"- 🚨 {func_errors} architectural issues\n"
-            if func_warnings > 0:
-                message += f"- ⚠️ {func_warnings} design concerns\n"
-            if func_info > 0:
-                message += f"- ℹ️ {func_info} recommendations\n"
-            if func_errors == 0 and func_warnings == 0:
-                message += "- ✅ No architectural issues detected\n"
-            message += "\n"
+        # Create clean summary 
+        message = "Automated SONiC Code Review\n\n"
         
         # Add diff preview for patches
         diff_preview = self._create_markdown_diff_preview(files)
@@ -394,7 +370,7 @@ class SONiCCodeReviewer:
             message += diff_preview
         
         if issues:
-            message += "**📊 Overall Assessment:**\n" + "\n".join(f"- {issue}" for issue in issues)
+            message += "🔍 **Analysis:**\n" + "\n".join(f"- {issue}" for issue in issues)
         
         return ReviewResult(score=score, message=message, comments=comments, diffstats=diffstats)
     
@@ -567,26 +543,61 @@ class SONiCCodeReviewer:
             return None
         
         try:
-            # The content may have embedded \n characters that need to be converted to actual newlines
-            if '\\n' in content and '\n' not in content:
-                content = content.replace('\\n', '\n')
+            # Debug: Show what we're trying to parse
+            print(f"DEBUG: Parsing content length: {len(content)}")
+            print(f"DEBUG: Content preview: {repr(content[:200])}")
             
-            # Clean up the content first - extract just the diff parts
-            lines = content.split('\n')
+            # Handle multiple potential content formats
+            cleaned_content = content
+            
+            # Fix embedded newlines
+            if '\\n' in cleaned_content:
+                cleaned_content = cleaned_content.replace('\\n', '\n')
+                print(f"DEBUG: Fixed embedded newlines")
+            
+            # Handle JSON-escaped content
+            if cleaned_content.startswith('"') and cleaned_content.endswith('"'):
+                import json
+                try:
+                    cleaned_content = json.loads(cleaned_content)
+                    print(f"DEBUG: Unescaped JSON content")
+                except:
+                    pass
+            
+            # Split into lines and find diff section
+            lines = cleaned_content.split('\n')
             diff_start = -1
             
-            # Find where the actual diff starts
+            # Find where the actual diff starts - be more flexible
             for i, line in enumerate(lines):
-                if line.startswith('diff --git') or (line.startswith('---') and i + 1 < len(lines) and lines[i + 1].startswith('+++')):
+                if (line.startswith('diff --git') or 
+                    line.startswith('--- a/') or 
+                    line.startswith('+++ b/') or
+                    (line.startswith('---') and i + 1 < len(lines) and lines[i + 1].startswith('+++'))):
                     diff_start = i
+                    print(f"DEBUG: Found diff start at line {i}: {line[:50]}")
                     break
             
             if diff_start == -1:
-                print(f"DEBUG: No diff section found in patch")
-                return None
+                print(f"DEBUG: No diff section found. Looking for alternative patterns...")
+                # Try to find any +/- lines that indicate a diff
+                for i, line in enumerate(lines):
+                    if line.startswith(('+', '-')) and not line.startswith(('+++', '---')):
+                        print(f"DEBUG: Found potential diff content at line {i}")
+                        # Look backwards for file header
+                        for j in range(max(0, i-10), i):
+                            if 'a/' in lines[j] and 'b/' in lines[j]:
+                                diff_start = j
+                                break
+                        break
+                
+                if diff_start == -1:
+                    print(f"DEBUG: No diff patterns found in content")
+                    return None
             
             # Extract only the diff portion
             diff_content = '\n'.join(lines[diff_start:])
+            print(f"DEBUG: Extracted diff content length: {len(diff_content)}")
             
             # Ensure proper line endings for unidiff
             diff_lines = diff_content.splitlines(keepends=True)

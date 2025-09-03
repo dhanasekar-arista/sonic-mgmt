@@ -54,12 +54,12 @@ export GH_TOKEN="your_github_token"
 
 ## 📖 Usage
 
-### Code Review Only
+### Functional Code Review (Recommended)
 ```bash
-# Review a Gerrit change
-python3 gerrit_review_plugin.py --change-id 459604 --config gerrit_config.json
+# Enhanced functional review with SONiC architecture analysis
+python3 gerrit_functional_review.py --change-id 459604 --config gerrit_config.json
 
-# Review and submit to Gerrit
+# Basic syntax review only
 python3 gerrit_review_plugin.py --change-id 459604 --config gerrit_config.json --submit
 ```
 
@@ -85,14 +85,20 @@ python3 gerrit_to_pr.py --change 459604 --token $GH_TOKEN --config gerrit_config
 
 ## 🎯 Example Output
 
-### Code Review
+### Functional Code Review
 ```
-🧠 Code Understanding:
-- Patch `enable_kdump_by_default.patch`: Enable kdump by default, modifies build script build_image.sh, (+5/-2 lines)
-- Patch `cleanup_crashkernel_from_kernel_cmdline_append_file.patch`: Cleanup crashkernel from kernel-cmdline-append, adds functions: disable_kdump_from_kernel_cmdline_append, (+31/-3 lines)
+🤖 SONiC Functional Code Review
 
-🔍 Analysis:
-- Code looks good!
+🔍 Functional Analysis:
+- ℹ️ 2 recommendations
+
+### enable_kdump_by_default.patch
+build_image.sh (+7/-2 lines)
+- Adds crashkernel memory allocation: 0M-2G:256M,2G-4G:320M,4G-8G:384M,8G-:448M
+- Fixes FIPS parameter formatting to avoid newline issues
+
+Functional Comments:
+- build_image.sh:15 [info] Kernel boot parameter modification detected. Verify crashkernel allocation suits target hardware memory profiles.
 ```
 
 ### Draft PR Creation
@@ -111,8 +117,10 @@ Mapped cleanup_crashkernel_from_kernel_cmdline_append_file.patch → sonic-utili
 
 ## 📁 Files
 
-- **`gerrit_review_plugin.py`** - Main code review plugin with AI analysis
+- **`gerrit_functional_review.py`** - Enhanced functional review plugin with SONiC architecture awareness
+- **`gerrit_review_plugin.py`** - Base code review plugin with diff analysis
 - **`gerrit_to_pr.py`** - Standalone script for creating GitHub PRs from Gerrit
+- **`sonic_rule_engine.py`** - SONiC knowledge base and functional rule system
 - **`gerrit_config.json`** - Configuration template for Gerrit credentials
 - **`component_map.yml`** - Maps patch paths to SONiC repositories
 - **`requirements_gerrit.txt`** - Python dependencies

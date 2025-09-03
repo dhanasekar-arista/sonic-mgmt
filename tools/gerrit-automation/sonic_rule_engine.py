@@ -373,11 +373,10 @@ def self_test():
 index 111..222 100644
 --- a/scripts/warm-reboot
 +++ b/scripts/warm-reboot
-@@ -1,3 +1,4 @@
+@@ -1,2 +1,3 @@
  #!/bin/bash
--exec reboot now
 +import redis
-+exec reboot now
+ exec reboot now
 """
         
         patch = PatchSet(demo_diff.splitlines(keepends=True))
