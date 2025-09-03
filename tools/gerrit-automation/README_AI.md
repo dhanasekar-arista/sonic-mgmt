@@ -165,10 +165,23 @@ amp logout && amp login
 
 ### Gemini API Issues  
 ```bash
-# Verify API key
+# Use the diagnostic tool to check API setup
+python3 test_gemini_api.py YOUR_API_KEY
+
+# Manual API test
 curl -H "Content-Type: application/json" \
   "https://generativelanguage.googleapis.com/v1beta/models?key=YOUR_API_KEY"
 ```
+
+**Common Gemini API Issues:**
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| `Invalid API key format` | Key doesn't start with 'AIza' | Get new key from [Google AI Studio](https://makersuite.google.com/app/apikey) |
+| `API key not valid` | Key is wrong/expired | Generate new API key |
+| `API has not been used` | Key never activated | Make test request in AI Studio first |
+| `PERMISSION_DENIED` | API not enabled | Enable [Generative AI API](https://console.cloud.google.com/apis/api/generativelanguage.googleapis.com) |
+| `404 Not Found` | Wrong model name | Tool tries multiple models automatically |
 
 ### Gerrit Authentication
 ```bash

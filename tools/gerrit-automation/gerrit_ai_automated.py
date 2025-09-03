@@ -169,14 +169,19 @@ Provide:
 
 End your response with 'SCORE: +1' or 'SCORE: -1' or 'SCORE: 0'"""
 
-        try:
-            # Call Gemini API (Google AI Studio API)
-            headers = {
-                'Content-Type': 'application/json'
-            }
-            
-            # Gemini API endpoint
-            url = f'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={self.api_key}'
+        # Try multiple Gemini models starting with latest
+        models = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-pro']
+        
+        for model in models:
+            try:
+                print(f"🤖 Trying Gemini model: {model}")
+                
+                # Call Gemini API (Google AI Studio API)
+                headers = {
+                    'Content-Type': 'application/json'
+                }
+                
+                url = f'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={self.api_key}'
             
             data = {
                 'contents': [{
@@ -206,10 +211,25 @@ End your response with 'SCORE: +1' or 'SCORE: -1' or 'SCORE: 0'"""
                 else:
                     return "Gemini API: No response content", 0
             else:
-                return f"Gemini API error: {response.status_code}", 0
+                # Add detailed error info for debugging
+                error_info = f"Gemini API error: {response.status_code}"
+                try:
+                    error_detail = response.json()
+                    if 'error' in error_detail:
+                        error_info += f" - {error_detail['error'].get('message', 'Unknown error')}"
+                except:
+                    error_info += f" - {response.text[:100]}"
                 
-        except Exception as e:
-            return f"Gemini analysis failed: {str(e)}", 0
+                # Continue to next model if this one fails
+                print(f"❌ Model {model} failed: {response.status_code}")
+                continue
+                    
+            except Exception as e:
+                print(f"❌ Model {model} exception: {e}")
+                continue
+        
+        # All models failed
+        return "Gemini API: All models failed or API key invalid", 0
 
 def check_existing_prs(change_id: str, github_token: str) -> list:
     """Check for existing PRs for this Gerrit change"""
@@ -271,13 +291,7 @@ def create_draft_prs(change_id: str, github_token: str, config_file: str) -> lis
     print(f"🔧 Config file: {config_file}")
     print(f"🔧 Change ID: {change_id}")
     
-    # First check for existing PRs
-    existing_prs = check_existing_prs(change_id, github_token)
-    if existing_prs:
-        print(f"📋 Found {len(existing_prs)} existing PR(s)")
-        return existing_prs
-    
-    # If no existing PRs, create new ones
+    # Always try to create PRs - gerrit_to_pr.py will handle per-repo logic
     try:
         # Check if gerrit_to_pr.py exists
         if not os.path.exists('gerrit_to_pr.py'):
@@ -289,14 +303,38 @@ def create_draft_prs(change_id: str, github_token: str, config_file: str) -> lis
                '--token', github_token, '--config', config_file]
         print(f"🔧 Command: {' '.join(cmd)}")
         
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        result = subprocess.run(cmd, capture_output=True, text=True)
         
+        # Read PR URLs from temp file instead of parsing stdout
+        temp_file = f"/tmp/pr_urls_{change_id}.json"
         pr_urls = []
-        for line in result.stdout.split('\\n'):
-            if 'https://github.com/' in line and '/pull/' in line:
-                pr_urls.append(line.strip())
         
-        return pr_urls
+        try:
+            if os.path.exists(temp_file):
+                with open(temp_file, 'r') as f:
+                    data = json.load(f)
+                    pr_urls = data.get('pr_urls', [])
+                
+                # Clean up temp file
+                os.remove(temp_file)
+                
+                if pr_urls:
+                    print(f"✅ Read {len(pr_urls)} PR URLs from temp file")
+                    return pr_urls
+        
+        except Exception as e:
+            print(f"❌ Failed to read PR URLs from temp file: {e}")
+        
+        # Fallback: check for errors in subprocess output
+        if result.returncode != 0:
+            print(f"❌ PR Creation Error:")
+            print(f"   Return code: {result.returncode}")
+            if "401" in result.stdout or "Unauthorized" in result.stdout:
+                print("🔑 GitHub Authentication Error - Invalid token")
+            elif "404" in result.stdout:
+                print("🔍 Repository not found")
+        
+        return []
         
     except subprocess.CalledProcessError as e:
         print(f"❌ PR Creation Error:")
@@ -389,23 +427,37 @@ def main():
             print("🔧 Processing draft PRs...")
             github_token = args.github_token or config.get('github_token')
             
-            # The create_draft_prs function now handles existing PR detection
-            pr_urls = create_draft_prs(args.change_id, github_token, args.config)
-            if pr_urls:
-                # Check if we found existing PRs or created new ones
-                existing_count = len(check_existing_prs(args.change_id, github_token))
-                if existing_count > 0 and existing_count == len(pr_urls):
-                    pr_status = f"\\n\\n**🔗 Existing PRs Found:**\\n" + "\\n".join(f"- {url}" for url in pr_urls)
+            # Check for existing PRs first
+            existing_prs = check_existing_prs(args.change_id, github_token)
+            
+            # Try to create new PRs (gerrit_to_pr.py handles per-repo logic)
+            new_pr_urls = create_draft_prs(args.change_id, github_token, args.config)
+            
+            # Combine existing and newly created PRs
+            all_pr_urls = list(set(existing_prs + new_pr_urls))  # Remove duplicates
+            
+            if all_pr_urls:
+                # Clean PR status for Gerrit comment (no debug details)
+                pr_status = f"\\n\\n**🚀 Draft PRs:**\\n" + "\\n".join(f"- {url}" for url in all_pr_urls)
+                
+                # Console output with details (not in Gerrit comment)
+                if existing_prs and new_pr_urls:
+                    print(f"📊 PR Summary: {len(existing_prs)} existing + {len(new_pr_urls)} newly created = {len(all_pr_urls)} total")
+                elif existing_prs:
+                    print(f"📊 PR Summary: {len(existing_prs)} existing PRs found")
                 else:
-                    pr_status = f"\\n\\n**🚀 Draft PRs Created:**\\n" + "\\n".join(f"- {url}" for url in pr_urls)
+                    print(f"📊 PR Summary: {len(new_pr_urls)} new PRs created")
             else:
-                pr_status = "\\n\\n**❌ Draft PRs:** Creation failed or no GitHub token"
+                pr_status = "\\n\\n**❌ Draft PRs:** Creation failed"
         
         # Submit to Gerrit if requested
         if args.submit:
             print("🚀 Submitting AI review to Gerrit...")
             
-            final_message = f"🤖 **{args.ai_provider.upper()} AI-Powered SONiC Review**\\n\\n{ai_analysis}{pr_status}"
+            # Clean up AI analysis for Gerrit (remove debug formatting)
+            clean_analysis = ai_analysis.replace("\\n\\n", "\\n").replace("**🔮 Oracle AI Analysis:**\\n\\n", "")
+            
+            final_message = f"🤖 **{args.ai_provider.upper()} AI Review**\\n\\n{clean_analysis}{pr_status}"
             
             success = gerrit_client.submit_review(args.change_id, revision_id, final_message, ai_score)
             if success:
