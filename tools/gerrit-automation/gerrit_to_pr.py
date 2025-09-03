@@ -44,6 +44,8 @@ class GerritToPRConverter:
         
         # Component mapping - order matters (most specific first)
         self.component_map = {
+            'tests/macsec/': 'sonic-mgmt',
+            'tests/': 'sonic-mgmt',
             'orchagent/': 'sonic-swss',
             'cfgmgr/': 'sonic-swss', 
             'syncd/': 'sonic-swss',
@@ -59,8 +61,7 @@ class GerritToPRConverter:
             'Makefile': 'sonic-buildimage',
             'sonic-buildimage': 'sonic-buildimage',
             'sonic-swss': 'sonic-swss',
-            'sonic-mgmt': 'sonic-mgmt',
-            'tests/': 'sonic-mgmt'
+            'sonic-mgmt': 'sonic-mgmt'
         }
     
     def gerrit_get(self, endpoint: str) -> Dict:
@@ -128,8 +129,26 @@ class GerritToPRConverter:
         print(f"DEBUG: Total patches found: {len(all_patches)}")
         return all_patches
     
-    def determine_target_repo(self, patch_content: str) -> str:
-        """Determine which SONiC repository this patch should go to"""
+    def parse_patch_path(self, patch_file_path: str) -> Tuple[str, str]:
+        """Parse patch file path to extract branch and repository
+        
+        Expected format: patches/<branch-name>/<repo-name>/<patch-name>
+        Example: patches/msft-202405/sonic-mgmt/add-macsec-profile-replace-test.patch
+        
+        Returns: (branch_name, repo_name)
+        """
+        path_parts = patch_file_path.split('/')
+        
+        if len(path_parts) >= 4 and path_parts[0] == 'patches':
+            branch_name = path_parts[1]
+            repo_name = path_parts[2]
+            return branch_name, repo_name
+        
+        # Fallback for old format
+        return 'master', self.determine_target_repo_legacy(patch_file_path)
+    
+    def determine_target_repo_legacy(self, patch_content: str) -> str:
+        """Legacy method to determine repository from patch content"""
         for key, repo in self.component_map.items():
             if key in patch_content:
                 return repo
@@ -146,7 +165,7 @@ class GerritToPRConverter:
         else:
             return subprocess.run(cmd, cwd=cwd, check=True)
     
-    def create_github_pr(self, repo: str, branch: str, patches: List[Tuple[str, str]], change_id: str) -> str:
+    def create_github_pr(self, repo: str, target_branch: str, feature_branch: str, patches: List[Tuple[str, str]], change_id: str) -> str:
         """Create or update GitHub PR"""
         
         # Prepare PR data
@@ -156,6 +175,7 @@ class GerritToPRConverter:
             title = f"SONiC patches from Gerrit change {change_id}"
         
         body = f"Automatically generated from Arista Gerrit change [{change_id}]({self.gerrit_url}/c/{change_id}).\n\n"
+        body += f"**Target branch:** {target_branch}\n\n"
         body += "**Patches included:**\n"
         for patch_name, _ in patches:
             body += f"- {patch_name}\n"
@@ -168,7 +188,7 @@ class GerritToPRConverter:
         }
         
         # Look for existing PR
-        params = {'head': f'{self.fork_org}:{branch}', 'base': self.base_branch}
+        params = {'head': f'{self.fork_org}:{feature_branch}', 'base': target_branch}
         existing_prs = requests.get(github_api_url, headers=headers, params=params)
         
         if existing_prs.status_code == 200 and existing_prs.json():
@@ -181,8 +201,8 @@ class GerritToPRConverter:
             # Create new PR as draft for internal review
             pr_data = {
                 'title': f"[DRAFT] {title}",
-                'head': f'{self.fork_org}:{branch}',
-                'base': self.base_branch,
+                'head': f'{self.fork_org}:{feature_branch}',
+                'base': target_branch,
                 'body': f"🚧 **DRAFT - Internal Review** 🚧\n\n{body}\n\n---\n⚠️ This PR is in draft mode for internal Arista review. Will be marked ready when approved internally.",
                 'draft': True
             }
@@ -232,35 +252,41 @@ class GerritToPRConverter:
         repo_to_patches = {}
         
         for patch_file in patch_files:
-            
             patch_content = self.download_file(change_id, revision_id, patch_file)
-            target_repo = self.determine_target_repo(patch_content)
+            
+            # Parse repository and branch from file path
+            target_branch, target_repo = self.parse_patch_path(patch_file)
             
             patch_name = Path(patch_file).name
             
-            if target_repo not in repo_to_patches:
-                repo_to_patches[target_repo] = []
+            # Use branch-specific key for grouping
+            repo_key = f"{target_repo}:{target_branch}"
             
-            repo_to_patches[target_repo].append((patch_name, patch_content))
-            print(f"Mapped {patch_name} → {target_repo}")
+            if repo_key not in repo_to_patches:
+                repo_to_patches[repo_key] = []
+            
+            repo_to_patches[repo_key].append((patch_name, patch_content))
+            print(f"Mapped {patch_name} → {target_repo} (branch: {target_branch})")
         
         if dry_run:
             print("\n🔍 DRY RUN - Would create the following PRs:")
-            for repo, patches in repo_to_patches.items():
-                print(f"  {repo}: {[p[0] for p in patches]}")
+            for repo_key, patches in repo_to_patches.items():
+                repo, branch = repo_key.split(':', 1)
+                print(f"  {repo} (branch: {branch}): {[p[0] for p in patches]}")
             return []
         
         # Create PRs for each repository
         pr_urls = []
-        for repo, patches in repo_to_patches.items():
-            pr_url = self.create_pr_for_repo(repo, patches, change_id)
+        for repo_key, patches in repo_to_patches.items():
+            repo, branch = repo_key.split(':', 1)
+            pr_url = self.create_pr_for_repo(repo, branch, patches, change_id)
             pr_urls.append(pr_url)
         
         return pr_urls
     
-    def create_pr_for_repo(self, repo: str, patches: List[Tuple[str, str]], change_id: str) -> str:
-        """Create GitHub PR for a specific repository"""
-        print(f"\nCreating PR for {repo} with {len(patches)} patches...")
+    def create_pr_for_repo(self, repo: str, target_branch: str, patches: List[Tuple[str, str]], change_id: str) -> str:
+        """Create GitHub PR for a specific repository and branch"""
+        print(f"\nCreating PR for {repo} (target branch: {target_branch}) with {len(patches)} patches...")
         
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Clone upstream repository
@@ -271,9 +297,17 @@ class GerritToPRConverter:
             fork_url = f'https://github.com/{self.fork_org}/{repo}.git'
             self.run_command(['git', 'remote', 'add', 'fork', fork_url], cwd=tmp_dir)
             
-            # Create feature branch
-            branch_name = f'gerrit-{change_id}-{repo}'
-            self.run_command(['git', 'checkout', '-B', branch_name, f'origin/{self.base_branch}'], cwd=tmp_dir)
+            # Create feature branch based on target branch (not always master)
+            feature_branch_name = f'gerrit-{change_id}-{repo}-{target_branch}'
+            
+            # Try to use the target branch if it exists, fallback to master
+            try:
+                self.run_command(['git', 'checkout', '-B', feature_branch_name, f'origin/{target_branch}'], cwd=tmp_dir)
+                print(f"Using target branch: {target_branch}")
+            except subprocess.CalledProcessError:
+                print(f"Target branch {target_branch} not found, using master")
+                self.run_command(['git', 'checkout', '-B', feature_branch_name, f'origin/master'], cwd=tmp_dir)
+                target_branch = 'master'  # Update for PR creation
             
             # Apply patches
             for patch_name, patch_content in patches:
@@ -289,10 +323,10 @@ class GerritToPRConverter:
                     raise
             
             # Push to fork
-            self.run_command(['git', 'push', '-f', 'fork', branch_name], cwd=tmp_dir)
+            self.run_command(['git', 'push', '-f', 'fork', feature_branch_name], cwd=tmp_dir)
             
             # Create GitHub PR
-            pr_url = self.create_github_pr(repo, branch_name, patches, change_id)
+            pr_url = self.create_github_pr(repo, target_branch, feature_branch_name, patches, change_id)
             print(f"Created/updated PR: {pr_url}")
             
             return pr_url
