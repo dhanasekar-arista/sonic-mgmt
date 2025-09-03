@@ -4,16 +4,22 @@ Automated code review and upstream PR creation tools for SONiC development workf
 
 ## 🚀 Features
 
-- **Automated Code Review**: AI-powered analysis of SONiC patches with enhanced diff visualization
+- **AI-Powered Functional Review**: Intelligent analysis of SONiC patches with architectural understanding
 - **Upstream PR Creation**: Automatically create GitHub draft PRs from Gerrit changes
 - **Gerrit Integration**: Updates Gerrit with review summaries and PR links
-- **SONiC-Specific Checks**: Validates test files, coding standards, and patch formats
+- **SONiC Architecture Awareness**: Understands system design, warm reboot, DB patterns, concurrency
 
 ## 📋 Prerequisites
 
 ### Required Python Packages
 ```bash
 pip3 install requests unidiff rich pyyaml
+```
+
+### Optional AI Enhancement  
+```bash
+# For intelligent functional analysis (recommended)
+export OPENAI_API_KEY="sk-your-openai-key"
 ```
 
 ### Gerrit Access
@@ -54,10 +60,14 @@ export GH_TOKEN="your_github_token"
 
 ## 📖 Usage
 
-### Functional Code Review (Recommended)
+### AI-Powered Functional Review (Recommended)
 ```bash
-# Enhanced functional review with SONiC architecture analysis
-python3 gerrit_functional_review.py --change-id 459604 --config gerrit_config.json
+# AI-powered functional review with SONiC architecture understanding
+python3 gerrit_ai_review.py --change-id 459604 --config gerrit_config.json
+
+# With OpenAI API for enhanced analysis
+export OPENAI_API_KEY="sk-your-key"
+python3 gerrit_ai_review.py --change-id 459604 --config gerrit_config.json
 
 # Basic syntax review only
 python3 gerrit_review_plugin.py --change-id 459604 --config gerrit_config.json --submit
@@ -85,20 +95,20 @@ python3 gerrit_to_pr.py --change 459604 --token $GH_TOKEN --config gerrit_config
 
 ## 🎯 Example Output
 
-### Functional Code Review
+### AI-Powered Functional Review
 ```
-🤖 SONiC Functional Code Review
+🤖 AI-Powered SONiC Code Review
 
-🔍 Functional Analysis:
-- ℹ️ 2 recommendations
+🧠 AI Analysis:
+- enable_kdump_by_default.patch: kdump enablement in build system
+  - adds crashkernel memory allocation for crash dump collection
+  - fixes FIPS parameter formatting to prevent newline issues
+  - enables automatic crash debugging without reboot requirement
 
-### enable_kdump_by_default.patch
-build_image.sh (+7/-2 lines)
-- Adds crashkernel memory allocation: 0M-2G:256M,2G-4G:320M,4G-8G:384M,8G-:448M
-- Fixes FIPS parameter formatting to avoid newline issues
-
-Functional Comments:
-- build_image.sh:15 [info] Kernel boot parameter modification detected. Verify crashkernel allocation suits target hardware memory profiles.
+- voq-counters-sup-gnmi.patch: VOQ counter aggregation for supervisor cards
+  - enhanced gNMI telemetry with chassis-wide VOQ aggregation
+  - streaming computed data for real-time monitoring
+  - comprehensive POLL/ON_CHANGE/SAMPLE support
 ```
 
 ### Draft PR Creation
@@ -117,10 +127,9 @@ Mapped cleanup_crashkernel_from_kernel_cmdline_append_file.patch → sonic-utili
 
 ## 📁 Files
 
-- **`gerrit_functional_review.py`** - Enhanced functional review plugin with SONiC architecture awareness
+- **`gerrit_ai_review.py`** - AI-powered functional review plugin (recommended)
 - **`gerrit_review_plugin.py`** - Base code review plugin with diff analysis
 - **`gerrit_to_pr.py`** - Standalone script for creating GitHub PRs from Gerrit
-- **`sonic_rule_engine.py`** - SONiC knowledge base and functional rule system
 - **`gerrit_config.json`** - Configuration template for Gerrit credentials
 - **`component_map.yml`** - Maps patch paths to SONiC repositories
 - **`requirements_gerrit.txt`** - Python dependencies
