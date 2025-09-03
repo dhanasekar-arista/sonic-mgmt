@@ -314,6 +314,9 @@ def main():
     parser.add_argument('--change-id', required=True, help='Gerrit change ID')
     parser.add_argument('--config', help='Configuration file path')
     parser.add_argument('--ai-key', help='OpenAI API key (or set OPENAI_API_KEY)')
+    parser.add_argument('--submit', action='store_true', help='Submit review to Gerrit')
+    parser.add_argument('--create-prs', action='store_true', help='Create GitHub draft PRs')
+    parser.add_argument('--github-token', help='GitHub token for PR creation')
     
     args = parser.parse_args()
     
