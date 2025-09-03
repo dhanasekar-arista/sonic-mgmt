@@ -1,0 +1,30 @@
+# Component mapping for SONiC patch routing
+# Maps file paths/patterns to upstream GitHub repositories
+
+# Build system and image creation
+build_image.sh: sonic-buildimage
+sonic-buildimage: sonic-buildimage
+rules/config: sonic-buildimage
+Makefile: sonic-buildimage
+
+# Utilities and CLI tools  
+sonic-utilities: sonic-utilities
+scripts/sonic-kdump-config: sonic-utilities
+scripts/: sonic-utilities
+
+# Switch State Service
+sonic-swss: sonic-swss
+src/sonic-swss: sonic-swss
+orchagent: sonic-swss
+syncd: sonic-swss
+
+# Management and testing
+sonic-mgmt: sonic-mgmt
+tests/: sonic-mgmt
+
+# Platform abstraction layer
+sonic-platform-common: sonic-platform-common
+platform/: sonic-platform-common
+
+# Default fallback
+default: sonic-buildimage

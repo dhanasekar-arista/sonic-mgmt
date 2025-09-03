@@ -1,0 +1,12 @@
+{
+  "gerrit_url": "https://gerrit.corp.arista.io",
+  "username": "dhanasekar",
+  "password": "831DsPGbcaIsD8RUICeSpLTT6NSuaGlKEjkgw5UNEg",
+  "auto_submit": false,
+  "review_score_threshold": 1,
+  "sonic_specific_checks": {
+    "require_test_updates": true,
+    "check_patch_format": true,
+    "validate_commit_message": true
+  }
+}
