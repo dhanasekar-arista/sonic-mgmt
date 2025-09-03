@@ -211,14 +211,84 @@ End your response with 'SCORE: +1' or 'SCORE: -1' or 'SCORE: 0'"""
         except Exception as e:
             return f"Gemini analysis failed: {str(e)}", 0
 
-def create_draft_prs(change_id: str, github_token: str, config_file: str) -> list:
-    """Create draft PRs"""
+def check_existing_prs(change_id: str, github_token: str) -> list:
+    """Check for existing PRs for this Gerrit change"""
     if not github_token or '[REDACTED:' in github_token:
+        print("❌ No GitHub token for PR search")
         return []
     
+    print(f"🔍 Searching for existing PRs with change ID {change_id}...")
+    
     try:
+        headers = {'Authorization': f'token {github_token}'}
+        
+        # Check common SONiC repos for existing PRs
+        repos = ['sonic-net/sonic-buildimage', 'sonic-net/sonic-utilities', 'sonic-net/sonic-mgmt']
+        existing_prs = []
+        
+        for repo in repos:
+            # Search for PRs containing the change ID
+            url = f'https://api.github.com/search/issues?q=repo:{repo}+type:pr+{change_id}+in:title,body+state:open'
+            print(f"🔍 Searching {repo}...")
+            
+            response = requests.get(url, headers=headers, timeout=10)
+            print(f"   Response: {response.status_code}")
+            
+            if response.status_code == 200:
+                data = response.json()
+                count = data.get('total_count', 0)
+                print(f"   Found: {count} PRs")
+                
+                for item in data.get('items', []):
+                    pr_url = item['html_url']
+                    existing_prs.append(pr_url)
+                    print(f"   PR: {pr_url}")
+            else:
+                print(f"   Search failed: {response.status_code}")
+        
+        if existing_prs:
+            print(f"✅ Found {len(existing_prs)} total existing PR(s)")
+        else:
+            print("❌ No existing PRs found")
+        
+        return existing_prs
+        
+    except Exception as e:
+        print(f"❌ PR search failed: {e}")
+        return []
+
+def create_draft_prs(change_id: str, github_token: str, config_file: str) -> list:
+    """Create draft PRs or return existing PR links"""
+    if not github_token:
+        print("❌ No GitHub token provided")
+        return []
+    
+    if '[REDACTED:' in github_token:
+        print("❌ GitHub token is redacted - cannot create PRs")
+        return []
+    
+    print(f"🔧 GitHub token available: {github_token[:10]}...{github_token[-4:]}")
+    print(f"🔧 Config file: {config_file}")
+    print(f"🔧 Change ID: {change_id}")
+    
+    # First check for existing PRs
+    existing_prs = check_existing_prs(change_id, github_token)
+    if existing_prs:
+        print(f"📋 Found {len(existing_prs)} existing PR(s)")
+        return existing_prs
+    
+    # If no existing PRs, create new ones
+    try:
+        # Check if gerrit_to_pr.py exists
+        if not os.path.exists('gerrit_to_pr.py'):
+            print("❌ gerrit_to_pr.py not found in current directory")
+            return []
+        
+        print("🔧 Calling gerrit_to_pr.py...")
         cmd = ['python3', 'gerrit_to_pr.py', '--change', change_id, 
                '--token', github_token, '--config', config_file]
+        print(f"🔧 Command: {' '.join(cmd)}")
+        
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         
         pr_urls = []
@@ -228,7 +298,25 @@ def create_draft_prs(change_id: str, github_token: str, config_file: str) -> lis
         
         return pr_urls
         
-    except subprocess.CalledProcessError:
+    except subprocess.CalledProcessError as e:
+        print(f"❌ PR Creation Error:")
+        print(f"   Return code: {e.returncode}")
+        print(f"   Stdout: {e.stdout}")
+        print(f"   Stderr: {e.stderr}")
+        
+        # Check specific error types
+        if "401" in str(e.stdout) or "Unauthorized" in str(e.stdout):
+            print("🔑 GitHub Authentication Error - Invalid token or insufficient permissions")
+            return []
+        elif "already exists" in str(e.stdout) or "branch exists" in str(e.stderr):
+            print("🔍 Checking for existing PRs due to branch conflict...")
+            existing_prs = check_existing_prs(change_id, github_token)
+            if existing_prs:
+                return existing_prs
+        elif "404" in str(e.stdout) or "Not Found" in str(e.stdout):
+            print("🔍 Repository not found or not accessible")
+            return []
+        
         return []
 
 def main():
@@ -298,11 +386,18 @@ def main():
         # Create PRs if requested
         pr_status = ""
         if args.create_prs:
-            print("🔧 Creating draft PRs...")
+            print("🔧 Processing draft PRs...")
             github_token = args.github_token or config.get('github_token')
+            
+            # The create_draft_prs function now handles existing PR detection
             pr_urls = create_draft_prs(args.change_id, github_token, args.config)
             if pr_urls:
-                pr_status = f"\\n\\n**🚀 Draft PRs Created:**\\n" + "\\n".join(f"- {url}" for url in pr_urls)
+                # Check if we found existing PRs or created new ones
+                existing_count = len(check_existing_prs(args.change_id, github_token))
+                if existing_count > 0 and existing_count == len(pr_urls):
+                    pr_status = f"\\n\\n**🔗 Existing PRs Found:**\\n" + "\\n".join(f"- {url}" for url in pr_urls)
+                else:
+                    pr_status = f"\\n\\n**🚀 Draft PRs Created:**\\n" + "\\n".join(f"- {url}" for url in pr_urls)
             else:
                 pr_status = "\\n\\n**❌ Draft PRs:** Creation failed or no GitHub token"
         
