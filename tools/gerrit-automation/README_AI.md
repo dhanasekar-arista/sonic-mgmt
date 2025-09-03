@@ -25,7 +25,25 @@ amp login  # One-time setup
 **Gemini AI (Alternative):**
 - Get API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
 
-### 2. Gerrit Access
+### 2. GitHub Repository Forks (Required for PR creation)
+
+**⚠️ IMPORTANT**: You must fork the SONiC repositories before creating PRs.
+
+```bash
+# Fork these repositories on GitHub (click Fork button):
+# 1. https://github.com/sonic-net/sonic-buildimage → your-username/sonic-buildimage
+# 2. https://github.com/sonic-net/sonic-utilities → your-username/sonic-utilities  
+# 3. https://github.com/sonic-net/sonic-mgmt → your-username/sonic-mgmt
+# 4. https://github.com/sonic-net/sonic-swss → your-username/sonic-swss
+
+# Or use GitHub CLI to fork all at once:
+gh repo fork sonic-net/sonic-buildimage
+gh repo fork sonic-net/sonic-utilities
+gh repo fork sonic-net/sonic-mgmt
+gh repo fork sonic-net/sonic-swss
+```
+
+### 3. Gerrit Access
 ```bash
 # Generate HTTP credentials at: https://gerrit.corp.arista.io/settings/#HTTPCredentials
 # Create gerrit_config.json:
