@@ -21,6 +21,12 @@ from pathlib import Path
 
 # Enhanced diff analysis dependencies
 try:
+    from sonic_rule_engine import RuleEngine, KnowledgeBase
+    RULE_ENGINE_AVAILABLE = True
+except ImportError:
+    RULE_ENGINE_AVAILABLE = False
+    print("Warning: sonic_rule_engine not available. Functional analysis disabled.")
+try:
     from unidiff import PatchSet
     UNIDIFF_AVAILABLE = True
 except ImportError:
@@ -192,6 +198,14 @@ class SONiCCodeReviewer:
             ],
             'required_markers': ['@pytest.mark.topology']
         }
+        
+        # Initialize functional analysis components
+        if RULE_ENGINE_AVAILABLE:
+            self.knowledge_base = KnowledgeBase()
+            self.rule_engine = RuleEngine(self.knowledge_base)
+        else:
+            self.knowledge_base = None
+            self.rule_engine = None
     
     def _generate_diffstat(self, files: Dict[str, str]) -> List[DiffStat]:
         """Generate diffstat information for patch files"""
@@ -285,8 +299,27 @@ class SONiCCodeReviewer:
         
         return preview
 
+    def _run_functional_analysis(self, files: Dict[str, str]) -> List[ReviewComment]:
+        """Run SONiC-aware functional analysis on patch files"""
+        functional_comments = []
+        
+        if not self.rule_engine:
+            return functional_comments
+        
+        for file_path, content in files.items():
+            if not file_path.endswith('.patch'):
+                continue
+            
+            # Parse patch with unidiff for functional analysis
+            patch_set = self._parse_patch_with_unidiff(content)
+            if patch_set:
+                rule_comments = self.rule_engine.analyze_patchset(patch_set)
+                functional_comments.extend(rule_comments)
+        
+        return functional_comments
+
     def review_sonic_patch(self, files: Dict[str, str]) -> ReviewResult:
-        """Review SONiC patch files with enhanced visualization"""
+        """Review SONiC patch files with enhanced functional analysis"""
         comments = []
         score = 0
         issues = []
@@ -297,6 +330,7 @@ class SONiCCodeReviewer:
         patch_files = 0
         python_files = 0
         
+        # Run syntax/style analysis (existing)
         for file_path, content in files.items():
             file_comments = self._review_file(file_path, content)
             comments.extend(file_comments)
@@ -309,12 +343,17 @@ class SONiCCodeReviewer:
             if file_path.endswith('.py'):
                 python_files += 1
         
+        # Run functional analysis (new)
+        functional_comments = self._run_functional_analysis(files)
+        comments.extend(functional_comments)
+        
         # Generate diffstats for better understanding
         diffstats = self._generate_diffstat(files)
         
         # Calculate overall score based on issues found
         error_count = len([c for c in comments if c.severity == 'error'])
         warning_count = len([c for c in comments if c.severity == 'warning'])
+        info_count = len([c for c in comments if c.severity == 'info'])
         
         if error_count > 0:
             score = -1
@@ -329,8 +368,25 @@ class SONiCCodeReviewer:
             score = +1
             issues.append("Code looks good!")
         
-        # Create clean summary 
-        message = "Automated SONiC Code Review\n\n"
+        # Create enhanced summary with functional insights
+        message = "🤖 **SONiC Functional Code Review**\n\n"
+        
+        # Add functional analysis summary
+        if self.rule_engine and functional_comments:
+            func_errors = len([c for c in functional_comments if c.severity == 'error'])
+            func_warnings = len([c for c in functional_comments if c.severity == 'warning'])
+            func_info = len([c for c in functional_comments if c.severity == 'info'])
+            
+            message += "**🔍 Functional Analysis:**\n"
+            if func_errors > 0:
+                message += f"- 🚨 {func_errors} architectural issues\n"
+            if func_warnings > 0:
+                message += f"- ⚠️ {func_warnings} design concerns\n"
+            if func_info > 0:
+                message += f"- ℹ️ {func_info} recommendations\n"
+            if func_errors == 0 and func_warnings == 0:
+                message += "- ✅ No architectural issues detected\n"
+            message += "\n"
         
         # Add diff preview for patches
         diff_preview = self._create_markdown_diff_preview(files)
@@ -338,7 +394,7 @@ class SONiCCodeReviewer:
             message += diff_preview
         
         if issues:
-            message += "🔍 **Analysis:**\n" + "\n".join(f"- {issue}" for issue in issues)
+            message += "**📊 Overall Assessment:**\n" + "\n".join(f"- {issue}" for issue in issues)
         
         return ReviewResult(score=score, message=message, comments=comments, diffstats=diffstats)
     
