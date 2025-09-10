@@ -183,46 +183,46 @@ End your response with 'SCORE: +1' or 'SCORE: -1' or 'SCORE: 0'"""
                 
                 url = f'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={self.api_key}'
             
-            data = {
-                'contents': [{
-                    'parts': [{'text': prompt}]
-                }],
-                'generationConfig': {
-                    'maxOutputTokens': 500,
-                    'temperature': 0.2
+                data = {
+                    'contents': [{
+                        'parts': [{'text': prompt}]
+                    }],
+                    'generationConfig': {
+                        'maxOutputTokens': 500,
+                        'temperature': 0.2
+                    }
                 }
-            }
-            
-            response = requests.post(url, headers=headers, json=data, timeout=30)
-            
-            if response.status_code == 200:
-                result_json = response.json()
-                if 'candidates' in result_json and len(result_json['candidates']) > 0:
-                    result_text = result_json['candidates'][0]['content']['parts'][0]['text']
-                    
-                    # Extract score
-                    score = 0
-                    if any(word in result_text.lower() for word in ['+1', 'approve', 'looks good']):
-                        score = 1
-                    elif any(word in result_text.lower() for word in ['-1', 'reject', 'critical', 'breaks']):
-                        score = -1
-                    
-                    return result_text, score
-                else:
-                    return "Gemini API: No response content", 0
-            else:
-                # Add detailed error info for debugging
-                error_info = f"Gemini API error: {response.status_code}"
-                try:
-                    error_detail = response.json()
-                    if 'error' in error_detail:
-                        error_info += f" - {error_detail['error'].get('message', 'Unknown error')}"
-                except:
-                    error_info += f" - {response.text[:100]}"
                 
-                # Continue to next model if this one fails
-                print(f"❌ Model {model} failed: {response.status_code}")
-                continue
+                response = requests.post(url, headers=headers, json=data, timeout=30)
+                
+                if response.status_code == 200:
+                    result_json = response.json()
+                    if 'candidates' in result_json and len(result_json['candidates']) > 0:
+                        result_text = result_json['candidates'][0]['content']['parts'][0]['text']
+                        
+                        # Extract score
+                        score = 0
+                        if any(word in result_text.lower() for word in ['+1', 'approve', 'looks good']):
+                            score = 1
+                        elif any(word in result_text.lower() for word in ['-1', 'reject', 'critical', 'breaks']):
+                            score = -1
+                        
+                        return result_text, score
+                    else:
+                        return "Gemini API: No response content", 0
+                else:
+                    # Add detailed error info for debugging
+                    error_info = f"Gemini API error: {response.status_code}"
+                    try:
+                        error_detail = response.json()
+                        if 'error' in error_detail:
+                            error_info += f" - {error_detail['error'].get('message', 'Unknown error')}"
+                    except:
+                        error_info += f" - {response.text[:100]}"
+                    
+                    # Continue to next model if this one fails
+                    print(f"❌ Model {model} failed: {response.status_code}")
+                    continue
                     
             except Exception as e:
                 print(f"❌ Model {model} exception: {e}")
