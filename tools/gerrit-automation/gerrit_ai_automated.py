@@ -19,6 +19,8 @@ import argparse
 import base64
 import tempfile
 import subprocess
+from google.cloud import aiplatform
+from vertexai.generative_models import GenerativeModel, Part
 
 class GerritClient:
     def __init__(self, gerrit_url: str, username: str, password: str):
@@ -81,16 +83,19 @@ class GerritClient:
         return response.status_code == 200
 
 class AIAnalyzer:
-    def __init__(self, provider: str = "oracle", api_key: str = None):
+    def __init__(self, provider: str = "oracle", api_key: str = None,
+                 gcp_project: str = None, gcp_location: str = "us-east5"):
         self.provider = provider
         self.api_key = api_key
+        self.gcp_project = gcp_project
+        self.gcp_location = gcp_location
     
     def analyze_patches(self, patch_paths: list, subject: str) -> tuple:
         """Analyze patches and return (analysis_text, score)"""
-        
+
         if self.provider == "oracle":
             return self._oracle_analysis(patch_paths, subject)
-        elif self.provider == "gemini" and self.api_key:
+        elif self.provider == "gemini":
             return self._gemini_analysis(patch_paths, subject)
         else:
             return f"**📋 Change:** {subject}\\n**❌ Error:** AI provider '{self.provider}' not available", 0
@@ -149,87 +154,93 @@ Be concise and specific. Format as a Gerrit review comment."""
             return f"Oracle unavailable: {str(e)}"
     
     def _gemini_analysis(self, patch_paths: list, subject: str) -> tuple:
-        """Use Gemini AI for analysis"""
-        print("🤖 Calling Gemini AI...")
-        
-        # Combine all patch content
+        """Use Gemini AI via Vertex AI for analysis"""
+        print("🤖 Calling Gemini AI via Vertex AI...")
+
+        # Validate Vertex AI prerequisites
+        if not self.gcp_project:
+            return "Gemini via Vertex AI: GCP project not specified", 0
+
+        # Combine all patch content with smart truncation
+        # Allocate tokens fairly across patches
+        max_total_chars = 12000  # Total chars for all patches
+        chars_per_patch = max_total_chars // max(len(patch_paths), 1)
+
         combined_patches = ""
         for path in patch_paths:
             with open(path, 'r') as f:
-                combined_patches += f"\\n--- {os.path.basename(path)} ---\\n{f.read()}\\n"
-        
-        prompt = f"""Analyze these SONiC patches from change '{subject}':
+                patch_content = f.read()
+                # Truncate each patch fairly
+                if len(patch_content) > chars_per_patch:
+                    combined_patches += f"\\n--- {os.path.basename(path)} (truncated: {len(patch_content)} chars total) ---\\n{patch_content[:chars_per_patch]}\\n"
+                else:
+                    combined_patches += f"\\n--- {os.path.basename(path)} ---\\n{patch_content}\\n"
 
-{combined_patches[:4000]}
+        prompt = f"""Analyze SONiC Gerrit change '{subject}' with {len(patch_paths)} patches:
 
-Provide:
-1. Functional analysis of each patch
-2. Technical impact on SONiC
-3. Final recommendation: +1 (approve), 0 (neutral), or -1 (reject)
+{combined_patches}
 
-End your response with 'SCORE: +1' or 'SCORE: -1' or 'SCORE: 0'"""
+Review:
+1. Functional: What features are added/modified?
+2. Impact: Effects on SONiC components (swss, sairedis, utilities)?
+3. Issues: Any bugs, compilation errors, or problems?
+4. Score:
+   +1 = Good, ready to merge
+   0 = Minor issues/needs review (default)
+   -1 = ONLY for definite compilation errors or critical bugs
 
-        # Try multiple Gemini models starting with latest
-        models = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-pro']
-        
+End with 'SCORE: +1', 'SCORE: 0', or 'SCORE: -1'"""
+
+        # Try multiple Gemini models via Vertex AI
+        models = ['gemini-2.5-flash', 'gemini-2.0-flash-exp', 'gemini-1.5-flash-002']
+
         for model in models:
             try:
-                print(f"🤖 Trying Gemini model: {model}")
-                
-                # Call Gemini API (Google AI Studio API)
-                headers = {
-                    'Content-Type': 'application/json'
-                }
-                
-                url = f'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={self.api_key}'
-            
-                data = {
-                    'contents': [{
-                        'parts': [{'text': prompt}]
-                    }],
-                    'generationConfig': {
-                        'maxOutputTokens': 500,
-                        'temperature': 0.2
+                print(f"🤖 Trying Vertex AI Gemini model: {model}")
+
+                # Initialize Vertex AI
+                aiplatform.init(project=self.gcp_project, location=self.gcp_location)
+
+                # Create generative model
+                generative_model = GenerativeModel(model)
+
+                # Generate content
+                response = generative_model.generate_content(
+                    prompt,
+                    generation_config={
+                        'max_output_tokens': 4096,
+                        'temperature': 0.3,
                     }
-                }
-                
-                response = requests.post(url, headers=headers, json=data, timeout=30)
-                
-                if response.status_code == 200:
-                    result_json = response.json()
-                    if 'candidates' in result_json and len(result_json['candidates']) > 0:
-                        result_text = result_json['candidates'][0]['content']['parts'][0]['text']
-                        
-                        # Extract score
-                        score = 0
-                        if any(word in result_text.lower() for word in ['+1', 'approve', 'looks good']):
-                            score = 1
-                        elif any(word in result_text.lower() for word in ['-1', 'reject', 'critical', 'breaks']):
-                            score = -1
-                        
-                        return result_text, score
-                    else:
-                        return "Gemini API: No response content", 0
+                )
+
+                # Extract result text
+                if response and response.text:
+                    result_text = response.text
+
+                    print(f"✅ Successfully got response from {model}")
+
+                    # Extract score
+                    score = 0
+                    if any(word in result_text.lower() for word in ['+1', 'approve', 'looks good']):
+                        score = 1
+                    elif any(word in result_text.lower() for word in ['-1', 'reject', 'critical', 'breaks']):
+                        score = -1
+
+                    return result_text, score
                 else:
-                    # Add detailed error info for debugging
-                    error_info = f"Gemini API error: {response.status_code}"
-                    try:
-                        error_detail = response.json()
-                        if 'error' in error_detail:
-                            error_info += f" - {error_detail['error'].get('message', 'Unknown error')}"
-                    except:
-                        error_info += f" - {response.text[:100]}"
-                    
-                    # Continue to next model if this one fails
-                    print(f"❌ Model {model} failed: {response.status_code}")
+                    print(f"❌ Model {model}: No response content")
+                    if response:
+                        print(f"📊 Response object: {response}")
                     continue
-                    
+
             except Exception as e:
                 print(f"❌ Model {model} exception: {e}")
+                import traceback
+                traceback.print_exc()
                 continue
-        
+
         # All models failed
-        return "Gemini API: All models failed or API key invalid", 0
+        return "Gemini via Vertex AI: All models failed", 0
 
 def check_existing_prs(change_id: str, github_token: str) -> list:
     """Check for existing PRs for this Gerrit change"""
@@ -299,8 +310,9 @@ def create_draft_prs(change_id: str, github_token: str, config_file: str) -> lis
             return []
         
         print("🔧 Calling gerrit_to_pr.py...")
-        cmd = ['python3', 'gerrit_to_pr.py', '--change', change_id, 
-               '--token', github_token, '--config', config_file]
+        cmd = ['python3', 'gerrit_to_pr.py', '--change', change_id,
+               '--token', github_token, '--config', config_file,
+               '--ai-resolve', '--gcp-project', os.getenv('GOOGLE_CLOUD_PROJECT', '')]
         print(f"🔧 Command: {' '.join(cmd)}")
         
         result = subprocess.run(cmd, capture_output=True, text=True)
@@ -362,25 +374,32 @@ def main():
     parser.add_argument('--change-id', required=True, help='Gerrit change ID')
     parser.add_argument('--config', default='gerrit_config.json', help='Config file')
     parser.add_argument('--ai-provider', choices=['oracle', 'gemini'], default='oracle', help='AI provider')
-    parser.add_argument('--api-key', help='API key for AI provider (required for Gemini)')
+    parser.add_argument('--api-key', help='API key for AI provider (not used with Vertex AI)')
+    parser.add_argument('--gcp-project', help='GCP project ID for Vertex AI (required for Gemini)')
+    parser.add_argument('--gcp-location', default='us-east5', help='GCP location for Vertex AI (default: us-east5)')
     parser.add_argument('--submit', action='store_true', help='Submit review')
     parser.add_argument('--create-prs', action='store_true', help='Create PRs')
     parser.add_argument('--github-token', help='GitHub token for PR creation')
-    
+
     args = parser.parse_args()
-    
+
     # Validate AI provider setup
-    if args.ai_provider == 'gemini' and not args.api_key:
-        print("❌ Error: --api-key required when using Gemini")
+    if args.ai_provider == 'gemini' and not args.gcp_project:
+        print("❌ Error: --gcp-project required when using Gemini via Vertex AI")
         sys.exit(1)
     
     # Load config
     with open(args.config, 'r') as f:
         config = json.load(f)
-    
+
     gerrit_client = GerritClient(config['gerrit_url'], config['username'], config['password'])
-    ai_analyzer = AIAnalyzer(args.ai_provider, args.api_key)
-    
+    ai_analyzer = AIAnalyzer(
+        provider=args.ai_provider,
+        api_key=args.api_key,
+        gcp_project=args.gcp_project,
+        gcp_location=args.gcp_location
+    )
+
     print(f"🤖 Analyzing change {args.change_id} with {args.ai_provider.upper()} AI...")
     
     try:
@@ -465,8 +484,12 @@ def main():
             else:
                 print("❌ Failed to submit review")
         else:
-            print("📋 Analysis complete - use --submit to post review")
-            print(f"📊 Analysis: {ai_analysis}")
+            print("\n" + "="*80)
+            print("📋 ANALYSIS COMPLETE - Use --submit to post review to Gerrit")
+            print("="*80)
+            print("\n📊 AI ANALYSIS:\n")
+            print(ai_analysis)
+            print("\n" + "="*80)
     
     except Exception as e:
         print(f"❌ Error: {e}")
