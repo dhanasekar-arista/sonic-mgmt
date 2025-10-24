@@ -581,36 +581,28 @@ Be precise and ensure the output is valid code.
 
                 except subprocess.CalledProcessError as e:
                     print(f"⚠️ Cherry-pick failed, may have conflicts")
-                    if interactive:
-                        print(f"\n{'='*80}")
-                        print(f"🛠️  CHERRY-PICK CONFLICT")
-                        print(f"{'='*80}")
-                        print(f"Working directory: {tmp_dir}")
-                        print(f"\nTo fix manually:")
-                        print(f"1. cd {tmp_dir}")
-                        print(f"2. Resolve conflicts")
-                        print(f"3. git add -A && git cherry-pick --continue")
-                        print(f"4. Run this script again with --resume")
-                        print(f"{'='*80}\n")
-                        raise SystemExit(1)
-                    else:
-                        print(f"❌ Falling back to force push due to conflicts")
-                        # Reset to new commit and force push
-                        self.run_command(['git', 'reset', '--hard', new_commit], cwd=tmp_dir)
-                        self.run_command(['git', 'push', '-f', 'fork', feature_branch_name], cwd=tmp_dir)
-                        branch_url = f"https://github.com/{self.fork_org}/{repo}/tree/{feature_branch_name}"
-                        print(f"⚠️ Force pushed branch: {feature_branch_name} (overwrote history)")
-                        print(f"   Branch URL: {branch_url}")
-                        print(f"   Target: sonic-net/{repo} (base: {target_branch})")
-                        return None
+                    print(f"\n{'='*80}")
+                    print(f"🛠️  CHERRY-PICK CONFLICT - MANUAL RESOLUTION REQUIRED")
+                    print(f"{'='*80}")
+                    print(f"Working directory: {tmp_dir}")
+                    print(f"\nTo fix manually:")
+                    print(f"1. cd {tmp_dir}")
+                    print(f"2. Resolve conflicts")
+                    print(f"3. git add -A && git cherry-pick --continue")
+                    print(f"4. Run this script again with --resume")
+                    print(f"{'='*80}\n")
+                    print(f"⚠️ IMPORTANT: Force push has been disabled for safety.")
+                    print(f"   Please resolve conflicts manually and use --resume to continue.")
+                    raise SystemExit(1)
 
-            # Push to fork
-            if branch_exists and not resume:
-                # Non-force push since we cherry-picked on top
+            # Push to fork - ALWAYS use regular push (never force push, even for first time)
+            # This ensures all changes are incremental commits and history is never overwritten
+            try:
                 self.run_command(['git', 'push', 'fork', feature_branch_name], cwd=tmp_dir)
-            else:
-                # First time or resume mode - regular push
-                self.run_command(['git', 'push', '-f', 'fork', feature_branch_name], cwd=tmp_dir)
+            except subprocess.CalledProcessError as e:
+                # If push fails due to branch not existing, set upstream and push
+                print(f"Branch doesn't exist in fork yet, creating it...")
+                self.run_command(['git', 'push', '-u', 'fork', feature_branch_name], cwd=tmp_dir)
 
             branch_url = f"https://github.com/{self.fork_org}/{repo}/tree/{feature_branch_name}"
             print(f"✅ Pushed branch: {feature_branch_name}")
