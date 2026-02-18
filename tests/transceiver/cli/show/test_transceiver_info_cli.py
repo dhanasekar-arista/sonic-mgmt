@@ -1,6 +1,57 @@
 """
-Basic test for show int transceiver info CLI.
-This file is created to verify the parsing logic of transceiver inventory in conftest.py.
+=============================================================================
+Module: transceiver
+File: test_transceiver_info_cli.py
+=============================================================================
+
+Description:
+    This test file validates the "show interfaces transceiver info" CLI command
+    output by parsing the EEPROM data and comparing it against the transceiver
+    inventory collected during test setup. It ensures that transceiver details
+    (vendor name, part number, serial number, firmware versions, etc.) are
+    correctly displayed and match the actual hardware inventory.
+
+Test Intent:
+    - test_check_show_int_transceiver_info: Validates the "show interfaces transceiver
+      info" CLI command by executing the command, parsing the EEPROM output for all
+      connected transceivers, and verifying that each field (Vendor Date Code, Vendor
+      OUI, Vendor Rev, Vendor SN, Vendor PN, Active Firmware, Inactive Firmware,
+      CMIS Rev, Vendor Name) matches the corresponding values in the transceiver
+      inventory, ensuring accurate CLI reporting of transceiver hardware details.
+
+Topology:
+    ptp-256 (physical topology with 256 ports for transceiver testing)
+
+Fixtures Used:
+    - Inherits from TransceiverTestBase which provides:
+      - duthost: DUT host object for executing commands
+      - dev_conn: Dictionary of connected transceiver interfaces
+      - dev_transceiver_details: Transceiver inventory from hardware
+      - lport_to_pport_mapping: Logical to physical port mapping
+
+Dependencies:
+    - pytest: Test framework
+    - tests.transceiver.transceiver_test_base: Base class for transceiver tests
+    - tests.transceiver.utils.cli_parser_helper: EEPROM parsing utilities
+
+Notes:
+    - CLI command: "show interfaces transceiver info"
+    - VS testbed returns error code 2 (ERROR_CHASSIS_LOAD) and is skipped
+    - Validated EEPROM fields:
+      - Vendor Date Code (YYYY-MM-DD Lot) -> vendor_date
+      - Vendor OUI -> vendor_oui
+      - Vendor Rev -> vendor_rev
+      - Vendor SN -> vendor_sn
+      - Vendor PN -> vendor_pn
+      - Active Firmware -> active_firmware
+      - Inactive Firmware -> inactive_firmware
+      - CMIS Rev -> cmis_rev
+      - Vendor Name -> vendor_name
+    - Uses logical to physical port mapping for validation
+    - Parsing logic verifies transceiver inventory collection in conftest.py
+    - Test ensures CLI accurately reflects hardware transceiver information
+    - Validates all connected interfaces with transceivers
+=============================================================================
 """
 import logging
 import pytest

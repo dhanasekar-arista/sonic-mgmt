@@ -1,3 +1,49 @@
+"""
+=============================================================================
+Module: qos
+File: test_pfc_pause.py
+=============================================================================
+
+Description:
+    Tests PFC (Priority Flow Control) pause frame functionality by generating
+    PFC storms on selected interfaces and validating that PFC pause frames
+    properly stop traffic on the affected priority queues.
+
+Test Intent:
+    - test_pfc_pause: Generates PFC pause storms on selected VLAN member
+      interfaces (up to MAX_TEST_INTFS_COUNT=2), sends test packets from PTF,
+      and verifies that packets with matching PFC priority are paused while
+      packets on other priorities continue to flow normally. Validates PFC
+      pause ratio meets threshold (PTF_PASS_RATIO_THRESH=0.6).
+
+Topology:
+    t0 topology
+
+Fixtures Used:
+    - pfc_test_setup: Module-scoped fixture that gathers active VLAN members,
+      generates server IP addresses, maps DUT interfaces to PTF interfaces,
+      clears FDB, and disables PFCwd
+    - lossless_prio_dscp_map: DSCP to lossless priority mapping
+    - conn_graph_facts, fanout_graph_facts: Connection topology information
+    - toggle_all_simulator_ports_to_rand_selected_tor: For dualtor topologies
+
+Dependencies:
+    - tests.common.helpers.pfc_storm.PFCStorm: PFC storm generation
+    - tests.qos.qos_helpers: Helper functions for VLAN, interface, IP utilities
+    - tests.common.dualtor.dual_tor_utils: Mux cable server IP extraction
+    - ptftests/py3/pfc_pause_test.py: PTF test script for packet validation
+
+Notes:
+    - Tests maximum of 2 interfaces (MAX_TEST_INTFS_COUNT)
+    - Sends 1000000000 PFC pause frames (PFC_PKT_COUNT)
+    - PTF sends 20 test packets at 0.1s intervals (PTF_PKT_COUNT, PTF_PKT_INTVL_SEC)
+    - Pass ratio threshold: 60% (PTF_PASS_RATIO_THRESH)
+    - For dualtor: uses mux_cable_server_ip to get server IPs
+    - For other topologies: generates IPs from VLAN subnet
+    - Clears FDB and disables PFCwd before testing
+    - Uses PTF port mapping mode: 'use_orig_interface'
+=============================================================================
+"""
 import logging
 import os
 import pytest

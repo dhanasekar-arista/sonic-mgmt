@@ -1,3 +1,43 @@
+"""
+=============================================================================
+Module: vlan
+File: test_autostate_disabled.py
+=============================================================================
+
+Description:
+    This test verifies that VLAN interface autostate is disabled on SONiC.
+    Unlike traditional switches where a VLAN interface goes down when all member
+    ports are down, SONiC keeps VLAN interfaces up because all VLANs are bound
+    to a single bridge interface that remains up even when all member ports are
+    operationally down.
+
+Test Intent:
+    - test_autostate_disabled: Verifies that a VLAN interface remains operationally
+      up even after all its member ports are administratively shutdown, confirming
+      that the autostate feature is disabled in SONiC.
+
+Topology:
+    t0, m0, mx
+
+Fixtures Used:
+    - duthosts: Multi-DUT fixture
+    - enum_frontend_dut_hostname: Selects frontend DUT for testing
+    - ignore_expected_loganalyzer_exceptions: Ignores expected errors in logs
+      during test execution (auto-use)
+    - loganalyzer: Log analysis utility
+
+Dependencies:
+    - tests.common.helpers.assertions
+    - tests.common.utilities
+
+Notes:
+    - For more information about the autostate feature, see:
+      https://www.cisco.com/c/en/us/support/docs/switches/catalyst-6500-series-switches/41141-188.html
+    - This test requires at least one VLAN with operational member ports
+    - The test shuts down all member ports and verifies the VLAN interface stays up
+    - All interfaces are restored to their original state after the test
+=============================================================================
+"""
 import logging
 import pytest
 

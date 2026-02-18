@@ -1,4 +1,56 @@
-"""Test initialization of VoQ objects, switch, system ports, router interfaces, neighbors, inband port."""
+"""
+=============================================================================
+Module: voq
+File: test_voq_init.py
+=============================================================================
+
+Description:
+    This comprehensive test suite validates the initialization of VOQ (Virtual
+    Output Queue) objects on T2 chassis systems, including switch creation,
+    system ports, router interfaces, neighbors, and inband ports. It verifies
+    that all VOQ-specific SAI objects are correctly programmed in ASIC_DB
+    and chassis APP_DB.
+
+Test Intent:
+    - TestVoqSwitch.test_voq_switch_create: Verifies VOQ switch object creation
+      with correct attributes (max_cores, switch_id, switch_type)
+    - test_voq_system_port_create: Validates all system ports are created in
+      ASIC_DB with correct configuration (switch_id, core_index, port_index)
+    - check_voq_interfaces: Verifies router interfaces (RIFs) are correctly
+      created in both local ASIC_DB and chassis APP_DB
+    - test_voq_router_interface_create: Tests RIF creation for all configured
+      interfaces on all frontend DUTs and ASICs
+    - test_voq_neighbor_create: Validates local neighbor entries are programmed
+      in ASIC_DB and propagated to chassis APP_DB on supervisor
+    - test_voq_inband_port_create: Verifies inband port initialization for
+      inter-ASIC communication in multi-ASIC chassis
+
+Topology:
+    t2 (VOQ chassis topology)
+
+Fixtures Used:
+    - duthosts: Multi-DUT fixture for chassis systems
+    - enum_frontend_dut_hostname: Enumerates frontend DUTs
+    - enum_asic_index: Enumerates ASICs on multi-ASIC DUTs
+    - all_cfg_facts: Configuration facts for all DUTs and ASICs
+    - nbrhosts: Neighbor host objects
+    - nbr_macs: Neighbor MAC addresses
+
+Dependencies:
+    - tests.common.helpers.sonic_db: For ASIC_DB and VOQ_DB CLI operations
+    - tests.common.helpers.voq_helpers: For VOQ-specific verification utilities
+    - tests.common.platform.interface_utils: For port mapping utilities
+
+Notes:
+    - Tests validate both local (ASIC_DB) and global (chassis APP_DB) state
+    - Switch IDs must be unique across all ASICs in the chassis
+    - System ports include both local and remote (other linecards) ports
+    - Router interfaces verified on both local ASIC and supervisor chassis DB
+    - Neighbor entries checked in local kernel, ASIC_DB, and chassis APP_DB
+    - Inband ports only present on multi-ASIC systems
+    - All tests marked for t2 topology only
+=============================================================================
+"""
 import json
 import logging
 import pytest

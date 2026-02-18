@@ -1,11 +1,54 @@
 """
-Check platform status after reboot. Three types of reboot are covered in this script:
-* Cold reboot
-* Fast reboot
-* Warm reboot
+=============================================================================
+Module: platform_tests
+File: test_reboot.py
+=============================================================================
 
-This script is to cover the test case 'Reload configuration' in the SONiC platform test plan:
-https://github.com/sonic-net/SONiC/blob/master/doc/pmon/sonic_platform_test_plan.md
+Description:
+    Tests platform status after various reboot types (cold, fast, warm). Validates
+    interfaces, transceivers, services, reboot cause detection, and PMON daemon
+    health after reboot. Covers 'Reload configuration' test case from SONiC platform test plan.
+
+Test Intent:
+    - test_cold_reboot: Verify platform health after cold reboot
+    - test_soft_reboot: Validate soft reboot (reload) recovery
+    - test_fast_reboot: Test fast reboot with minimal downtime
+    - test_warm_reboot: Verify warm reboot with state preservation
+    - test_watchdog_reboot: Validate watchdog-triggered reboot recovery
+
+Topology:
+    Any topology
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hardware SKU
+    - localhost: Localhost connection
+    - conn_graph_facts: Connection graph for interface validation
+    - xcvr_skip_list: Transceiver skip list
+    - set_max_time_for_interfaces: Module fixture setting max interface wait time
+    - teardown_module: Module fixture for cleanup
+
+Dependencies:
+    - reboot helpers (sync_reboot_history_queue, reboot, check_reboot_cause, etc.)
+    - check_transceiver_basic for transceiver validation
+    - check_all_interface_information for interface validation
+    - check_pmon_daemon_status for daemon health
+    - wait_critical_processes for service validation
+
+Notes:
+    - MAX_WAIT_TIME_FOR_INTERFACES: 300s (may be overridden by plt_reboot_ctrl)
+    - MAX_WAIT_TIME_FOR_REBOOT_CAUSE: 120s
+    - Reboot types: COLD, SOFT, FAST, WARM, WATCHDOG
+    - Validates reboot cause matches expected type
+    - Checks reboot cause history persistence
+    - Validates determine-reboot-cause service functionality
+    - Verifies all interfaces operational post-reboot
+    - Confirms transceivers detected on connected ports
+    - Ensures PMON daemons running post-reboot
+    - Validates critical processes healthy
+    - Loganalyzer disabled (expected error logs during reboot)
+    - Test plan: https://github.com/sonic-net/SONiC/blob/master/doc/pmon/sonic_platform_test_plan.md
+=============================================================================
 """
 import logging
 import pytest

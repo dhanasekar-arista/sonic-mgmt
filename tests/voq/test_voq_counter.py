@@ -1,3 +1,44 @@
+"""
+=============================================================================
+Module: voq
+File: test_voq_counter.py
+=============================================================================
+
+Description:
+    This test suite validates VOQ-specific counters on T2 chassis systems,
+    including packet integrity drop counters and queue counters for credit
+    watchdog deletion events.
+
+Test Intent:
+    - test_voq_drop_counter: SKIPPED test for packet integrity drop counter
+      verification (CRC, RQP errors) - simulation not currently possible
+    - test_voq_queue_counter: Verifies that VOQ queue counters (Credit-WD-Del/pkts)
+      correctly increment when fabric ports are disabled using bcmcmd on
+      Broadcom-dnx ASICs
+
+Topology:
+    t2 (VOQ chassis topology)
+
+Fixtures Used:
+    - duthosts: Multi-DUT fixture for chassis systems
+    - enum_rand_one_per_hwsku_frontend_hostname: Selects random frontend DUT
+    - tbinfo: Testbed information
+    - ptfadapter: PTF adapter for packet operations
+    - nbrhosts: Neighbor host objects
+
+Dependencies:
+    - tests.common.helpers.assertions: For pytest assertions and requirements
+    - tests.common.utilities: For wait_until polling
+
+Notes:
+    - test_voq_drop_counter is skipped due to issue #16140 (cannot simulate packet integrity errors)
+    - test_voq_queue_counter is Broadcom-dnx ASIC specific
+    - Uses bcmcmd to disable/enable fabric ports (SFI ports)
+    - Polls queue counters for up to 300 seconds waiting for Credit-WD-Del increments
+    - Always re-enables fabric ports in cleanup, even on test failure
+    - Related to issue: https://github.com/sonic-net/sonic-buildimage/issues/21098
+=============================================================================
+"""
 import logging
 import pytest
 from tests.common.helpers.assertions import pytest_assert, pytest_require

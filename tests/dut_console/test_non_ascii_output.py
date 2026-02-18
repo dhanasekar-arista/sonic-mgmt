@@ -1,3 +1,43 @@
+"""
+=============================================================================
+Module: dut_console
+File: test_non_ascii_output.py
+=============================================================================
+
+Description:
+    Test suite for validating that common SONiC commands produce only ASCII output over
+    console connections. This module detects encoding issues, corruption, or unexpected
+    non-ASCII characters in command output by running commands repeatedly and checking
+    all output characters are within ASCII range (0-127).
+
+Test Intent:
+    - test_commands_output_is_ascii: Verify all common commands produce only ASCII output (no encoding corruption)
+
+Topology:
+    - any: Test works on any topology (t0, t1, t2, m0, mx, etc.)
+
+Fixtures Used:
+    - duthost_console: Console connection to DUT
+
+Dependencies:
+    - Console connection with proper encoding support
+    - Common SONiC CLI commands (show version, show platform, etc.)
+    - Pattern matching for command prompt detection
+
+Notes:
+    - Test is marked with pytest.mark.topology('any')
+    - Test runs each command 10 times to catch intermittent encoding issues
+    - Commands tested: show version, show platform summary, show interface status, show ip bgp sum, lspci, ls /etc/sonic
+    - ASCII validation: All characters must have ord(c) < 128
+    - Test tracks commands/iterations that produce non-ASCII output
+    - Non-ASCII characters could indicate: terminal encoding issues, corrupted output, binary data in text output
+    - Test fails if any command produces non-ASCII output in any iteration
+    - Prompt pattern: admin@<hostname>:~$
+    - Test timeout: 20 seconds per command execution
+
+=============================================================================
+"""
+
 import logging
 import pytest
 

@@ -1,3 +1,52 @@
+"""
+=============================================================================
+Module: tacacs
+File: test_ro_user.py
+=============================================================================
+
+Description:
+    This test file validates read-only (RO) user permissions via TACACS+ authentication.
+    It ensures that RO users can execute read-only commands (show commands, cat, etc.)
+    but are properly denied from executing write operations (config changes, sudo
+    commands, etc.), enforcing proper privilege separation and security.
+
+Test Intent:
+    - test_ro_user: Validates RO user command permissions by verifying (1) user can
+      successfully execute read-only commands like 'cat /etc/passwd', 'show' commands,
+      'docker ps', 'vtysh -c' read commands, (2) user is denied from executing write
+      operations like 'sudo', 'config' commands, 'vtysh' write commands with proper
+      "Permission denied" or "RW permission" error messages, ensuring security boundaries
+      are enforced between RO and RW users.
+
+Topology:
+    any, t1-multi-asic (works with multiple topology types)
+
+Fixtures Used:
+    - localhost: Local host object for SSH operations
+    - duthosts: Provides access to all DUT hosts
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hwsku
+    - tacacs_creds: Provides TACACS credentials including RO user details
+    - check_tacacs: Validates TACACS service is running and configured
+
+Dependencies:
+    - pytest: Test framework
+    - tests.common.helpers.assertions: For test assertions
+    - tests.common.utilities: Provides check_output helper
+    - tests.common.helpers.tacacs.tacacs_helper: TACACS helper functions for SSH
+
+Notes:
+    - Test is marked to disable log analyzer and work with 'vs' device types
+    - Sleep time between operations: 10 seconds
+    - Timeout limit for waiting: 240 seconds
+    - Waits for hostcfgd to complete TACACS configuration
+    - RO users should NOT have sudo access
+    - RO users should NOT be able to run config commands
+    - Error message: "Make sure your account has RW permission to current device"
+    - Tests verify command existence before testing permissions
+    - Uses ssh_remote_allow_run() to verify allowed commands succeed
+    - Uses ssh_remote_ban_run() to verify banned commands are rejected
+=============================================================================
+"""
 import pytest
 import time
 import shlex

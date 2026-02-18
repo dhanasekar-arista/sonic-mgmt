@@ -1,3 +1,36 @@
+"""
+=============================================================================
+Module: generic_config_updater
+File: test_kubernetes_config.py
+=============================================================================
+
+Description:
+    Tests Kubernetes master configuration using Generic Config Updater.
+    Validates adding, replacing, and removing Kubernetes server configuration
+    including server IP and disable flag.
+
+Test Intent:
+    - test_k8s_add_config: Adds Kubernetes master server configuration
+    - test_k8s_add_config_half: Adds partial config (server without details)
+    - test_k8s_remove_config: Removes Kubernetes configuration
+    - test_k8s_replace_config: Replaces Kubernetes server IP
+
+Topology:
+    Supports any topology
+
+Fixtures Used:
+    - setup_env: Creates checkpoint for rollback
+
+Dependencies:
+    - tests.common.gu_utils: GCU utilities for patch operations
+
+Notes:
+    - K8S configs: empty, half (server only), full (with IP and disable flag)
+    - Full config uses k8svip.ap.gbl as server IP
+    - Disable flag set to "false" when enabled
+    - Log analyzer disabled for these tests
+=============================================================================
+"""
 import logging
 import pytest
 import re

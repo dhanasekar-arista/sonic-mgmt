@@ -1,3 +1,48 @@
+"""
+=============================================================================
+Module: pfcwd
+File: test_pfcwd_warm_reboot.py
+=============================================================================
+
+Description:
+    This test verifies PFC Watchdog functionality across warm reboot events.
+    It tests three scenarios: storm detect/restore before and after reboot,
+    ongoing storm during reboot, and asynchronous storm during reboot.
+
+Test Intent:
+    - test_pfcwd_wb: Parametrized test with three scenarios:
+      * 'no_storm': Detect/restore before warm-reboot, then detect/restore after
+      * 'storm': Storm starts before warm-reboot and continues during/after,
+        followed by restoration
+      * 'async_storm': PFC storm starts/stops asynchronously at random times
+        during warm-reboot, then verifies detect/restore post-reboot
+
+Topology:
+    t0 topology only
+
+Fixtures Used:
+    - setup_pfc_test: Module-scoped PFC test setup
+    - skip_pfcwd_wb_tests: Module autouse fixture to skip tests on TD2 ASICs
+    - setup_pfcwd: Autouse fixture to enable default PFCwd configuration
+    - pfcwd_wb_test_cleanup: Autouse cleanup fixture to stop storms and reload config
+    - fake_storm: Module-scoped fixture for fake storm enablement
+    - two_queues: Module-scoped fixture to enable traffic on queues 3 and 4
+    - testcase_action: Parametrized fixture providing test scenarios
+
+Dependencies:
+    - tests.common.helpers.pfc_storm.PFCStorm: PFC storm generation
+    - tests.common.reboot: Warm reboot functionality
+    - tests.common.utilities.InterruptableThread: Async storm thread management
+    - tests.ptf_runner: PTF traffic tests
+
+Notes:
+    - Skips Broadcom TD2 ASICs (warm reboot not supported)
+    - Can use fake storms (DEBUG_STORM flag) or real PFC generation
+    - Supports multi-queue testing (queues 3 and 4)
+    - Uses deferred storm timing for async scenario
+    - Validates PFCwd counters and traffic forwarding/dropping behavior
+=============================================================================
+"""
 import datetime
 import logging
 import os

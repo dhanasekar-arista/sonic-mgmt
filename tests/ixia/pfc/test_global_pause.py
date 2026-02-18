@@ -1,3 +1,43 @@
+"""
+=============================================================================
+Module: ixia/pfc
+File: test_global_pause.py
+=============================================================================
+
+Description:
+    This test module validates that IEEE 802.3X global pause (flow control)
+    does not impact individual priority queues. It ensures global pause frames
+    are handled separately from PFC (Priority Flow Control).
+
+Test Intent:
+    - test_global_pause: Verifies that IEEE 802.3X global pause frames do not
+      affect traffic on any specific priority (lossless or lossy), ensuring
+      PFC operates independently from global pause
+
+Topology:
+    - tgen: Requires IXIA traffic generator topology
+
+Fixtures Used:
+    - ixia_api: IXIA session for traffic generation
+    - ixia_testbed_config: Testbed and port configuration
+    - conn_graph_facts: DUT-to-IXIA connection topology
+    - fanout_graph_facts: Fanout switch information
+    - lossless_prio_list: List of lossless priorities
+    - lossy_prio_list: List of lossy priorities
+    - prio_dscp_map: Priority to DSCP mapping
+
+Dependencies:
+    - tests.common.ixia.ixia_fixtures: IXIA infrastructure
+    - tests.common.ixia.qos_fixtures: QoS test fixtures
+    - files.helper: PFC test execution functions
+
+Notes:
+    - Tests verify global pause and PFC are independent mechanisms
+    - Background traffic uses lossy priorities
+    - Test traffic uses lossless priorities
+    - Validates no packet loss occurs due to global pause
+=============================================================================
+"""
 import pytest
 
 from tests.common.helpers.assertions import pytest_require

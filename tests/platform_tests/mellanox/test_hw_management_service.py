@@ -1,8 +1,33 @@
 """
-Verify that the hw-management service is running properly
+=============================================================================
+Module: platform_tests
+File: test_hw_management_service.py
+=============================================================================
 
-This script covers test case 'Ensure that the hw-management service is running properly' in the SONiC platform test
-plan: https://github.com/sonic-net/SONiC/blob/master/doc/pmon/sonic_platform_test_plan.md
+Description:
+    Mellanox-specific test verifying that the hw-management service is running
+    properly. Ensures critical hardware management daemon is active and functional.
+
+Test Intent:
+    - test_hw_management_service_status: Verify hw-management systemd service is active and running
+
+Topology:
+    Any topology - Mellanox platforms only
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - rand_one_dut_hostname: Selects one random DUT
+
+Dependencies:
+    - check_hw_mgmt_service helper module
+    - hw-management systemd service
+
+Notes:
+    - Test only runs on Mellanox ASIC platforms
+    - hw-management service controls thermal management, LED control, and sensor monitoring
+    - Service failure can cause platform instability
+    - Test plan reference: https://github.com/sonic-net/SONiC/blob/master/doc/pmon/sonic_platform_test_plan.md
+=============================================================================
 """
 import pytest
 from .check_hw_mgmt_service import check_hw_management_service

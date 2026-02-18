@@ -1,3 +1,52 @@
+"""
+=============================================================================
+Module: ip/link_local
+File: test_link_local_ip.py
+=============================================================================
+
+Description:
+    This test module validates the link-local IP address handling in SONiC,
+    specifically testing the SAI_NOT_DROP_SIP_DIP_LINK_LOCAL feature. It verifies
+    that packets with link-local source or destination IP addresses are properly
+    forwarded or dropped based on SAI configuration.
+
+Test Intent:
+    - test_link_local_ipv4_src_ip: Verifies IPv4 link-local source IP packets
+      (169.254.x.x) are forwarded correctly when SAI feature is enabled
+    - test_link_local_ipv4_dst_ip: Tests IPv4 link-local destination IP packet
+      handling and forwarding behavior
+    - test_link_local_ipv6_src_ip: Validates IPv6 link-local source IP packets
+      (fe80::) are properly forwarded
+    - test_link_local_ipv6_dst_ip: Checks IPv6 link-local destination IP packet
+      forwarding and counter increments
+
+Topology:
+    - any: Works with any topology that has port channels and downlink ports
+
+Fixtures Used:
+    - common_params: Class-scoped fixture providing DUT, PTF, port channel info,
+      MAC addresses, and interface mappings
+    - cleanup_list: Function-scoped fixture for test cleanup operations
+    - duthosts: Collection of DUT hosts in testbed
+    - ptfadapter: PTF adapter for packet injection and sniffing
+    - ptfhost: PTF host for packet capture operations
+
+Dependencies:
+    - tests.ip.ip_util: Utility functions for interface counter summation
+    - tests.common.portstat_utilities: Port statistics parsing
+    - ptf: PTF packet testing framework
+    - scapy: Packet crafting and sniffing
+
+Notes:
+    - Test requires SAI_NOT_DROP_SIP_DIP_LINK_LOCAL=1 in sai.profile
+    - Tests skip if platform doesn't support this SAI feature
+    - Uses VLAN interfaces for traffic testing
+    - Validates RIF counters and port statistics after packet injection
+    - Captures packets using tcpdump for verification
+    - Tests both IPv4 (169.254.x.x) and IPv6 (fe80::) link-local addresses
+    - Configures counter poll intervals for accurate statistics
+=============================================================================
+"""
 import re
 import random
 import logging

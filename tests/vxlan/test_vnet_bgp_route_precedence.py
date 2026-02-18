@@ -1,8 +1,51 @@
+"""
+=============================================================================
+Module: vxlan
+File: test_vnet_bgp_route_precedence.py
+=============================================================================
+
+Description:
+    This test suite validates VNET route precedence over BGP-learned routes
+    in various scenarios. It tests that VNET routes take priority over BGP
+    routes and validates route behavior with different monitoring mechanisms
+    (custom, BFD) and nexthop states.
+
+Test Intent:
+    - test_initial_routes: Validates initial route programming and precedence
+    - test_modify_nexthop_state: Tests route behavior when nexthop state changes
+    - test_delete_vnet_route: Verifies fallback to BGP route after VNET route deletion
+    - test_add_vnet_route: Validates VNET route re-addition and precedence restoration
+    Tests cover both precise routes (/32) and subnet routes with IPv4-in-IPv4
+    and IPv6-in-IPv4 encapsulation types.
+
+Topology:
+    t1 (supports t1, t1-64-lag, t1-56-lag, t1-lag)
+
+Fixtures Used:
+    - encap_type: Parametrized fixture for encapsulation type (v4_in_v4, v6_in_v4)
+    - route_type: Parametrized fixture for route type (precise_route, subnet_route)
+    - monitor_type: Parametrized fixture for monitoring (custom, BFD)
+    - init_nh_state: Parametrized fixture for initial nexthop state (initially_up, initially_down)
+    - _ignore_route_sync_errlogs: Auto-use fixture to ignore expected route sync errors
+    - setup: Module-scoped fixture for VNET configuration and cleanup
+
+Dependencies:
+    - tests.common.vxlan_ecmp_utils: For ECMP and VXLAN utilities
+    - ptf.testutils: For packet generation and verification
+    - scapy: For packet construction
+
+Notes:
+    - Supported encap types: v4_in_v4, v6_in_v4
+    - Supported route types: precise_route, subnet_route
+    - Supported monitor types: custom, BFD
+    - Initial nexthop states tested: initially_up, initially_down
+    - Wait time between operations: 2 seconds (5 seconds extra for some)
+    - Prefix offset: 19
+    - Tests validate route precedence in ASIC_DB and packet forwarding
+    - Ignores expected route sync error logs during testing
+=============================================================================
+"""
 #! /usr/bin/env python3
-'''
-    These tests check the Vnet route precedence over bgp learnt route. Further details are
-    provided with each test.
-'''
 
 import time
 import logging

@@ -1,3 +1,63 @@
+"""
+=============================================================================
+Module: platform_tests
+File: test_module.py
+=============================================================================
+
+Description:
+    Validates Platform API functionality for the Module class on modular chassis.
+    Tests module metadata, EEPROM information, component enumeration, midplane
+    connectivity, operational status tracking, and module reboot functionality.
+
+Test Intent:
+    - test_get_name: Verify module name retrieval (skips absent modules)
+    - test_get_presence: Confirm module presence detection
+    - test_get_model: Validate module model against current slot only
+    - test_get_serial: Verify module serial number retrieval
+    - test_get_status: Test module operational status
+    - test_get_position_in_parent: Validate position value is integer
+    - test_is_replaceable: Verify replaceable status is boolean
+    - test_get_base_mac: Confirm base MAC address format (skips fabric cards)
+    - test_get_system_eeprom_info: Validate ONIE TlvInfo EEPROM data (skips fabric cards)
+    - test_components: Verify component count and retrieval per module
+    - test_fans: Validate fan enumeration per module
+    - test_psus: Test PSU count and retrieval per module
+    - test_thermals: Verify thermal sensor count per module
+    - test_sfps: Validate SFP/transceiver count per module
+    - test_get_description: Confirm module description string
+    - test_get_slot: Verify module slot ID (integer or string)
+    - test_get_type: Validate module type (SUPERVISOR/LINE-CARD/FABRIC-CARD)
+    - test_get_maximum_consumed_power: Test power consumption value
+    - test_get_midplane_ip: Verify midplane IP address format
+    - test_is_midplane_reachable: Test midplane reachability status
+    - test_get_oper_status: Validate operational status (Empty/Offline/PoweredDown/Present/Fault/Online)
+    - test_reboot: Test module reboot and verify Online status post-reboot
+
+Topology:
+    Modular chassis only (skips non-modular platforms)
+
+Fixtures Used:
+    - platform_api_conn: Platform API service connection
+    - setup: Function-scoped autofixture validating module count
+    - get_skip_mod_list: Autofixture building list of absent modules to skip
+    - duthosts: Multi-DUT host fixture
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hardware SKU
+
+Dependencies:
+    - tests.common.helpers.platform_api (chassis, module)
+    - platform.json (module metadata)
+    - ONIE TlvInfo specification
+    - ignore_t2_syslog_msgs for T2 chassis with DNX chipset
+
+Notes:
+    - Test skips if no modules found or not modular chassis
+    - Some tests skip modules in skip_mod_list (absent/offline modules)
+    - Some tests skip modules other than current module (avoid remote access issues)
+    - Fabric cards skip MAC address and EEPROM tests (not applicable)
+    - Midplane tests only run on SUPERVISOR and LINE-CARD modules
+    - Reboot test waits 300s (360s for modular chassis) for module to come online
+=============================================================================
+"""
 import logging
 import re
 

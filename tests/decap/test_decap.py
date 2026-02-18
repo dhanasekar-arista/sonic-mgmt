@@ -1,12 +1,66 @@
-'''
-IPinIP Decap configs for different ASICs:
-Table Name in APP_DB: TUNNEL_DECAP_TABLE:IPINIP_TUNNEL
+"""
+Module: tests.decap.test_decap
+File: test_decap.py
+Description:
+    This module contains tests for IPinIP (IP-in-IP) tunnel decapsulation functionality
+    in SONiC. It validates the decapsulation of IPv4-in-IPv4, IPv4-in-IPv6, IPv6-in-IPv4,
+    and IPv6-in-IPv6 encapsulated packets using the TUNNEL_DECAP_TABLE configuration.
+    The tests verify correct handling of TTL, DSCP, and ECN parameters during decapsulation
+    across different ASIC types (Mellanox, Broadcom, Innovium, Cisco).
 
-Config          Mellanox <= [202411]        Mellanox >= [202505]        Broadcom <= [201911]        Broadcom >= [202012]     Innovium               # noqa: E501
-dscp_mode       uniform                     pipe                        pipe                        uniform                  pipe                   # noqa: E501
-ecn_mode        standard                    copy_from_outer             copy_from_outer             copy_from_outer          copy_from_outer        # noqa: E501
-ttl_mode        pipe                        pipe                        pipe                        pipe                     pipe                   # noqa: E501
-'''
+Test Intent:
+    - Validate IPinIP tunnel decapsulation for multiple IP version combinations
+    - Verify correct TTL/DSCP/ECN mode handling (pipe/uniform/copy_from_outer)
+    - Test decapsulation configuration application and removal via SWSS
+    - Ensure decapsulation works correctly after VXLAN tunnel set/unset operations
+    - Validate behavior on multi-ASIC platforms with internal hops
+    - Support both single-DUT and multi-DUT scenarios (up to 3 DUTs)
+    - Test compatibility across different ASIC types with varying default modes
+
+Topology:
+    - Supports: any topology (t0, t1, t2, dualtor, etc.)
+    - Test traffic flows from PTF host through DUT(s) to verify decapsulation
+    - For dualtor: uses Loopback2 for active-active configs, Loopback0 otherwise
+    - Multi-DUT support: tests up to 3 DUTs in multi-DUT deployments
+
+Fixtures Used:
+    - ip_ver: Determines outer/inner IPv4/IPv6 combinations based on topology
+    - loopback_ips: Extracts loopback IPs (v4/v6) used as tunnel endpoints
+    - setup_teardown: Main setup that manages decap config lifecycle
+    - supported_ttl_dscp_params: Provides ASIC-specific TTL/DSCP/VXLAN modes
+    - ignore_expected_loganalyzer_exceptions: Ignores known KVM test errors
+    - fib_info_files: FIB information for routing validation
+    - single_fib_for_duts: Simplified FIB for multi-DUT scenarios
+    - mux_server_url: MUX simulator URL for dualtor topologies
+    - active_active_ports: Active-active ports in dualtor configs
+
+Dependencies:
+    - PTF test: IP_decap_test.DecapPacketTest
+    - Template: ../ansible/roles/test/templates/decap_conf.j2
+    - SWSS Docker: swssconfig command for applying tunnel configs
+    - Config file: /etc/swss/config.d/ipinip.json (default decap config)
+    - External utilities: ferret (for VXLAN teardown simulation)
+    - Common fixtures: ptfhost_utils, fib_utils, dualtor utilities
+
+Notes:
+    - IPinIP Decap configs vary by ASIC type and SONiC version:
+        Config          Mellanox <= [202411]        Mellanox >= [202505]        Broadcom <= [201911]        Broadcom >= [202012]     Innovium               # noqa: E501
+        dscp_mode       uniform                     pipe                        pipe                        uniform                  pipe                   # noqa: E501
+        ecn_mode        standard                    copy_from_outer             copy_from_outer             copy_from_outer          copy_from_outer        # noqa: E501
+        ttl_mode        pipe                        pipe                        pipe                        pipe                     pipe                   # noqa: E501
+    - Cisco-8000 platforms (8122_64ehf_o, 8122_64eh_o) skip cross-version decap (IPv4inIPv6/IPv6inIPv4)
+    - Multi-ASIC platforms ignore TTL verification due to internal hops (max 3 hops)
+    - VXLAN set_unset mode tests decap with default config (no new table creation)
+    - Default decap config is removed at setup and restored at teardown for most tests
+    - Table name in APP_DB: TUNNEL_DECAP_TABLE:IPINIP_TUNNEL
+
+Recent Changes:
+    2cff196ea - Fix test_decap.py for v6 topos
+    f99c40e5f - fix test decap for pipe mode
+    422a30190 - apply new decap config for all testcase variances
+    7fe78b883 - Update the ecn_mode on Mellanox to be same as other platforms
+    cf6f77dbd - [cisco][decap] Disable IPv4inIPv6 and IPv6inIPv4 for the Cisco G200 based platforms
+"""
 import json
 import logging
 from datetime import datetime

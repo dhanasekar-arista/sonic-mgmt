@@ -1,4 +1,35 @@
 """
+=============================================================================
+Module: gnxi
+File: test_gnoi_file.py
+=============================================================================
+
+Description:
+    Integration tests for gNOI File service operations. Tests file stat
+    operations via gRPC with TLS enabled by default.
+
+Test Intent:
+    - test_file_stat: Validates File.Stat RPC for retrieving file metadata
+      (tests with /etc/hostname as example file)
+
+Topology:
+    Supports any topology
+
+Fixtures Used:
+    - setup_gnoi_tls_server: Automatically configures TLS server
+    - ptf_gnoi: PTF-based gNOI client with TLS
+    - ptf_grpc: PTF gRPC utilities
+
+Dependencies:
+    - tests.common.fixtures.grpc_fixtures: gRPC and gNOI fixture utilities
+
+Notes:
+    - TLS automatically enabled for all tests via pytestmark
+    - File service may not be fully implemented on all platforms
+    - Tests gracefully handle unimplemented File.Stat operations
+    - Returns file stats including size, permissions, modification time
+=============================================================================
+
 Simple integration tests for gNOI File service.
 
 All tests automatically run with TLS server configuration by default.

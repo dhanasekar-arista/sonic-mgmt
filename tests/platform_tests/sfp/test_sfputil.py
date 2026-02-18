@@ -1,8 +1,50 @@
 """
-Check SFP status and configure SFP using sfputil.
+=============================================================================
+Module: platform_tests
+File: test_sfputil.py
+=============================================================================
 
-This script covers test case 'Check SFP status and configure SFP' in the SONiC platform test plan:
-https://github.com/sonic-net/SONiC/blob/master/doc/pmon/sonic_platform_test_plan.md
+Description:
+    Tests SFP/transceiver status and configuration using sfputil CLI tool. Validates
+    presence, EEPROM data, reset, low-power mode, and DOM (Digital Optical Monitoring).
+    Covers 'Check SFP status and configure SFP' test case from SONiC platform test plan.
+
+Test Intent:
+    - test_check_sfp_presence: Verify transceiver presence via 'sfputil show presence'
+    - test_check_sfp_eeprom: Validate EEPROM data via 'sfputil show eeprom'
+    - test_check_sfp_eeprom_hexdump: Test hexdump format EEPROM output
+    - test_reset_sfp: Verify SFP reset functionality
+    - test_check_sfp_lpmode: Test low-power mode status and configuration
+    - test_get_dom: Validate DOM data retrieval and enable/disable
+
+Topology:
+    Any topology
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - enum_rand_one_per_hwsku_frontend_hostname: Selects one frontend DUT per hardware SKU
+    - enum_frontend_asic_index: Frontend ASIC index
+    - conn_graph_facts: Connection graph for port mapping
+    - xcvr_skip_list: Transceiver skip list
+    - shutdown_ebgp: Shuts down eBGP during disruptive tests
+
+Dependencies:
+    - sfputil CLI commands
+    - parse_eeprom, parse_eeprom_hexdump, parse_output, get_dev_conn helpers
+    - is_sw_control_enabled for Mellanox platform checks
+    - DOM enable/disable configuration
+
+Notes:
+    - Test validates transceiver operations across all connected ports
+    - Reset test includes I2C recovery wait time (I2C_WAIT_TIME_AFTER_SFP_RESET)
+    - Low-power mode test validates lpmode set/get operations
+    - DOM test enables/disables monitoring and validates data retrieval
+    - Skips interfaces in xcvr_skip_list
+    - Mellanox platforms: special handling for sw_control_enabled ports
+    - Test plan: https://github.com/sonic-net/SONiC/blob/master/doc/pmon/sonic_platform_test_plan.md
+    - Skips old releases: 201811, 201911 for certain operations
+    - Interface flap after reset to restore link state
+=============================================================================
 """
 import logging
 import time

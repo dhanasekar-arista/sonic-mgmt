@@ -1,3 +1,50 @@
+"""
+=============================================================================
+Module: bgp
+File: test_bgp_speaker.py
+=============================================================================
+
+Description:
+    Tests BGP speaker functionality for dynamic route announcement and learning.
+    Validates that routes announced by external BGP speakers are properly learned,
+    installed in FIB, and traffic is forwarded correctly.
+
+Test Intent:
+    - test_bgp_speaker_announce_routes: Verifies routes announced by BGP speaker
+      are learned and installed correctly in routing table and forwarding plane
+    - Validates traffic forwarding to announced routes
+    - Tests route withdrawal and cleanup
+
+Topology:
+    t0
+
+Fixtures Used:
+    - skip_dualtor: Skips test on dualtor topologies
+    - setup: Configures BGP speaker environment with VLAN interfaces
+    - copy_ptftests_directory: Copies PTF test scripts
+    - set_ptf_port_mapping_mode: Configures PTF port mapping
+    - change_mac_addresses: Manages PTF MAC addresses
+    - remove_ip_addresses: Cleans up PTF IP addresses
+
+Dependencies:
+    - tests.common.fixtures.ptfhost_utils: PTF configuration utilities
+    - tests.ptf_runner: PTF test runner
+    - tests.common.utilities: Connection and wait utilities
+    - tests.common.flow_counter.flow_counter_utils: Route flow counter support
+    - tests.common.helpers.dut_ports: VLAN interface utilities
+    - requests: For exabgp HTTP API
+
+Notes:
+    - Only runs on virtual switch (vs) device types
+    - Uses exabgp on PTF to announce routes
+    - Validates route installation via route flow counters
+    - Tests traffic forwarding through PTF packet injection
+    - Skipped on dualtor topologies
+    - Generates dynamic IP addresses within VLAN subnet
+    - Announces routes and verifies FIB programming
+=============================================================================
+"""
+
 import pytest
 from netaddr import IPNetwork, IPAddress
 import time

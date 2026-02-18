@@ -1,3 +1,51 @@
+"""
+=============================================================================
+Module: restapi
+File: test_restapi.py
+=============================================================================
+
+Description:
+    Tests REST API functionality in SONiC including reset status management
+    across different reboot types, VNET operations, and VxLAN tunnel configuration
+    through REST API endpoints.
+
+Test Intent:
+    - test_check_reset_status: Validates reset_status flag behavior through
+      config reload and various reboot types (cold, warm, fast). Verifies
+      reset status is preserved or reset appropriately after each operation.
+      Tests GET/POST operations on /reset_status endpoint.
+
+Topology:
+    t0 topology
+
+Fixtures Used:
+    - construct_url: Fixture providing REST API base URL
+    - duthosts: List of DUT hosts for testing
+    - rand_one_dut_hostname: Randomly selected DUT hostname
+    - localhost: Localhost connection for reboot operations
+    - is_support_warm_fast_reboot: Flag indicating warm/fast reboot support
+
+Dependencies:
+    - helper.apply_cert_config: Applies client certificate configuration
+    - restapi_operations.Restapi: REST API operation wrapper class
+    - tests.common.config_reload: Configuration reload utility
+    - tests.common.reboot: Reboot utilities for warm/fast/cold reboots
+
+Notes:
+    - Disables loganalyzer for these tests
+    - Uses client certificate authentication (restapiclient.crt/key)
+    - Initial reset_status expected to be "true"
+    - After setting to "false", it stays "false" until config reload
+    - Config reload resets status back to "true"
+    - Fast reboot: pre="false", post="true"
+    - Cold reboot: pre="false", post="true"
+    - Warm reboot: pre="false", post="false" (preserves status)
+    - Waits for warmboot-finalizer to complete before checking warm reboot
+    - Uses safe_reboot=True for all reboot operations
+    - Reapplies cert config after each reboot
+    - check_reset_status_after_reboot() helper validates reboot behavior
+=============================================================================
+"""
 import pytest
 from tests.common.utilities import wait_until
 import logging
@@ -21,10 +69,6 @@ CLIENT_CERT = 'restapiclient.crt'
 CLIENT_KEY = 'restapiclient.key'
 
 restapi = Restapi(CLIENT_CERT, CLIENT_KEY)
-
-'''
-This test checks for reset status and sets it
-'''
 
 
 def test_check_reset_status(construct_url, duthosts, rand_one_dut_hostname, localhost, is_support_warm_fast_reboot):

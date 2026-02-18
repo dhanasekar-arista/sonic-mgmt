@@ -1,3 +1,76 @@
+"""
+=============================================================================
+Module: platform_tests
+File: test_sfp.py
+=============================================================================
+
+Description:
+    Comprehensive Platform API tests for SFP/transceiver functionality including
+    EEPROM data retrieval, DOM monitoring, TX/RX control, low-power mode, reset,
+    and error detection. Supports SFP, QSFP, QSFP-DD, OSFP-8X, and QSFP-ZR modules.
+
+Test Intent:
+    - test_get_name: Verify SFP name retrieval matches platform.json
+    - test_get_presence: Confirm all connected transceivers are detected as present
+    - test_get_model: Validate transceiver model string from EEPROM
+    - test_get_serial: Verify serial number retrieval from EEPROM
+    - test_is_replaceable: Confirm replaceable status is boolean
+    - test_get_transceiver_info: Validate EEPROM info (type, vendor, compliance, etc.)
+    - test_get_transceiver_dom_real_value: Verify DOM real-time values (temp, voltage, power)
+    - test_get_transceiver_threshold_info: Validate threshold info for optical transceivers
+    - test_get_reset_status: Test transceiver reset status retrieval
+    - test_get_rx_los: Verify RX loss-of-signal detection for optical modules
+    - test_get_tx_fault: Test TX fault detection for optical modules
+    - test_get_temperature: Validate temperature reading for optical modules
+    - test_get_voltage: Verify voltage reading for optical modules
+    - test_get_tx_bias: Test TX bias current retrieval for optical modules
+    - test_get_rx_power: Validate RX power measurement for optical modules
+    - test_get_tx_power: Verify TX power measurement for optical modules
+    - test_reset: Test transceiver reset functionality and interface recovery
+    - test_tx_disable: Verify TX disable/enable control on all channels
+    - test_tx_disable_channel: Test per-channel TX disable control
+    - test_lpmode: Validate low-power mode enable/disable for QSFP modules
+    - test_power_override: Test power override control for QSFP modules
+    - test_get_error_description: Verify error state description retrieval
+    - test_thermals: Validate thermal sensor enumeration for SFPs
+
+Topology:
+    Any topology with connected transceivers (requires conn_graph_facts)
+
+Fixtures Used:
+    - platform_api_conn: Platform API service connection
+    - setup: Class-scoped fixture building port-to-index mapping from conn_graph
+    - xcvr_skip_list: Transceiver skip list from inventory
+    - conn_graph_facts: Connection graph for physical port mapping
+    - shutdown_ebgp: Shuts down eBGP during disruptive tests
+    - port_list_with_flat_memory: Ports with flat memory (skip DOM tests)
+    - passive_cable_ports: DAC/passive cable port list
+    - cmis_cable_ports_and_ver: CMIS cable ports and version info
+    - is_sw_control_feature_enabled: Mellanox software control feature flag
+
+Dependencies:
+    - tests.common.helpers.platform_api.sfp
+    - platform.json (SFP metadata)
+    - Connection graph for port topology
+    - Mellanox: sw_control_enabled for TX disable tests
+
+Notes:
+    - Test skips supervisor nodes (no transceivers)
+    - Only tests ports with connected devices per conn_graph_facts
+    - Optical vs copper (DAC) detection determines test applicability
+    - QSFP-DD/OSFP-8X support includes CMIS and firmware version fields
+    - QSFP-ZR coherent modules have extended threshold/info fields
+    - Amphenol 800G Backplane cartridge has special field set and is not resettable
+    - Low-power mode not supported on Power Class 1 or SFP modules
+    - TX disable tests skip non-optical transceivers
+    - Reset test includes interface flap for modules supporting lpmode
+    - Mellanox platforms: TX disable tests only run on sw_control_enabled ports
+    - Platform-specific unresettable transceiver types from CLI option
+    - Post-reset I2C recovery time required before further operations
+    - Skip list from xcvr_skip_list fixture excludes problematic transceivers
+    - Known lpmode issues tracked in LPMODE_SKIP_LIST
+=============================================================================
+"""
 import ast
 import logging
 import pytest

@@ -1,3 +1,39 @@
+"""
+=============================================================================
+Module: generic_config_updater
+File: test_bgp_prefix.py
+=============================================================================
+
+Description:
+    Tests BGP prefix list configuration updates using Generic Config Updater.
+    Validates adding, replacing, and removing BGP prefix lists for allow list
+    deployment with IPv4 and IPv6 prefixes.
+
+Test Intent:
+    - test_bgp_prefix_add: Adds new BGP prefix to allow list and verifies in running config
+    - test_bgp_prefix_replace: Replaces existing BGP prefix and validates change
+    - test_bgp_prefix_remove: Removes BGP prefix and confirms removal
+
+Topology:
+    Supports t1, t2 topologies
+
+Fixtures Used:
+    - ensure_dut_readiness: Ensures DUT is ready with checkpoint/rollback
+    - _ignore_allow_list_errlogs: Ignores expected allow list error logs
+
+Dependencies:
+    - tests.common.gu_utils: GCU utilities for patch operations
+    - tests.common.utilities: wait_until for polling
+    - tests.common.helpers.assertions: pytest_assert
+
+Notes:
+    - Tests use DEPLOYMENT_ID_0 with empty community
+    - Initial prefixes: 10.20.0.0/16 (v4), fc01:20::/64 (v6)
+    - Dummy prefixes: 10.30.0.0/16 (v4), fc01:30::/64 (v6)
+    - Cisco 8111-O64 hardware has different allow list config
+    - Validates against running BGP configuration
+=============================================================================
+"""
 import logging
 import pytest
 import re

@@ -1,3 +1,42 @@
+"""
+=============================================================================
+Module: ixia/pfcwd
+File: test_pfcwd_runtime_traffic.py
+=============================================================================
+
+Description:
+    This test module validates the impact of PFC watchdog operations on
+    runtime traffic. It ensures that PFCWD detection and recovery actions
+    do not disrupt traffic on unaffected priorities.
+
+Test Intent:
+    - test_pfcwd_runtime_traffic: Tests PFC watchdog's impact on runtime
+      traffic across all priorities, ensuring PFCWD actions are isolated
+      to affected priorities and don't cause collateral traffic disruption
+
+Topology:
+    - tgen: Requires IXIA traffic generator topology
+
+Fixtures Used:
+    - ixia_api: IXIA session for traffic generation
+    - ixia_testbed_config: Testbed and port configuration
+    - conn_graph_facts: DUT-to-IXIA connection topology
+    - fanout_graph_facts: Fanout switch information
+    - all_prio_list: List of all priorities to test
+    - prio_dscp_map: Priority to DSCP mapping
+
+Dependencies:
+    - files.pfcwd_runtime_traffic_helper: Runtime traffic test implementation
+    - tests.common.ixia.ixia_fixtures: IXIA infrastructure
+    - tests.common.ixia.qos_fixtures: QoS test fixtures
+
+Notes:
+    - Validates traffic continues on non-storm-affected priorities
+    - Tests PFCWD isolation - only affected priority should be impacted
+    - Ensures PFCWD recovery restores full traffic functionality
+    - Critical test for production readiness validation
+=============================================================================
+"""
 import pytest
 
 from tests.common.helpers.assertions import pytest_require

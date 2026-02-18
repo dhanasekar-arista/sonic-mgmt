@@ -1,3 +1,47 @@
+"""
+Module: tests.db_migrator
+File: test_migrate_dns.py
+Description:
+    This module contains test cases for validating DNS nameserver migration behavior
+    in the SONiC db_migrator tool. It verifies that DNS configuration is correctly
+    migrated from either minigraph.xml or golden_config_db.json to the CONFIG_DB
+    during database migration operations.
+
+Test Intent:
+    - Validate DNS nameserver migration priority: golden config takes precedence over minigraph
+    - Test DNS migration when only minigraph exists (golden config absent)
+    - Test DNS migration when only golden config exists (minigraph absent)
+    - Verify DNS migration with SonicQosProfile property in minigraph
+    - Ensure db_migrator correctly handles different DNS source configurations
+
+Topology:
+    t0, t1 - Single ASIC topologies only (multi-ASIC platforms are skipped)
+
+Fixtures Used:
+    - setup_env (module-scoped, autouse): Backs up and restores configuration files
+      including config_db.json, golden_config_db.json, minigraph.xml, and dns.j2 template
+    - duthost (session-scoped): Ansible host instance for the device under test
+      Provided by: tests/conftest.py
+
+Dependencies:
+    - tests.common.helpers.assertions.pytest_assert: Custom assertion with detailed error messages
+    - tests.common.config_reload.config_reload: Safely reloads device configuration
+    - tests.common.utilities.backup_config: Backs up configuration files on DUT
+    - tests.common.utilities.restore_config: Restores backed up configuration files
+    - db_migrator.py: SONiC database migration tool (on DUT)
+    - sonic-db-cli: SONiC database CLI tool (on DUT)
+
+Notes:
+    - Tests require write access to /etc/sonic/ directory on DUT
+    - Tests manipulate critical system files (config_db.json, minigraph.xml)
+    - All modifications are backed up and restored via setup_env fixture
+    - Tests set database version to "version_202305_01" to trigger migration
+    - DNS template (dns.j2) is modified to inject test DNS servers
+    - Test DNS servers: minigraph_dns="1.1.1.1", golden_config_dns="2.2.2.2"
+    - Multi-ASIC platforms are explicitly skipped as tests are single-ASIC specific
+    - Git history: Added in ef5fef188, enhanced with SonicQosProfile in 2e0af3a0e
+"""
+
 import pytest
 import logging
 import json

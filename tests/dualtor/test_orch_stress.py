@@ -1,20 +1,52 @@
 """
-Dual ToR Orchagent - Stress Test
+=============================================================================
+Module: Dual ToR Orchagent Stress Test
+File: test_orch_stress.py
+=============================================================================
 
-This script is to cover the stress test case in the Dual ToR Orchagent test plan:
-https://github.com/sonic-net/sonic-mgmt/blob/master/docs/testplan/dual_tor/dual_tor_orch_test_plan.md
+Description:
+    This test validates orchagent resource management under stress conditions in
+    dual ToR topology. It performs repeated mux state transitions and neighbor
+    entry flaps to detect CRM (Critical Resource Monitoring) leaks in routes,
+    nexthops, and neighbor entries. Based on the Dual ToR Orchagent test plan at:
+    https://github.com/sonic-net/sonic-mgmt/blob/master/docs/testplan/dual_tor/dual_tor_orch_test_plan.md
 
-Test summary:
+Test Intent:
+    - test_change_mux_state: Performs N iterations of mux state transitions
+      (Active->Standby->Active) and verifies no CRM resource leaks occur for
+      routes and nexthop objects
+    - test_flap_neighbor_entry_active: Flushes and re-learns neighbor entries N
+      times while mux is in active state, validates no CRM leaks for routes,
+      neighbors, and nexthops
+    - test_flap_neighbor_entry_standby: Flushes and re-learns neighbor entries N
+      times while mux is in standby state, validates no CRM leaks for routes,
+      neighbors, and nexthops
 
-    Continuous mux state change based on configurable parameter 'N':
+Topology:
+    t0 - Requires t0 topology with mocked dual ToR configuration
 
-    | Step                                                         | Goal | Expected results                                                  |     # noqa: E501
-    | ------------------------------------------------------------ | ---- | ----------------------------------------------------------------- |     # noqa: E501
-    | Change mux state from Active->Standby->Active 'N' times      | CRM  | Verify CRM values for routes/nexthop and check for leaks          |     # noqa: E501
-    |                                                              |      |                                                                   |     # noqa: E501
-    | Flush and re-learn Neighbor entry 'N' times in Standby state | CRM  | Verify CRM values for routes/neighbor/nexthop and check for leaks |     # noqa: E501
-    |                                                              |      |                                                                   |     # noqa: E501
-    | Flush and re-learn Neighbor entry 'N' times in Active state  | CRM  | Verify CRM values for routes/neighbor/nexthop and check for leaks |     # noqa: E501
+Fixtures Used:
+    - apply_mock_dual_tor_tables: Applies mocked dual ToR configuration tables
+    - apply_mock_dual_tor_kernel_configs: Applies kernel-level dual ToR configs
+    - rand_selected_dut: Randomly selected DUT for testing
+    - tor_mux_intfs: List of mux cable interfaces on ToR
+    - swss_config_files: Generates and manages SWSS config files for mux states
+    - config_crm_polling_interval: Sets CRM polling to 1 second for faster updates
+    - mock_server_ip_mac_map: Map of server IPs to MAC addresses
+
+Dependencies:
+    - tests.common.utilities: Utility functions for waits and CRM comparison
+    - tests.common.helpers.assertions: Assertion helpers
+    - tests.common.dualtor.dual_tor_utils: Dual ToR utility functions
+    - tests.common.dualtor.dual_tor_mock: Dual ToR mocking utilities
+
+Notes:
+    - Iteration count N is configurable via --mux-stress-count CLI option (default: 2)
+    - CRM polling interval is reduced to 1 second during test (restored to 300s after)
+    - CRM leak detection is skipped on virtual switch (vs) platforms
+    - Uses swssconfig to directly manipulate mux cable state in CONFIG_DB
+    - Test waits for CRM updates between operations (2-10 seconds)
+=============================================================================
 """
 import json
 import logging

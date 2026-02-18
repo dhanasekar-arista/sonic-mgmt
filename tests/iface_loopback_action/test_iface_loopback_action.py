@@ -1,3 +1,54 @@
+"""
+=============================================================================
+Module: iface_loopback_action
+File: test_iface_loopback_action.py
+=============================================================================
+
+Description:
+    This test module validates the interface loopback action feature in SONiC,
+    which controls how packets with loopback source/destination addresses are
+    handled. It tests both forward and drop actions, verifies configuration
+    persistence across reboots, and validates behavior during interface flapping.
+
+Test Intent:
+    - test_loopback_action_basic: Validates default loopback action (forward),
+      tests configuration of drop action with TX_ERR counter verification,
+      and verifies switching back to forward action
+    - test_loopback_action_port_flap: Tests that loopback action configuration
+      persists correctly when interfaces are shut down and brought back up,
+      validates random mix of forward/drop actions across interfaces
+    - test_loopback_action_reload: Verifies loopback action configuration
+      persistence across various reboot types (config reload, cold, fast, warm),
+      ensures configuration survives system restarts
+
+Topology:
+    - any: Works with any topology that has router interfaces (RIF)
+
+Fixtures Used:
+    - duthost: Device Under Test host object
+    - ptfadapter: PTF adapter for traffic injection and verification
+    - ports_configuration: Fixture providing RIF interface configurations
+    - localhost: Local host object for reboot operations
+    - request: Pytest request object for accessing test parameters
+
+Dependencies:
+    - iface_loopback_action_helper: Helper module with action constants,
+      traffic verification, configuration, and counter validation functions
+    - tests.common.reboot: Reboot utilities for different reboot types
+    - tests.common.config_reload: Configuration reload functionality
+    - tests.common.platform.interface_utils: Interface status verification
+
+Notes:
+    - DUT health check is skipped for these tests
+    - Test validates both CLI configuration and actual packet behavior
+    - Uses RIF counter TX_ERR to verify drop action effectiveness
+    - Port flap test excludes VLAN interfaces (cannot be shut/no shut)
+    - Reload test disables log analyzer as logs may be lost during reboot
+    - Supports random reboot type selection for reload test
+    - Verifies critical services and interface states after reboot
+    - RIF counters require initialization time after reboot (up to 180s)
+=============================================================================
+"""
 import pytest
 import logging
 import random

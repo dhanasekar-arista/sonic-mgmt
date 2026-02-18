@@ -1,5 +1,46 @@
 """
-Tests related to L2 configuration
+=============================================================================
+Module: l2
+File: test_l2_configure.py
+=============================================================================
+
+Description:
+    This test verifies Layer 2 configuration functionality on SONiC devices.
+    It specifically tests the switch's behavior when configured in L2 mode,
+    ensuring that hardcoded tables from minigraph configuration are not
+    improperly migrated during the L2 configuration process.
+
+Test Intent:
+    - test_no_hardcoded_tables: Verifies that hardcoded tables (TELEMETRY and
+      RESTAPI) from minigraph configuration do not persist when the device is
+      configured in L2 mode. This ensures clean L2 configuration without
+      unwanted artifacts from previous L3/minigraph configurations.
+
+Topology:
+    t0 topology
+
+Fixtures Used:
+    - setup_env: Automatically sets up the test environment by backing up
+      config_db.json and minigraph.xml, handles dualtor-specific mux
+      container configuration, and performs cleanup/restoration after tests
+    - duthosts: Provides list of DUT hosts for testing
+    - rand_one_dut_hostname: Randomly selects one DUT for testing
+    - tbinfo: Testbed information used for management interface configuration
+
+Dependencies:
+    - tests.common.config_reload: For reloading device configuration
+    - tests.common.platform.processes_utils: For waiting on critical processes
+    - tests.common.helpers.assertions: For test assertions
+    - pytest_ansible: For Ansible connection handling
+
+Notes:
+    - Test requires TELEMETRY and RESTAPI tables to be populated before running
+    - Disables sanity checks and log analyzer for this test
+    - Skips DUT health checks during execution
+    - Handles dualtor topologies by removing mux from critical services list
+    - Cleans up pytest cache to prevent contamination of other tests
+    - Database version is tracked before and after configuration reload
+=============================================================================
 """
 
 import logging

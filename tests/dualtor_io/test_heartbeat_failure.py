@@ -1,3 +1,58 @@
+"""
+=============================================================================
+Module: dualtor_io
+File: test_heartbeat_failure.py
+=============================================================================
+
+Description:
+    Test suite for validating dual-ToR resilience during heartbeat (LinkProber) failures.
+    This module tests failover behavior when the active or standby ToR loses heartbeat
+    capability by stopping the LinkProber module in the mux container. Tests verify
+    traffic disruption and proper mux state transitions during heartbeat loss scenarios.
+
+Test Intent:
+    - test_active_tor_heartbeat_failure_upstream: Verify traffic failover when active ToR heartbeat stops (server to T1)
+    - test_active_tor_heartbeat_failure_downstream: Verify traffic failover when active ToR heartbeat stops (T1 to server)
+    - test_standby_tor_heartbeat_failure_upstream: Verify standby ToR heartbeat stop does not affect traffic (server to T1)
+    - test_standby_tor_heartbeat_failure_downstream: Verify standby ToR heartbeat stop does not affect traffic (T1 to server)
+
+Topology:
+    - dualtor: Dual-ToR topology with active-standby or active-active cable types
+
+Fixtures Used:
+    - upper_tor_host: Upper ToR DUT host object
+    - lower_tor_host: Lower ToR DUT host object
+    - toggle_all_simulator_ports_to_upper_tor: Sets all mux ports to upper ToR (active)
+    - send_t1_to_server_with_action: Sends downstream traffic with action during transmission
+    - send_server_to_t1_with_action: Sends upstream traffic with action during transmission
+    - shutdown_tor_heartbeat: Stops LinkProber module in mux container to simulate heartbeat failure
+    - run_icmp_responder: Runs ICMP responder on PTF for server simulation
+    - run_garp_service: Runs GARP service on PTF for MAC address updates
+    - change_mac_addresses: Changes PTF MAC addresses to match server MACs
+    - check_simulator_flap_counter: Verifies mux simulator flap counts
+    - cable_type: Cable type fixture (active-standby or active-active)
+
+Dependencies:
+    - Mux simulator control for cable state management
+    - LinkProber process in mux container for heartbeat monitoring
+    - PTF framework for traffic generation and verification
+    - tor_failure_utils.shutdown_tor_heartbeat for stopping LinkProber
+    - LogAnalyzer for expected error log validation
+
+Notes:
+    - Tests are marked with pytest.mark.topology("dualtor")
+    - Disruption must be less than MUX_SIM_ALLOWED_DISRUPTION_SEC (1 second)
+    - Expected log error: 'container_checker' status failed -- Expected containers not running: mux
+    - Heartbeat failure is simulated by stopping LinkProber module (not entire mux container)
+    - Active-standby: Heartbeat loss on active ToR triggers failover to standby
+    - Active-standby: Heartbeat loss on standby ToR has no effect on traffic
+    - Active-active: Both ToRs remain active even during heartbeat failures
+    - LogAnalyzer ignores expected monit container checker errors during heartbeat loss
+    - Tests verify control plane (mux state) and data plane (traffic forwarding)
+
+=============================================================================
+"""
+
 import pytest
 
 from tests.common.dualtor.control_plane_utils import verify_tor_states

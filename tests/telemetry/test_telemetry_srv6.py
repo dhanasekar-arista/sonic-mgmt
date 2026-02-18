@@ -1,3 +1,65 @@
+"""
+=============================================================================
+Module: telemetry
+File: test_telemetry_srv6.py
+=============================================================================
+
+Description:
+    This test file validates gNMI telemetry functionality for SRv6 (Segment Routing
+    over IPv6) MY_SID counters in SONiC. It tests polling of SRv6 segment identifier
+    statistics via gNMI, ensuring counters are properly exposed and updated when
+    SRv6 locators and SIDs are configured, both with real counter polling and mock
+    data scenarios.
+
+Test Intent:
+    - test_poll_mode_srv6_sid_counters: Validates SRv6 MY_SID counter polling via
+      gNMI by first configuring SRv6 locator (loc1) and MY_SID (fcbb:bbbb:1::/48
+      with uN action), querying COUNTERS_DB when stats don't exist (verifying no
+      errors), enabling counter polling via flex counter configuration, waiting
+      for stats to populate, and querying again to verify counter data is properly
+      returned via gNMI.
+    - test_poll_mode_srv6_sid_counters_with_mock_data: Tests SRv6 counter polling
+      with mock data by configuring SRv6 locator/SID, directly populating mock
+      counter values in COUNTERS_DB (in_pkts, in_octets, out_pkts, out_octets),
+      subscribing via gNMI poll mode, and verifying the mock counter values appear
+      correctly in gNMI updates.
+
+Topology:
+    any (works with any topology type)
+
+Fixtures Used:
+    - duthosts: Provides access to all DUT hosts
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hwsku
+    - ptfhost: PTF host for running gNMI client
+    - setup_streaming_telemetry: Configures streaming telemetry (parametrized False)
+    - gnxi_path: Path to gNMI client tools on PTF
+    - setup_my_sid: Fixture that configures SRv6 MY_LOCATORS and MY_SIDS in CONFIG_DB
+      and cleans up after test completion
+
+Dependencies:
+    - pytest: Test framework
+    - tests.common.helpers.assertions: For test assertions
+    - tests.common.utilities: Provides wait_until and InterruptableThread
+    - telemetry_utils: gNMI CLI generation and execution utilities
+
+Notes:
+    - Subscription mode: POLL (2)
+    - Polling interval: 5 seconds
+    - Max sync count: 10 poll cycles
+    - Timeout: 60 seconds
+    - SRv6 locator: loc1 with prefix fcbb:bbbb:1:: and func_len 0
+    - MY_SID configuration: fcbb:bbbb:1::/48 with uN action and pipe decap_dscp_mode
+    - Database: COUNTERS_DB
+    - Multi-ASIC support: Uses namespace asic0 when applicable
+    - Flex counter group: SRV6_COUNTERS
+    - Flex counter polling interval: 5000ms (5 seconds)
+    - Counter fields: in_pkts, in_octets, out_pkts, out_octets
+    - Mock counter values: 100, 200, 300, 400 for testing
+    - Wait timeout for counter population: 120 seconds
+    - Test verifies both initial state (no data) and populated state (with counters)
+    - Cleanup removes SRv6 configuration from CONFIG_DB
+=============================================================================
+"""
 import logging
 import pytest
 import re

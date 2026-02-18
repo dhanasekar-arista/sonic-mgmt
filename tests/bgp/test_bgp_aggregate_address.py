@@ -1,16 +1,39 @@
 """
-Tests for the BGP aggregate-address with bbr awareness feature in SONiC,
-aligned with: https://github.com/sonic-net/sonic-mgmt/blob/master/docs/testplan/BGP-Aggregate-Address.md
+=============================================================================
+Module: bgp
+File: test_bgp_aggregate_address.py
+=============================================================================
 
-Test Case 1: Scenarios covered via parametrize ipversion, bbr-required, summary-only and as-set.
+Description:
+    Tests BGP aggregate-address feature with BBR (Bounce Back Routing) awareness
+    in SONiC. Validates aggregate address configuration with various flags and
+    ensures proper state management when BBR state changes.
 
-Test Case 2: Test BBR Features State Change
-  During device up, the BBR state may change, and this feature should take action accordingly.
+Test Intent:
+    - test_bgp_aggregate_address: Tests aggregate-address with combinations of
+      IPv4/IPv6, bbr-required, summary-only, and as-set flags
+    - test_bgp_aggregate_address_when_bbr_changed: Validates aggregate address
+      behavior when BBR state transitions between enabled/disabled
 
-Validations:
-  - CONFIG_DB: BGP_AGGREGATE_ADDRESS row content (bbr-required/summary-only/as-set flags)
-  - STATE_DB: BGP_AGGREGATE_ADDRESS row content (state flag align with bbr status)
-  - FRR running config: aggregate-address line contains expected flags
+Topology:
+    t1, m1
+
+Fixtures Used:
+    - setup_teardown: Creates GCU checkpoint and manages placeholder aggregates
+    - duthosts: Multi-DUT fixture
+    - rand_one_dut_hostname: Randomly selected DUT
+
+Dependencies:
+    - bgp_bbr_helpers: BBR configuration and state management
+    - tests.common.gcu_utils: Generic Config Updater utilities
+    - tests.common.helpers.assertions.pytest_assert
+
+Notes:
+    - Only runs on virtual switch (vs) device types
+    - Uses GCU (Generic Config Updater) for configuration changes
+    - Validates CONFIG_DB, STATE_DB, and FRR running configuration
+    - Requires placeholder aggregate to prevent GCU from removing empty tables
+=============================================================================
 """
 
 import ast

@@ -1,3 +1,39 @@
+"""
+=============================================================================
+Module: generic_config_updater
+File: test_ntp.py
+=============================================================================
+
+Description:
+    Tests NTP server configuration using Generic Config Updater. Validates
+    adding, replacing, and removing NTP servers with proper verification in
+    NTP/Chrony configuration files.
+
+Test Intent:
+    - test_ntp_server_add_init_config: Adds initial NTP server configuration
+    - test_ntp_server_add_duplicate: Tests error handling for duplicate add
+    - test_ntp_server_add_remove: Adds then removes NTP server
+    - test_ntp_server_replace: Replaces existing NTP server
+
+Topology:
+    Supports any topology (vs device type only)
+
+Fixtures Used:
+    - setup_env: Creates checkpoint and determines NTP daemon (ntp/chrony)
+    - ntp_daemon_in_use: Provides NTP daemon type in use
+
+Dependencies:
+    - tests.common.helpers.ntp_helper: NtpDaemon enum and utilities
+    - tests.common.gu_utils: GCU utilities for patch operations
+
+Notes:
+    - NTP conf: /etc/ntp.conf or /etc/chrony/chrony.conf (for chrony)
+    - Initial server: 10.11.0.1
+    - Dummy server: 10.11.0.2
+    - Server format: "server {ip} iburst"
+    - Log analyzer disabled for these tests
+=============================================================================
+"""
 import logging
 import pytest
 import re

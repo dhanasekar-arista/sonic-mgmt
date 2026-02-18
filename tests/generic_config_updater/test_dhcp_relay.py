@@ -1,3 +1,41 @@
+"""
+=============================================================================
+Module: generic_config_updater
+File: test_dhcp_relay.py
+=============================================================================
+
+Description:
+    Tests DHCP relay configuration using Generic Config Updater. Validates
+    adding, replacing, and removing DHCP relay servers on VLAN interfaces
+    with proper service restart and verification.
+
+Test Intent:
+    - test_dhcp_relay_add_del: Adds then removes DHCP relay servers
+    - test_dhcp_relay_replace: Replaces DHCP relay server addresses
+    - test_dhcp_relay_add_del_dest: Adds/removes multiple DHCP servers
+    - test_dhcp_relay_invalid_op: Tests error handling for invalid operations
+
+Topology:
+    Supports t0, m0 topologies
+
+Fixtures Used:
+    - vlan_intfs_dict: VLAN interface configuration
+    - first_avai_vlan_port: First available VLAN port
+    - setup_env: Creates test VLANs and checkpoint
+    - utils_create_test_vlans: Creates test VLANs on DUT
+
+Dependencies:
+    - tests.common.fixtures.duthost_utils: VLAN utilities
+    - tests.common.gu_utils: GCU utilities
+    - tests.common.dhcp_relay_utils: restart_dhcp_service
+
+Notes:
+    - Uses 120s timeout and 10s interval for DHCP relay checks
+    - Creates checkpoint named "test_setup_checkpoint"
+    - Tests add two new VLANs for DHCP relay
+    - Validates dhcrelay process after configuration changes
+=============================================================================
+"""
 import logging
 import pytest
 

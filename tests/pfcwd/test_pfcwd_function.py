@@ -1,3 +1,52 @@
+"""
+=============================================================================
+Module: pfcwd
+File: test_pfcwd_function.py
+=============================================================================
+
+Description:
+    Comprehensive PFC Watchdog functional testing covering various actions,
+    multi-port storms, MMU parameter changes, port toggling, and no-traffic
+    scenarios. Validates PFCwd detection, restoration, counter accuracy, and
+    traffic forwarding/dropping behavior.
+
+Test Intent:
+    - test_pfcwd_actions: Tests PFCwd with dontcare/drop/forward actions,
+      verifying storm detection, traffic behavior, and counter accuracy for
+      each action on all test ports
+    - test_pfcwd_multi_port: Tests PFCwd behavior with 2 ports under storm
+      sequentially, validates both same-queue and different-queue scenarios
+    - test_pfcwd_mmu_change: Tests PFCwd with MMU dynamic threshold changes,
+      cycles through change/noop/restore/noop actions while storms are active
+    - test_pfcwd_port_toggle: Validates PFCwd continues working after port
+      toggle (admin down/up), verifies storm not detected on toggled port
+    - test_pfcwd_no_traffic: Verifies PFCwd is not triggered when PFC storm
+      exists but no traffic is sent on the affected queue
+
+Topology:
+    any topology (all topologies supported)
+
+Fixtures Used:
+    - setup_pfc_test: Module-scoped PFC test setup
+    - setup_dut_test_params: DUT-specific parameters including dualtor detection
+    - stop_pfcwd: Function-scoped autouse fixture to stop PFCwd
+    - fake_storm: Module-scoped fixture for fake storm enablement
+
+Dependencies:
+    - tests.common.helpers.pfc_storm.PFCStorm: PFC storm generation
+    - tests.common.helpers.pfcwd_helper: PFCwd utilities and background traffic
+    - tests.ptf_runner: PTF traffic test execution
+    - tests.common.port_toggle: Port admin state control
+
+Notes:
+    - Supports both fake storms (DEBUG_STORM) and real PFC generation
+    - Validates Tx/Rx packet counters (_DROPPED vs _OK counts)
+    - Tests buffer profile dynamic threshold updates (alpha values)
+    - Cisco-8000 and 7060X6 skip forward action tests
+    - Can verify traffic on alternate PFC queues/PGs not under storm
+    - Uses LogAnalyzer for storm detect/restore message verification
+=============================================================================
+"""
 import datetime
 import logging
 import os

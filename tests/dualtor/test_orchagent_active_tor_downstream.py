@@ -1,3 +1,55 @@
+"""
+=============================================================================
+Module: Dual ToR Active ToR Downstream Traffic Test
+File: test_orchagent_active_tor_downstream.py
+=============================================================================
+
+Description:
+    This test validates downstream traffic forwarding behavior on the active ToR
+    in dual ToR topology. It verifies neighbor entry management, direct server
+    forwarding, and ECMP nexthop distribution for routes with multiple mux-connected
+    servers as nexthops.
+
+Test Intent:
+    - test_active_tor_remove_neighbor_downstream_active: Validates that traffic to
+      a server is directly forwarded when neighbor entry exists, dropped when neighbor
+      is removed, and restored when neighbor is re-learned. Verifies no tunnel traffic
+      occurs on active ToR.
+    - test_downstream_ecmp_nexthops: Tests ECMP behavior with 4 nexthops across mux
+      ports. Verifies traffic distribution remains correct as mux states transition
+      from active to standby and back, ensuring single downlink/uplink forwarding
+      at all times.
+
+Topology:
+    t0 - Requires t0 topology with mocked dual ToR configuration
+
+Fixtures Used:
+    - testbed_setup: Provides test port, server IP, and IP version based on parameters
+    - ip_version: Parametrized fixture for IPv4/IPv6 testing
+    - set_crm_polling_interval: Sets CRM polling interval for resource tracking
+    - tunnel_traffic_monitor: Monitors tunnel traffic (should not exist on active ToR)
+    - toggle_all_simulator_ports: Controls mux simulator port states
+    - run_garp_service: Runs GARP service on PTF for neighbor advertisement
+    - run_icmp_responder: Runs ICMP responder on PTF
+    - run_arp_responder: Runs ARP responder for IPv4
+    - run_arp_responder_ipv6: Runs NDP responder for IPv6
+
+Dependencies:
+    - tests.common.dualtor.dual_tor_utils: Dual ToR utility functions
+    - tests.common.dualtor.dual_tor_mock: Dual ToR mocking utilities
+    - tests.common.dualtor.mux_simulator_control: Mux simulator control
+    - tests.common.dualtor.server_traffic_utils: Server traffic monitoring
+    - tests.common.dualtor.tunnel_traffic_utils: Tunnel traffic monitoring
+
+Notes:
+    - Test validates both IPv4 and IPv6 traffic flows
+    - Neighbor removal test temporarily stops GARP and ARP responder services
+    - IPv6 neighbor changes are expected to impact CRM counters
+    - Test waits up to 60 seconds for neighbor reachability after restoration
+    - ECMP test uses 4 nexthops and validates single-path forwarding behavior
+    - Properly cleans up routes and neighbor entries in finally blocks
+=============================================================================
+"""
 import contextlib
 import logging
 import pytest

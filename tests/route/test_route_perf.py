@@ -1,3 +1,61 @@
+"""
+=============================================================================
+Module: route
+File: test_route_perf.py
+=============================================================================
+
+Description:
+    This test module validates route programming performance and scale on SONiC
+    switches. It measures the time required to add and remove large numbers of
+    IPv4 and IPv6 routes, verifies routes are correctly installed in ASIC_DB,
+    and validates traffic forwarding for a sample of installed routes. The test
+    adapts to platform capabilities using CRM (Critical Resource Monitoring) to
+    determine available route capacity.
+
+Test Intent:
+    - test_perf_add_remove_routes: Measures performance of adding and removing
+      large route sets (default 10K-40K routes depending on topology), validates
+      routes are correctly programmed in ASIC_DB, verifies traffic forwarding
+      for 10 random routes, and ensures proper cleanup. Tests both IPv4 and IPv6
+      via parametrization with configurable scale limits.
+
+Topology:
+    - Supported: any topology, t1-multi-asic
+    - Device type: vs (virtual switch)
+    - Scale varies by topology: m0/mx (500 routes), t0/t1 (40K IPv4, 8K IPv6)
+
+Fixtures Used:
+    - duthosts: All DUT hosts in the testbed
+    - enum_rand_one_per_hwsku_frontend_hostname: Randomly selected frontend DUT
+    - enum_rand_one_frontend_asic_index: Selected ASIC instance for multi-ASIC
+    - ptfadapter: PTF adapter for traffic verification
+    - tbinfo: Testbed information fixture
+    - ip_versions: Parametrized fixture for IPv4 (4) and IPv6 (6) testing
+    - is_backend_topology: Backend topology detection fixture
+    - check_config: Validates ASIC-specific routing configuration (l3_alpm_enable)
+    - ignore_expected_loganalyzer_exceptions: Auto-use fixture for expected route_check errors
+    - reload_dut: Auto-use cleanup fixture that reloads config on test failure
+    - set_polling_interval: Module-scoped fixture setting CRM polling to 1 second
+
+Dependencies:
+    - tests.route.utils: Route file generation and DUT preparation utilities
+    - tests.common.helpers.generators: IP address generation for traffic tests
+    - ptf.testutils, ptf.mask, ptf.packet: Packet crafting and verification
+    - CRM: Critical Resource Monitoring for route capacity detection
+
+Notes:
+    - Routes are programmed via swssconfig using JSON route files
+    - CRM polling interval reduced to 1 second for faster resource monitoring
+    - Timeout calculations scale with route count (vs: ~160 routes/sec, others: ~250/sec)
+    - Broadcom devices: validates l3_alpm_enable=2 or l3_alpm_template=1 (TH5)
+    - Multi-ASIC: Tests run on single selected ASIC with appropriate namespace
+    - Traffic test: 10 random routes verified with packet forwarding
+    - Command-line options: --max_scale (use all available routes), --num_routes (specific count)
+    - Expected log errors (route_check, orchagent stuck) are ignored during test
+    - Config reload on failure ensures clean state for subsequent tests
+=============================================================================
+"""
+
 import pytest
 import logging
 import time

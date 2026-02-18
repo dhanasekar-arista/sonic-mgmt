@@ -1,3 +1,53 @@
+"""
+=============================================================================
+Module: ipfwd
+File: test_nhop_group.py
+=============================================================================
+
+Description:
+    This comprehensive test module validates next-hop group functionality in
+    SONiC, including ECMP load balancing, resource limits, and failover behavior.
+    It tests CRM (Critical Resource Monitoring) for next-hop groups and members,
+    and validates proper traffic distribution across ECMP paths.
+
+Test Intent:
+    - test_nhop_group_add: Tests maximum next-hop group creation up to platform
+      limits, validates CRM statistics and resource availability
+    - test_nhop_group_member_add: Validates maximum next-hop group member
+      addition, ensuring proper resource allocation and CRM tracking
+    - test_nhop_group_member_traffic_distribution: Verifies ECMP traffic is
+      evenly distributed across all next-hop group members
+    - test_nhop_group_member_remove_add: Tests dynamic member removal and
+      addition, ensuring traffic redistribution works correctly
+    - test_nhop_group_failover: Validates failover behavior when next-hop
+      paths fail, ensuring traffic shifts to remaining healthy paths
+
+Topology:
+    - t1, t2, m1, lt2, ft2: Tests run on T1 and related ECMP-capable topologies
+
+Fixtures Used:
+    - check_running_condition: Module-scoped fixture ensuring CRM stats are
+      initialized before testing
+    - gather_facts: Provides neighbor IPs, router MAC, and port information
+    - fanouthosts: Fanout switch hosts for link toggle operations
+
+Dependencies:
+    - tests.common.cisco_data: Cisco platform detection and limitations
+    - tests.common.mellanox_data: Mellanox platform detection
+    - tests.common.utilities: Wait and retry utilities
+    - tests.common.platform.device_utils: Fanout control for link operations
+    - ptf: PTF packet testing framework
+
+Notes:
+    - Cisco platforms use 92% fill threshold for next-hop group resources
+    - Tests create large numbers of routes to stress CRM limits
+    - Validates CRM statistics match actual resource usage
+    - Tests ECMP hash distribution with 1000+ packets
+    - Platform-specific limits handled for Mellanox, Cisco, Marvell, VS devices
+    - Failover tests toggle physical links to simulate path failures
+    - Cleanup ensures routes and ARPs are removed after testing
+=============================================================================
+"""
 import ipaddr
 import logging
 import os

@@ -1,3 +1,48 @@
+"""
+=============================================================================
+Module: voq
+File: test_voq_disrupts.py
+=============================================================================
+
+Description:
+    This test suite validates VOQ system behavior during and after disruptive
+    events such as DUT reboots and config reloads. It verifies that interfaces,
+    neighbors, and forwarding functionality are properly restored after the
+    disruption completes.
+
+Test Intent:
+    - check_bgp_neighbors: Helper function that validates all BGP neighbors
+      are in established state
+    - poll_bgp_restored: Polls until all BGP neighbors recover after disruption
+    - check_intfs_and_nbrs: Verifies interfaces and neighbors are correct on
+      frontend nodes and chassis DB after disruption
+    - (Additional test functions verify reboot/config-reload scenarios)
+
+Topology:
+    t2 (VOQ chassis topology)
+
+Fixtures Used:
+    - duthosts: Multi-DUT fixture for chassis systems
+    - all_cfg_facts: Configuration facts for all DUTs
+    - nbrhosts: Neighbor host objects
+    - nbr_macs: Neighbor MAC addresses
+
+Dependencies:
+    - tests.common.helpers.voq_helpers: For VOQ-specific ping and verification
+    - .test_voq_ipfwd: For port selection and packet checking
+    - .test_voq_init: For interface verification
+    - tests.common.reboot: For DUT reboot operations
+    - tests.common.config_reload: For config reload operations
+    - tests.common.helpers.parallel: For parallel execution utilities
+
+Notes:
+    - Loganalyzer is disabled for this test module
+    - Default timeout for BGP recovery is 900 seconds
+    - Verifies both local and chassis-level neighbor/interface state
+    - Uses parallel execution for efficiency on multi-DUT operations
+    - Resets ansible local tmp between parallel operations
+=============================================================================
+"""
 import pytest
 import logging
 import time

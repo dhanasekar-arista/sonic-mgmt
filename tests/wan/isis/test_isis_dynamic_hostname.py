@@ -1,3 +1,37 @@
+"""
+=============================================================================
+Module: wan/isis
+File: test_isis_dynamic_hostname.py
+=============================================================================
+
+Description:
+    This test validates ISIS dynamic hostname feature. It verifies that when
+    dynamic hostname is disabled, system IDs are used instead of hostnames
+    in ISIS database and routing table.
+
+Test Intent:
+    - test_isis_dynamic_hostname: Validates that disabling dynamic hostname
+      causes ISIS to use system IDs instead of hostnames in database entries
+
+Topology:
+    wan-com (WAN common topology)
+
+Fixtures Used:
+    - isis_common_setup_teardown: Sets up ISIS configuration
+    - isis_setup_teardown: Function-scoped fixture that disables dynamic
+      hostname and reverts after test
+
+Dependencies:
+    - tests.common.helpers.assertions: For pytest assertions
+    - isis_helpers: For ISIS configuration and verification helpers
+
+Notes:
+    - Dynamic hostname enabled (default): hostnames shown in ISIS database
+    - Dynamic hostname disabled: system IDs shown instead
+    - Fixture sets dynamic_hostname to 'false' for testing
+    - Automatically reverts configuration after test
+=============================================================================
+"""
 import re
 import pytest
 import logging

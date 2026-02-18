@@ -1,3 +1,40 @@
+"""
+=============================================================================
+Module: k8s
+File: test_join_available_master.py
+=============================================================================
+
+Description:
+    This test module validates that the DUT properly joins the Kubernetes
+    master only when both the VIP and API servers are reachable. It tests
+    network reachability dependency for Kubernetes cluster joining.
+
+Test Intent:
+    - test_join_available_master: Verifies DUT waits for Kubernetes master
+      VIP to become reachable before joining, ensures connection only occurs
+      when both VIP and API servers are available, validates proper handling
+      of unreachable master scenarios
+
+Topology:
+    - any: Works with any topology
+
+Fixtures Used:
+    - duthost: DUT host object for configuration
+    - k8scluster: Kubernetes cluster fixture providing master VIP
+
+Dependencies:
+    - k8s_test_utilities: Kubernetes test helper functions for VIP control
+      and connection checking
+    - tests.common.helpers.assertions: Test assertion utilities
+
+Notes:
+    - Makes VIP unreachable to test join failure scenario
+    - Verifies DUT does not join when VIP is unreachable
+    - Restores VIP reachability and validates successful join
+    - Uses 60-second wait periods for state synchronization
+    - Tests proper handling of network partitions
+=============================================================================
+"""
 import pytest
 import time
 import k8s_test_utilities as ku

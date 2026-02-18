@@ -1,3 +1,35 @@
+"""
+=============================================================================
+Module: generic_config_updater
+File: test_pfcwd_interval.py
+=============================================================================
+
+Description:
+    Tests PFC watchdog poll interval configuration using Generic Config Updater.
+    Validates updating PFCWD poll interval and verifies changes in
+    FLEX_COUNTER_DB.
+
+Test Intent:
+    - test_pfcwd_interval_update: Updates PFC watchdog poll interval value
+    - test_pfcwd_invalid_interval_update: Tests error for invalid interval
+
+Topology:
+    Supports any topology (Cisco-8000, Mellanox, Marvell-Teralynx ASICs only)
+
+Fixtures Used:
+    - ensure_dut_readiness: Module-level checkpoint for rollback
+
+Dependencies:
+    - tests.common.gu_utils: GCU utilities, is_valid_platform_and_version
+    - tests.common.utilities: wait_until for polling
+
+Notes:
+    - Reads FLEX_COUNTER_DB with 480s timeout, 20s interval
+    - Validates POLL_INTERVAL in PFC_WD_FLEX_COUNTER_GROUP
+    - Platform/version validation via is_valid_platform_and_version
+    - Tests specific to Cisco-8000, Mellanox, Marvell-Teralynx platforms
+=============================================================================
+"""
 import logging
 import pytest
 import json

@@ -1,4 +1,40 @@
 """
+=============================================================================
+Module: gnmi
+File: test_gnoi_os.py
+=============================================================================
+
+Description:
+    Tests gNOI OS API for operating system verification and installation
+    operations. Validates OS version retrieval and image activation.
+
+Test Intent:
+    - test_gnoi_os_verify: Verifies OS.Verify API returns current OS version
+      and matches ansible facts
+    - test_gnoi_os_activate: Tests OS.Activate API for switching to different
+      OS image and validates activation success
+
+Topology:
+    Supports any topology
+
+Fixtures Used:
+    - duthosts: DUT host objects
+    - rand_one_dut_hostname: Randomly selected DUT
+    - localhost: Localhost for gNOI client operations
+
+Dependencies:
+    - .helper: gnoi_request, extract_gnoi_response for gNOI operations
+    - tests.common.helpers.assertions: pytest_assert
+
+Notes:
+    - Log analyzer disabled for these tests
+    - OS.Verify response format: {"version":"SONiC-OS-20240510.24"}
+    - OS.Activate validates image installation and activation
+    - Compares gNOI version with ansible image facts
+=============================================================================
+"""
+
+"""
 Tests for gNOI OS service APIs.
 
 This module tests the gNOI (gRPC Network Operations Interface) OS service,

@@ -1,3 +1,62 @@
+"""
+=============================================================================
+Module: Dual ToR Standby ToR Downstream Traffic Test
+File: test_orchagent_standby_tor_downstream.py
+=============================================================================
+
+Description:
+    This test validates downstream traffic behavior on standby ToR in dual ToR
+    topology. It verifies tunnel encapsulation, traffic distribution across T1
+    uplinks, resilience to link/BGP failures, neighbor entry handling, and mux
+    state transition behavior from standby to active.
+
+Test Intent:
+    - test_standby_tor_downstream: Verifies tunnel traffic is distributed equally
+      across nexthops to active ToR, and no traffic forwarded to server directly
+    - test_standby_tor_downstream_t1_link_recovered: Validates traffic redistribution
+      after T1 link failure and recovery, verifies no CRM nexthop leaks
+    - test_standby_tor_downstream_bgp_recovered: Validates traffic shifts to active
+      links after BGP session failure and recovery, verifies no CRM nexthop leaks
+    - test_standby_tor_downstream_loopback_route_readded: Tests traffic distribution
+      when peer ToR loopback route is removed and re-added via BGP/static route
+    - test_standby_tor_remove_neighbor_downstream_standby: Verifies traffic is dropped
+      (not tunneled) when neighbor entry is removed on standby ToR
+    - test_downstream_standby_mux_toggle_active: Comprehensive test of mux state
+      transitions from standby to active and back, validates traffic forwarding changes
+
+Topology:
+    t0 - Requires t0 topology with mocked dual ToR configuration
+
+Fixtures Used:
+    - get_testbed_params: Provides testbed parameters including active ToR IP
+    - ip_version: Parametrized for IPv4/IPv6 testing
+    - shutdown_one_uplink: Fixture to shutdown/restore random T1 link
+    - shutdown_one_bgp_session: Fixture to shutdown/restore random BGP session
+    - remove_peer_loopback_route: Removes peer ToR loopback routes via BGP shutdown
+    - set_crm_polling_interval: Sets CRM polling interval for resource tracking
+    - tunnel_traffic_monitor: Monitors tunnel traffic
+    - toggle_all_simulator_ports: Controls mux simulator port states
+    - run_garp_service: Runs GARP service on PTF
+    - run_icmp_responder: Runs ICMP responder on PTF
+    - run_arp_responder_ipv6: Runs NDP responder for IPv6
+
+Dependencies:
+    - tests.common.dualtor.dual_tor_mock: Dual ToR mocking utilities
+    - tests.common.dualtor.dual_tor_utils: Dual ToR utility functions
+    - tests.common.dualtor.tunnel_traffic_utils: Tunnel traffic monitoring
+    - tests.common.dualtor.server_traffic_utils: Server traffic monitoring
+    - tests.common.dualtor.mux_simulator_control: Mux simulator control
+
+Notes:
+    - All tests verify CRM counter stability (no nexthop leaks)
+    - Link/BGP recovery tests wait 30 seconds for convergence
+    - Mocked testbed requires manual static route manipulation
+    - check_tunnel_balance validates equal traffic distribution across uplinks
+    - Neighbor removal test uses flush_neighbor context manager
+    - Mux toggle test validates 3 stages: standby, active, standby again
+    - Tests use random destination IPs to trigger tunnel routes
+=============================================================================
+"""
 import pytest
 import random
 import time

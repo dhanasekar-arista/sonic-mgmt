@@ -1,3 +1,60 @@
+"""
+=============================================================================
+Module: snappi_tests
+File: test_multidut_snappi.py
+=============================================================================
+
+Description:
+    This test module validates SONiC data plane functionality in multi-DUT
+    topologies using the Snappi traffic generator framework. It tests all-to-all
+    traffic patterns across multiple DUTs with QoS support, verifying packet
+    forwarding, traffic statistics, and inter-DUT communication using Snappi
+    API for traffic generation and analysis.
+
+Test Intent:
+    - test_multidut_snappi: Generates all-to-all bidirectional traffic across
+      multiple DUTs in the testbed, validates packet forwarding through DUT
+      chain, verifies traffic statistics, and confirms QoS behavior in multi-DUT
+      scenarios
+
+Topology:
+    - Supported: multidut-tgen (multiple DUTs with traffic generator)
+    - Requires Snappi API server for multi-DUT traffic orchestration
+    - Uses fanout connections spanning multiple DUT devices
+
+Fixtures Used:
+    - snappi_api: Snappi API client for multi-DUT traffic configuration
+    - snappi_testbed_config: Multi-DUT testbed configuration
+    - snappi_dut_base_config: Base configuration for each DUT
+    - get_snappi_ports_multi_dut: Port selection for multi-DUT topology
+    - is_snappi_multidut: Multi-DUT topology detection
+    - tgen_port_info: Traffic generator port information
+    - snappi_port_selection: Port selection strategy fixture
+    - get_snappi_ports_for_rdma: RDMA-specific port selection
+    - cleanup_config: Configuration cleanup after test
+    - prio_dscp_map: QoS priority to DSCP mapping
+    - lossless_prio_list: Lossless queue priorities
+    - fanout_graph_facts_multidut: Multi-DUT fanout topology
+
+Dependencies:
+    - tests.common.snappi_tests.snappi_helpers: ARP and protocol helpers
+    - tests.common.snappi_tests.port: Multi-DUT port selection utilities
+    - tests.common.snappi_tests.qos_fixtures: QoS configuration fixtures
+
+Notes:
+    - Loganalyzer disabled for multi-DUT traffic tests
+    - Polling delay: 2 seconds (SNAPPI_POLL_DELAY_SEC)
+    - Traffic pattern: all-to-all across DUT boundaries
+    - Default packet size: 1024 bytes, duration: 2 seconds
+    - Line rate adjustment for Cisco-8000: 50% (others: 100%)
+    - Rate distribution: line_rate / (port_count - 1)
+    - ARP resolution performed across all DUT interfaces
+    - Supports priority-based traffic with DSCP marking
+    - Multi-DUT traffic paths validated end-to-end
+    - Statistics verified for each DUT in the forwarding path
+=============================================================================
+"""
+
 import time
 import pytest
 import random

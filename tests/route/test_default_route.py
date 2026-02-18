@@ -1,3 +1,57 @@
+"""
+=============================================================================
+Module: route
+File: test_default_route.py
+=============================================================================
+
+Description:
+    This test module validates default route (0.0.0.0/0 and ::/0) configuration
+    and behavior on SONiC switches. It verifies that default routes have correct
+    nexthops matching upstream neighbors, proper source address selection using
+    Loopback0, and correct handling during BGP session flaps. The tests ensure
+    IPv6 routes use global addresses rather than link-local addresses.
+
+Test Intent:
+    - test_default_route_set_src: Validates that default routes (IPv4 and IPv6)
+      have the correct source address set to the Loopback0 interface IP
+    - test_default_ipv6_route_next_hop_global_address: Ensures IPv6 default route
+      uses global unicast addresses as nexthops, not link-local addresses
+    - test_default_route_with_bgp_flap: Verifies default route nexthops match
+      upstream neighbor IPs in APP_DB, confirms routes are removed when BGP
+      sessions are shutdown, and monitors memory usage of BMP-related processes
+      (openbmpd, bgpd) during BGP flapping
+    - test_ipv6_default_route_table_enabled_for_mgmt_interface: Checks that
+      IPv6 default route table is enabled for management interface when
+      management VRF is not configured
+
+Topology:
+    - Supported: any topology
+    - Device type: vs (virtual switch)
+    - Skip on backend topologies for specific tests
+    - Tests focus on T0, T1, and isolated T1 topologies
+
+Fixtures Used:
+    - duthosts: All DUT hosts in the testbed
+    - tbinfo: Testbed information fixture
+    - loganalyzer: Log analysis fixture (autouse for ignoring expected syncd errors)
+
+Dependencies:
+    - tests.common.utilities: DUT selection, neighbor type detection, IPv6 topology detection
+    - tests.common.helpers.assertions: Assertion helpers
+    - tests.common.helpers.syslog_helpers: Management VRF detection
+    - psutil: Memory usage monitoring for BMP processes
+    - threading: Parallel memory monitoring during BGP flap tests
+
+Notes:
+    - Tests ignore expected syncd errors related to MPTNL tunnel route events
+    - BGP flap test monitors openbmpd and bgpd memory usage to detect leaks
+    - Multi-ASIC support: Tests correctly identify uplink namespaces for verification
+    - IPv6-only topologies are detected and tested appropriately
+    - Default route verification uses APP_DB for nexthop validation
+    - BGP shutdown/startup operations have timeout protections (120-300 seconds)
+=============================================================================
+"""
+
 import pytest
 import ipaddress
 import logging

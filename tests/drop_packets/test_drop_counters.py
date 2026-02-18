@@ -1,3 +1,82 @@
+"""
+=============================================================================
+Module: drop_packets
+File: test_drop_counters.py
+=============================================================================
+
+Description:
+    Comprehensive test suite for packet drop counter validation in SONiC. This module tests
+    L2 (RX_ERR, RX_DRP) and L3 (RX_ERR) drop counters for various invalid packet scenarios
+    including MAC address violations, IP header errors, VLAN tag mismatches, TTL expiration,
+    and ACL drops. Tests verify drop counters increment correctly when malformed or policy-
+    violating packets are sent to the DUT.
+
+Test Intent:
+    - test_equal_smac_dmac_drop: Verify packets with equal source and destination MAC are dropped (L2 RX_ERR)
+    - test_multicast_smac_drop: Verify packets with multicast source MAC are dropped (L2 RX_ERR)
+    - test_not_expected_vlan_tag_drop: Verify packets with unexpected VLAN tags are dropped (L2 RX_DRP)
+    - test_dst_ip_is_loopback_addr: Verify packets with loopback destination IP are dropped (L3 RX_ERR)
+    - test_src_ip_is_loopback_addr: Verify packets with loopback source IP (non-127.x.x.x) are dropped (L3 RX_ERR)
+    - test_dst_ip_absent: Verify packets with missing destination IP are dropped (L3 RX_ERR)
+    - test_src_ip_is_multicast_addr: Verify packets with multicast source IP are dropped (L3 RX_ERR)
+    - test_src_ip_is_class_e: Verify packets with Class E source IP (240.0.0.0/4) are dropped (L3 RX_ERR)
+    - test_ip_is_zero_addr: Verify packets with 0.0.0.0 source/destination IP are dropped (L3 RX_ERR)
+    - test_dst_ip_link_local: Verify packets with link-local destination IP are dropped (L3 RX_ERR)
+    - test_loopback_filter: Verify loopback interface filters packets correctly (L3 RX_ERR)
+    - test_ip_pkt_with_expired_ttl: Verify packets with TTL=0 or TTL=1 are dropped (L3 RX_ERR)
+    - test_broken_ip_header: Verify packets with invalid IP header checksums are dropped (L3 RX_ERR)
+    - test_absent_ip_header: Verify IP packets without IP header are dropped (L3 RX_ERR)
+    - test_unicast_ip_incorrect_eth_dst: Verify unicast IP packets with incorrect Ethernet destination MAC are dropped (L2 RX_DRP)
+    - test_non_routable_igmp_pkts: Verify non-routable IGMP packets are dropped (L3 RX_ERR)
+    - test_acl_drop: Verify ACL ingress drops increment ACL drop counters correctly
+    - test_acl_egress_drop: Verify ACL egress drops increment ACL drop counters correctly
+
+Topology:
+    - any: Test works on any topology (t0, t1, t2, m0, mx, backend, etc.)
+
+Fixtures Used:
+    - setup: Module-level fixture for test environment setup (ports, neighbors, packet fields)
+    - fanouthost: Fanout switch host object for VLAN configuration
+    - pkt_fields: Dictionary of packet field values for test packet construction
+    - send_packets: Helper function to send packets from PTF to DUT
+    - ports_info: Port mapping information between DUT and PTF
+    - tx_dut_ports: List of DUT ports to receive test packets
+    - rif_port_down: Fixture to bring RIF port down for loopback filter test
+    - sai_acl_drop_adj_enabled: Fixture indicating if SAI ACL drop counter adjustment is enabled
+    - acl_ingress: Fixture to configure ingress ACL drop rule
+    - acl_egress: Fixture to configure egress ACL drop rule
+    - configure_copp_drop_for_ttl_error: Fixture to configure CoPP for TTL error packets
+    - drop_counter_config: Fixture for drop counter configuration management
+    - enable_counters: Module-level fixture to enable RIF and L2 counters (portstat, intfstat)
+    - parse_combined_counters: Module-level fixture to detect platforms with combined L2/L3 or ACL/L2 drop counters
+
+Dependencies:
+    - PTF framework for packet generation and transmission
+    - drop_packets helper module for test functions and utilities
+    - portstat and intfstat CLI commands for drop counter retrieval
+    - counterpoll for enabling port and RIF counters
+    - SAI drop counter support in hardware
+    - ACL table support for ACL drop tests
+    - Fanout switch for VLAN configuration
+    - combined_drop_counters.yml for platform-specific drop counter behavior
+
+Notes:
+    - Route check is disabled globally for this test module
+    - Test sends 1000 packets per test case (PKT_NUMBER=1000)
+    - Drop counters are verified using verify_drop_counters helper function
+    - Some platforms have combined L2/L3 drop counters (COMBINED_L2L3_DROP_COUNTER)
+    - Some platforms have combined ACL/L2 drop counters (COMBINED_ACL_DROP_COUNTER)
+    - ACL counter updates may take up to ACL_COUNTERS_UPDATE_INTERVAL seconds
+    - Mellanox platforms use special MAC update script (MELLANOX_MAC_UPDATE_SCRIPT)
+    - Expected log patterns: LOG_EXPECT_PORT_ADMIN_DOWN_RE, LOG_EXPECT_PORT_ADMIN_UP_RE
+    - LogAnalyzer ignores expected errors: KVM reset adapter, SAI switch attrs, xcvrd copper cable errors
+    - Multi-ASIC devices use namespace prefixes for commands (NAMESPACE_PREFIX)
+    - RIF and L2 counters are cleared at test start and restored to original state after test
+    - Backend topologies require special ACL handling (handle_backend_acl fixture)
+
+=============================================================================
+"""
+
 import logging
 import os
 import time

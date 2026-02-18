@@ -1,3 +1,54 @@
+"""
+=============================================================================
+Module: platform_tests
+File: test_bmc.py
+=============================================================================
+
+Description:
+    Validates Platform API functionality for the BMC (Baseboard Management Controller)
+    class. Tests BMC device metadata, EEPROM information, password management,
+    diagnostic dump generation, and firmware update operations via both API and CLI.
+
+Test Intent:
+    - test_get_name: Verify BMC name is 'BMC'
+    - test_get_presence: Confirm BMC presence is always True
+    - test_get_model: Validate BMC model against EEPROM data
+    - test_get_serial: Verify BMC serial number matches summary output
+    - test_get_revision: Confirm revision returns 'N/A'
+    - test_get_status: Verify BMC status is True
+    - test_is_replaceable: Confirm BMC is not replaceable (False)
+    - test_get_eeprom: Validate EEPROM dictionary matches CLI output
+    - test_get_version: Verify BMC firmware version matches summary
+    - test_reset_root_password: Test BMC root password reset and validation via Redfish
+    - test_bmc_dump: Verify BMC diagnostic dump generation and retrieval
+    - test_bmc_firmware_update: Test firmware update/install via CLI and API with version verification
+
+Topology:
+    Any topology with BMC support (typically datacenter platforms)
+
+Fixtures Used:
+    - platform_api_conn: Platform API service connection
+    - is_bmc_present: Auto-fixture that skips tests if BMC not present
+    - bmc_ip: Module-scoped fixture extracting BMC IP from bmc.json
+    - fw_pkg: Firmware package fixture with BMC firmware paths
+    - backup_platform_file: Fixture to backup/restore platform_components.json
+    - creds: BMC credentials (sonic_bmc_root_user, sonic_bmc_root_password)
+
+Dependencies:
+    - Redfish API for BMC management
+    - bmc.json configuration file
+    - platform_components.json for firmware updates
+    - curl for Redfish API calls
+    - BMC firmware packages (latest and old versions)
+
+Notes:
+    - Firmware update test runs twice (install/update) on thorough level, once on basic
+    - ERoT busy state is handled with retry mechanism (600s timeout)
+    - Password generation uses 12-20 character random strings
+    - BMC dump files stored in /tmp with timestamp
+    - Firmware update validates version changes before and after update
+=============================================================================
+"""
 import os
 import logging
 import json

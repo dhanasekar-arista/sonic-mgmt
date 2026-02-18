@@ -1,3 +1,68 @@
+"""
+=============================================================================
+Module: telemetry
+File: test_events.py
+=============================================================================
+
+Description:
+    This test file validates the event telemetry subsystem in SONiC, which publishes
+    system events (BGP, interface, LAG, DHCP relay, etc.) via gNMI streaming. It
+    dynamically loads and executes various event test modules, validates event
+    publication, verifies YANG schema compliance, and tests cache overflow handling
+    to ensure reliable event delivery and monitoring.
+
+Test Intent:
+    - test_events: Dynamically discovers and executes all event test modules
+      (*_events.py) in the telemetry/events directory, triggering various system
+      events (BGP neighbor state changes, interface up/down, LAG member changes,
+      DHCP relay events, etc.), validating each event is properly published via
+      gNMI, and verifying output conforms to the appropriate YANG schema for
+      each event type.
+    - test_events_cache_overflow: Tests event cache overflow behavior by publishing
+      a large number of events (550) to exceed cache capacity, verifying that
+      events are properly published despite cache pressure, checking the
+      MISSED_TO_CACHE counter increments when cache overflows, and confirming
+      the PUBLISHED counter shows successful event delivery to subscribers.
+
+Topology:
+    any (works with any topology type)
+
+Fixtures Used:
+    - duthosts: Provides access to all DUT hosts
+    - tbinfo: Testbed information for event testing context
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hwsku
+    - ptfhost: PTF host for gNMI client operations
+    - ptfadapter: PTF adapter for packet operations if needed
+    - setup_streaming_telemetry: Configures streaming telemetry (parametrized False)
+    - gnxi_path: Path to gNMI client tools
+    - test_eventd_healthy: Ensures eventd service is healthy before testing
+    - toggle_all_simulator_ports_to_enum_rand_one_per_hwsku_host_m: For dualtor
+      topology setup
+    - setup_standby_ports_on_non_enum_rand_one_per_hwsku_host_m: For dualtor
+      port configuration
+
+Dependencies:
+    - pytest: Test framework
+    - telemetry_utils: Provides skip_201911_and_older helper
+    - events.event_utils: Event publishing and counter utilities
+    - tests.common.dualtor.mux_simulator_control: Dualtor mux control
+
+Notes:
+    - Test is marked to disable log analyzer
+    - Skips on SONiC 201911 and older versions
+    - Events test path: ./telemetry/events
+    - Log directory: logs/telemetry/files
+    - Dynamically loads event test modules: *_events.py (except eventd_events.py)
+    - Each event module must implement test_event() function
+    - Validates YANG schema using validate_yang_events.py script
+    - Cache overflow test publishes 550 events
+    - Event counters: MISSED_TO_CACHE (0), PUBLISHED (1)
+    - Supports various event types: BGP, interface, LAG, DHCP relay, etc.
+    - Events are published to EVENTS table in STATE_DB
+    - YANG validation ensures event format compliance
+    - Skip exceptions from individual test files are logged and handled gracefully
+=============================================================================
+"""
 import logging
 import pytest
 import os

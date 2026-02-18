@@ -1,3 +1,68 @@
+"""
+Module: tests.dash
+File: test_dash_eni_counter.py
+Description:
+    DASH ENI (Elastic Network Interface) counter validation test suite for SmartSwitch topology.
+    This module comprehensively tests SAI ENI statistics counters for both outbound and inbound
+    traffic flows, including pass/drop scenarios and flow lifecycle events.
+
+Test Intent:
+    - Validate ENI counters for outbound packet pass scenarios
+    - Verify ENI drop counters for routing entry misses
+    - Test ENI drop counters for CA-to-PA mapping misses
+    - Validate flow creation, deletion, and aging counters
+    - Test bi-directional (outbound + inbound) packet counters
+    - Verify byte and packet count accuracy across scenarios
+    - Ensure counter updates for both VXLAN and GRE encapsulation
+
+Topology:
+    - smartswitch: SmartSwitch topology with DPU-NPU architecture
+    - Requires NPU static routes for APPLIANCE_VIP, VM_PA, and PE_PA
+    - Traffic flows: VM <-> DPU <-> PE (bi-directional with PrivateLink)
+
+Fixtures Used:
+    - localhost: Ansible localhost for configuration management
+    - duthost: Device Under Test (NPU) host object
+    - ptfhost: PTF (Packet Test Framework) host
+    - ptfadapter: PTF adapter for packet injection/verification
+    - dpuhost: DPU host object (from dpuhosts)
+    - dpuhosts: List of DPU host objects
+    - dpu_index: Index of DPU to use for testing
+    - dash_pl_config: PrivateLink DASH configuration
+    - skip_config: Flag to skip configuration application
+    - skip_cleanup: Flag to skip cleanup after tests
+    - outer_encap: Parameterized fixture for encapsulation type (vxlan/gre)
+    - inner_packet_type: Parameterized fixture for inner packet (udp/tcp)
+    - eni_counter_setup: Fixture to setup ENI counter environment
+    - setup_npu_routes: Fixture to configure NPU static routes
+    - common_setup_teardown: Main setup/teardown with PrivateLink configs
+
+Dependencies:
+    - configs.privatelink_config: PrivateLink configuration constants
+    - constants: DASH test constants
+    - gnmi_utils: gNMI utilities for protobuf message application
+    - packets: Packet generation (outbound_pl_packets, inbound_pl_packets)
+    - dash_eni_counter_utils: ENI counter helper functions
+    - tests.common.utilities: Utility functions (wait_until)
+    - tests.common.plugins.allure_wrapper: Allure reporting integration
+
+Notes:
+    - Counter validation uses wait_until with ENI_COUNTER_READY_MAX_TIME timeout
+    - Flow aged counter increments after flow deletion (TCP RST)
+    - Outbound packet lengths: VXLAN=150 bytes, GRE=142 bytes
+    - Inbound packet length: 142 bytes (regardless of encapsulation)
+    - Drop counters tested: routing entry miss, CA-to-PA entry miss
+    - Flow deletion tested via TCP RST packet after SYN packet
+    - Bi-directional test validates both RX and TX counter increments
+    - Allure steps used for detailed test reporting
+
+Git History (last 4 commits):
+    0a8a8282c Update the topo mark for test_dash_eni_counter (#21846)
+    32a5ca338 [DASH] Update the dash eni counter test to align with the latest PL test change (#21196)
+    12abd5cea [dash] Add tests to cover PLNSG, FNIC, trusted VNI, return path ECMP (#19700)
+    cd4a62425 Add dash eni counter test plan and tests (#19457)
+"""
+
 import logging
 from ipaddress import IPv4Address
 import copy

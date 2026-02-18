@@ -1,3 +1,73 @@
+"""
+=============================================================================
+Module: hash
+File: test_generic_hash.py
+=============================================================================
+
+Description:
+    This test module validates the generic hash (ECMP and LAG) configuration
+    and behavior on SONiC switches. It tests various hash fields, algorithms,
+    and encapsulation types to ensure traffic is properly distributed across
+    ECMP paths and LAG members. The tests cover configuration persistence,
+    interface flapping, reboot scenarios, and error handling.
+
+Test Intent:
+    - test_hash_capability: Validates that the switch reports correct hash
+      capabilities (supported fields and algorithms) based on ASIC type
+    - test_ecmp_hash: Tests ECMP hash distribution using randomly selected
+      hash fields and algorithms, verifying traffic balancing across uplinks
+    - test_lag_hash: Tests LAG hash distribution including L2 and L3 traffic,
+      ensuring proper load balancing across LAG members
+    - test_ecmp_and_lag_hash: Validates simultaneous ECMP and LAG hashing
+      with different algorithms to test independent operation
+    - test_nexthop_flap: Verifies hash behavior remains consistent when
+      nexthop interfaces are shut down and brought back up
+    - test_lag_member_flap: Tests LAG hash resilience when member interfaces
+      are flapped multiple times
+    - test_lag_member_remove_add: Validates hash behavior when LAG members
+      are removed from and added back to port channels
+    - test_reboot: Ensures hash configuration persists across various reboot
+      types (fast, warm, cold, config reload)
+    - test_backend_error_messages: Verifies proper error logging when invalid
+      hash configurations are applied via Redis CLI
+    - test_algorithm_config: Tests configuration of all supported hash
+      algorithms for both ECMP and LAG
+
+Topology:
+    - t0, t1: Standard topologies with ECMP paths and LAG interfaces
+    - Supports dualtor active-active configurations
+    - Requires multi-member LAG interfaces for LAG-specific tests
+
+Fixtures Used:
+    - rand_selected_dut: Randomly selected DUT from testbed
+    - ptfhost: PTF host for traffic generation and verification
+    - tbinfo: Testbed information and topology details
+    - mg_facts: Minigraph facts containing interface and BGP information
+    - global_hash_capabilities: Hash fields and algorithms supported by DUT
+    - restore_configuration: Restores interface/VLAN config after L2 tests
+    - restore_interfaces: Restores interface states after flapping tests
+    - restore_vxlan_port: Restores default VXLAN port configuration
+    - get_supported_hash_algorithms: Retrieves platform-supported algorithms
+    - toggle_all_aa_ports_to_rand_selected_tor: DualTOR active-active support
+    - reload: Fixture to reload configuration after destructive tests
+
+Dependencies:
+    - generic_hash_helper: Helper functions for hash configuration and validation
+    - tests.ptf_runner: PTF test execution framework
+    - tests.common.reboot: Reboot utilities for various reboot types
+    - tests.common.config_reload: Configuration reload functionality
+    - tests.common.plugins.loganalyzer: Log analysis for error detection
+
+Notes:
+    - Tests use parameterization to cover multiple hash fields, IP versions,
+      encapsulation types (VxLAN, IP-in-IP), and algorithms
+    - Some tests skip on topologies without multi-member LAGs
+    - L2 tests (DST_MAC, ETHERTYPE, VLAN_ID) require topology reconfiguration
+    - Reboot tests disable log analyzer to avoid false positives
+    - Custom VXLAN ports may be configured for specific test scenarios
+    - Tests validate both CONFIG DB and ASIC DB for hash configurations
+=============================================================================
+"""
 import pytest
 import random
 import time

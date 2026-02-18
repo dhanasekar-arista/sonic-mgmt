@@ -1,4 +1,70 @@
+"""
+=============================================================================
+Module: lldp
+File: test_lldp_syncd.py
+=============================================================================
 
+Description:
+    This test validates the LLDP_ENTRY_TABLE in APPL_DB against lldpctl output
+    and 'show lldp table' command. It verifies LLDP table consistency across
+    various system events including interface flaps, service restarts, and
+    system reboots. Ensures LLDP data is properly synchronized between lldpd,
+    APPL_DB, and CLI outputs.
+
+Test Intent:
+    - test_lldp_entry_table_content: Validates that LLDP_ENTRY_TABLE keys and
+      content in APPL_DB match both 'show lldp table' output and lldpctl JSON
+      output. Verifies all LLDP fields (chassis ID, port ID, system name/desc,
+      port desc, management address, capabilities) are correctly populated.
+    - test_lldp_entry_table_after_syncd_orchagent: Verifies LLDP_ENTRY_TABLE
+      is properly restored after restarting SWSS and syncd services. Ensures
+      LLDP entries recover correctly after orchagent restart.
+    - test_lldp_entry_table_after_cont_flap: Tests LLDP entry recovery after
+      sequentially flapping up to 32 interfaces (distributed by day-of-week).
+      Validates LLDP entries are repopulated for each interface after flap.
+    - test_lldp_entry_table_after_all_batched_flap: Tests LLDP entry recovery
+      after flapping all interfaces simultaneously in batches. Validates bulk
+      LLDP recovery for all testable interfaces.
+    - test_lldp_entry_table_after_lldp_restart: Verifies LLDP_ENTRY_TABLE
+      remains consistent after restarting the LLDP service on all ASICs.
+    - test_lldp_entry_table_after_reboot: Validates LLDP_ENTRY_TABLE is fully
+      restored after a cold reboot of the system.
+
+Topology:
+    any topology
+
+Fixtures Used:
+    - ignore_expected_loganalyzer_exceptions: Ignores expected routeCheck
+      failures during interface flaps
+    - db_instance: Provides SonicDbCli instances for APPL_DB access on all
+      ASICs, including support for VOQ and modular chassis configurations
+    - duthosts: Provides list of DUT hosts for testing
+    - enum_rand_one_per_hwsku_frontend_hostname: Selects one random frontend
+      DUT per hardware SKU
+    - localhost: Localhost connection for reboot operations
+
+Dependencies:
+    - tests.common.helpers.sonic_db: For APPL_DB access via SonicDbCli
+    - tests.common.reboot: For cold reboot functionality
+    - tests.common.utilities: For wait_until polling and interface distribution
+    - tests.common.helpers.assertions: For pytest assertions
+
+Notes:
+    - Test plan documented in docs/testplan/LLDP-syncd-test-plan.md
+    - Skips eth0, Ethernet-BP, Ethernet-IB, and DPU-NPU internal ports
+    - Supports multi-ASIC, VOQ, and modular chassis configurations
+    - test_lldp_entry_table_after_syncd_orchagent skips virtual testbeds
+    - Interface flap tests exclude eth0 from testing
+    - Sequential flap test limits to 32 interfaces max, distributed by day
+    - System capability checks differ for eth0 vs other interfaces
+    - Waits up to 600 seconds for critical services after SWSS restart
+    - Waits up to 300 seconds for individual LLDP entries after service restart
+    - Waits 60 seconds for LLDP recovery after interface flap
+    - Waits 90 seconds for all LLDP entries after cold reboot
+    - Uses retry logic with caching to optimize LLDP entry verification
+    - Disables loganalyzer for syncd/orchagent restart and reboot tests
+=============================================================================
+"""
 # Test plan in docs/testplan/LLDP-syncd-test-plan.md
 import pytest
 import json

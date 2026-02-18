@@ -1,8 +1,48 @@
 """
-Check platform status after config is reloaded
+=============================================================================
+Module: platform_tests
+File: test_reload_config.py
+=============================================================================
 
-This script is to cover the test case 'Reload configuration' in the SONiC platform test plan:
-https://github.com/sonic-net/SONiC/blob/master/doc/pmon/sonic_platform_test_plan.md
+Description:
+    Tests platform status after 'config reload' is executed. Validates that configuration
+    reload properly restores system state including interfaces, transceivers, and services.
+    Covers 'Reload configuration' test case from SONiC platform test plan.
+
+Test Intent:
+    - test_reload_configuration: Verify platform health after config reload operation
+    - test_reload_configuration_with_factory: Test config reload with factory defaults
+    - test_reload_configuration_with_systemctl: Validate systemctl-based config reload
+
+Topology:
+    Any topology
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hardware SKU
+    - localhost: Localhost connection
+    - conn_graph_facts: Connection graph for interface validation
+    - xcvr_skip_list: Transceiver skip list
+    - delayed_services: Module-scoped fixture for delayed services handling
+
+Dependencies:
+    - config reload command
+    - wait_critical_processes for service validation
+    - check_transceiver_basic for transceiver validation
+    - check_all_interface_information for interface validation
+    - config_force_option_supported and config_system_checks_passed helpers
+
+Notes:
+    - Test validates all interfaces operational after reload
+    - Confirms transceivers detected on connected ports
+    - Ensures critical processes healthy
+    - 202205 release: checks delayed services (sonic-delayed.target)
+    - config reload --force option support checked
+    - System health checks validated post-reload
+    - wait_until helper for asynchronous checks
+    - Loganalyzer disabled (expected error logs during config reload)
+    - Test plan: https://github.com/sonic-net/SONiC/blob/master/doc/pmon/sonic_platform_test_plan.md
+=============================================================================
 """
 import logging
 import time

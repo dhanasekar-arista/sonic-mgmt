@@ -1,3 +1,39 @@
+"""
+=============================================================================
+Module: gnmi
+File: test_gnmi_countersdb.py
+=============================================================================
+
+Description:
+    Tests gNMI operations on COUNTERS_DB in SONiC. Validates retrieving queue,
+    port, and interface counters via get and subscribe operations.
+
+Test Intent:
+    - test_gnmi_queue_buffer_cnt: Validates queue counter retrieval for UC queues
+    - test_gnmi_countersdb_port_01: Tests port counter get operations
+    - test_gnmi_countersdb_port_subscribe_poll: Tests subscribe polling for ports
+    - test_gnmi_countersdb_port_subscribe_sample: Tests streaming sample subscribe
+
+Topology:
+    Supports any topology
+
+Fixtures Used:
+    - duthosts: DUT host objects
+    - rand_one_dut_hostname: Randomly selected DUT
+    - ptfhost: PTF host for gNMI client operations
+
+Dependencies:
+    - .helper: gnmi_get, gnmi_subscribe_polling, gnmi_subscribe_streaming_sample
+    - tests.common.helpers.assertions: pytest_assert
+
+Notes:
+    - Log analyzer disabled for these tests
+    - Tests use Ethernet0 interface for counter validation
+    - Validates COUNTERS_QUEUE_NAME_MAP for UC queues
+    - Skips on supervisor nodes (no frontpanel ports)
+    - Tests invalid queue to validate error handling
+=============================================================================
+"""
 import logging
 import pytest
 import re

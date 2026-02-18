@@ -1,3 +1,53 @@
+"""
+=============================================================================
+Module: sai_qualify
+File: test_sai_ptf_warm_reboot.py
+=============================================================================
+
+Description:
+    This test module runs SAI qualification tests using PTF framework during
+    warm reboot scenarios. It validates SAI implementation behavior and data
+    plane functionality during hitless upgrades by executing warm reboot test
+    cases and ensuring proper recovery and state preservation across reboot.
+
+Test Intent:
+    - test_sai: Executes parametrized SAI test cases from WARM_REBOOT_PTF_TEST_CASE
+      suite during warm reboot, validates data plane continuity, SAI state
+      preservation, and proper warm reboot recovery, then stores results and
+      performs cleanup operations
+
+Topology:
+    - Supported: ptf topology
+    - Requires saiserver with warmboot support on DUT
+    - PTF-based test execution against SAI layer
+
+Fixtures Used:
+    - sai_testbed: SAI test environment preparation
+    - sai_test_env_check: Environment readiness validation
+    - creds: Docker registry credentials
+    - duthost: DUT host object
+    - localhost: Local orchestration host
+    - ptfhost: PTF server for test execution
+    - request: Pytest request metadata
+    - create_sai_test_interface_param: Interface configuration for testing
+    - start_warm_reboot_watcher: Warm reboot monitoring fixture
+
+Dependencies:
+    - cases_ptf_warmreboot: PTF warm reboot test case definitions
+    - sai_infra: SAI testing infrastructure and utilities
+    - conftest: Shared configuration and fixtures
+
+Notes:
+    - Sanity checks disabled during warm reboot testing
+    - Loganalyzer disabled for expected warm reboot log messages
+    - DUT health checks skipped during reboot operations
+    - SAI test container lifecycle managed per test case
+    - Warmboot configuration restored after test completion
+    - Test results archived on PTF host for post-analysis
+    - Compatible with --sai_test_keep_test_env option for debugging
+=============================================================================
+"""
+
 import pytest
 import logging
 

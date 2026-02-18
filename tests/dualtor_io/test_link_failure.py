@@ -1,3 +1,68 @@
+"""
+=============================================================================
+Module: dualtor_io
+File: test_link_failure.py
+=============================================================================
+
+Description:
+    Test suite for validating dual-ToR resilience and traffic forwarding during link failures.
+    This module tests failover behavior when uplinks (ToR to T1) or downlinks (ToR to server)
+    are shut down on active or standby ToR. Tests cover both fanout-level interface shutdown
+    and ToR-level interface shutdown scenarios with traffic verification.
+
+Test Intent:
+    - test_active_link_down_upstream: Verify traffic failover when active ToR uplink is shut down (server to T1)
+    - test_standby_link_down_upstream: Verify standby ToR uplink shutdown does not affect traffic
+    - test_active_link_down_downstream_active: Verify traffic failover when active ToR downlink is shut down (T1 to server)
+    - test_active_link_down_downstream_standby: Verify standby ToR downlink shutdown does not affect traffic (T1 to server)
+    - test_active_link_down_downstream_active_soc_inband: Verify SoC inband traffic failover when active ToR downlink is shut down
+    - test_standby_link_down_downstream_active_soc_inband: Verify standby ToR downlink shutdown does not affect SoC inband traffic
+    - test_tor_switch_downstream_active: Verify ToR switch interface shutdown causes failover (downstream active server)
+    - test_tor_switch_downstream_standby: Verify ToR switch interface shutdown on standby does not affect traffic
+
+Topology:
+    - dualtor: Dual-ToR topology with active-standby or active-active cable types
+
+Fixtures Used:
+    - upper_tor_host: Upper ToR DUT host object
+    - lower_tor_host: Lower ToR DUT host object
+    - toggle_all_simulator_ports_to_upper_tor: Sets all mux ports to upper ToR (active)
+    - send_t1_to_server_with_action: Sends downstream traffic with action during transmission
+    - send_server_to_t1_with_action: Sends upstream traffic with action during transmission
+    - send_soc_to_t1_with_action: Sends SoC to T1 traffic with action
+    - send_t1_to_soc_with_action: Sends T1 to SoC traffic with action
+    - shutdown_fanout_upper_tor_intfs: Shuts down fanout interfaces connected to upper ToR
+    - shutdown_fanout_lower_tor_intfs: Shuts down fanout interfaces connected to lower ToR
+    - shutdown_upper_tor_downlink_intfs: Shuts down upper ToR downlink interfaces
+    - shutdown_lower_tor_downlink_intfs: Shuts down lower ToR downlink interfaces
+    - run_icmp_responder: Runs ICMP responder on PTF for server simulation
+    - run_garp_service: Runs GARP service on PTF for MAC address updates
+    - change_mac_addresses: Changes PTF MAC addresses to match server MACs
+    - check_simulator_flap_counter: Verifies mux simulator flap counts
+    - cable_type: Cable type fixture (active-standby or active-active)
+    - mux_config: Mux configuration fixture
+    - active_active_ports: Active-active port configuration
+
+Dependencies:
+    - Mux simulator control for cable state management
+    - Fanout switch access for upstream interface shutdown
+    - PTF framework for traffic generation and verification
+    - config_reload utility for ToR configuration recovery
+
+Notes:
+    - Tests are marked with pytest.mark.topology("dualtor")
+    - Disruption must be less than MUX_SIM_ALLOWED_DISRUPTION_SEC (1 second)
+    - Active-active tests are marked with @pytest.mark.enable_active_active
+    - Fanout tests shut down interfaces at fanout level (upstream links)
+    - ToR switch tests shut down interfaces at ToR level (downlink links)
+    - Some platforms (Cisco, Mellanox) allow packet duplication during failover
+    - Duplication settings: allowed_duplication and merge_duplications_into_disruptions
+    - Tests verify control plane (mux state) and data plane (traffic forwarding)
+    - Active-active cable tests verify all ports remain active during standby failures
+
+=============================================================================
+"""
+
 import pytest
 
 from tests.common.dualtor.control_plane_utils import verify_tor_states

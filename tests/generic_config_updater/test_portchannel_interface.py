@@ -1,3 +1,39 @@
+"""
+=============================================================================
+Module: generic_config_updater
+File: test_portchannel_interface.py
+=============================================================================
+
+Description:
+    Tests PortChannel interface configuration using Generic Config Updater.
+    Validates adding, removing, and modifying IPv4/IPv6 addresses on PortChannel
+    interfaces with proper validation in show commands.
+
+Test Intent:
+    - test_portchannel_interface_add_remove: Adds then removes IP addresses
+    - test_portchannel_interface_ip_remove: Removes existing IP addresses
+    - test_portchannel_interface_ip_add: Adds new IP addresses
+    - test_portchannel_interface_ip_replace: Replaces IP addresses
+
+Topology:
+    Supports t0, m0, m1, t2 topologies
+
+Fixtures Used:
+    - cfg_facts: Overrides to use ASIC with portchannels
+    - rand_portchannel_name: Randomly selected PortChannel name
+    - ensure_dut_readiness: Checkpoint/rollback setup
+
+Dependencies:
+    - tests.common.gu_utils: GCU utilities including create_path, check_show_ip_intf
+    - tests.common.helpers.assertions: pytest_assert, pytest_require
+
+Notes:
+    - Tests use existing PortChannel101-104 from minigraph
+    - Validates both IPv4 and IPv6 address assignments
+    - Uses show ip interface to verify configurations
+    - Requires ASICs with PortChannel support
+=============================================================================
+"""
 import logging
 import pytest
 import ipaddress

@@ -1,3 +1,50 @@
+"""
+=============================================================================
+Module: vxlan
+File: test_vxlan_underlay_ecmp.py
+=============================================================================
+
+Description:
+    This test suite validates VXLAN behavior when underlay ECMP paths change.
+    It tests that VXLAN encapsulated traffic continues to work correctly when
+    underlay default routes are modified due to T2 interface failures or
+    nexthop changes.
+
+Test Intent:
+    - test_vxlan_modify_underlay_default: Validates VXLAN encapsulation continues
+      working when underlay default route nexthops change. Tests with 1 and 2
+      ECMP paths by bringing down T2 interfaces and verifying traffic still
+      forwards correctly through remaining paths.
+
+Topology:
+    t1, t1-64-lag, t1-56-lag, t1-lag
+
+Fixtures Used:
+    - setUp: Inherited from test_vxlan_ecmp for VXLAN configuration
+    - encap_type: Inherited from test_vxlan_ecmp (parametrized encapsulation)
+    - minigraph_facts: Minigraph information
+    - copy_ptftests_directory: Copies PTF test scripts to PTF host
+    - _ignore_route_sync_errlogs: Inherited from test_vxlan_ecmp
+    - _reset_test_routes: Inherited from test_vxlan_ecmp
+    - default_routes: Inherited from test_vxlan_ecmp
+    - routes_for_cleanup: Inherited from test_vxlan_ecmp
+
+Dependencies:
+    - tests.common.utilities: For wait_until polling
+    - tests.common.helpers.assertions: For pytest assertions
+    - tests.vxlan.test_vxlan_ecmp: Inherits Test_VxLAN class and fixtures
+
+Notes:
+    - Inherits from Test_VxLAN class in test_vxlan_ecmp
+    - Parametrized with ecmp_path_count: 1 and 2
+    - Tests underlay ECMP resilience by failing T2 interfaces
+    - Verifies VXLAN encapsulation continues after underlay changes
+    - Brings down subset of T2 interfaces, validates traffic, then restores
+    - Forces underlay default route nexthop modification
+    - PTF validates encapsulated packets still reach destination
+    - Restores all T2 interfaces after test completion
+=============================================================================
+"""
 import pytest
 import time
 import logging

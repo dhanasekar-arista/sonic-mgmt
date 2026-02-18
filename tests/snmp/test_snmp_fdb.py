@@ -1,3 +1,56 @@
+"""
+=============================================================================
+Module: snmp
+File: test_snmp_fdb.py
+=============================================================================
+
+Description:
+    This test module validates SNMP FDB (Forwarding Database) MIB functionality
+    on SONiC switches. It tests MAC address learning by sending tagged packets
+    from PTF, verifying learned MACs appear in the FDB table, and confirming
+    SNMP correctly reports FDB entries with associated interface mappings.
+
+Test Intent:
+    - test_snmp_fdb_send_tagged: Sends tagged packets from VLAN ports to trigger
+      MAC learning, validates FDB entries are created in the switch, queries
+      SNMP FDB MIB, and verifies SNMP reports correct MAC addresses with proper
+      interface indices for both regular interfaces and PortChannels
+
+Topology:
+    - Supported: t0, m0, mx, m1
+    - Requires VLAN configuration with multiple member ports
+    - Tests PortChannel and regular interface MAC learning
+
+Fixtures Used:
+    - ptfadapter: PTF adapter for packet generation
+    - duthosts: All DUT hosts in testbed
+    - rand_one_dut_hostname: Randomly selected DUT
+    - toggle_all_simulator_ports_to_rand_selected_tor_m: Mux simulator control (dualtor)
+    - setup_standby_ports_on_rand_unselected_tor: Standby port configuration (dualtor)
+    - rand_selected_dut: Selected DUT for testing
+    - tbinfo: Testbed information
+    - ports_list: List of test ports
+    - localhost: Localhost connection
+    - creds_all_duts: SNMP credentials
+    - fdb_cleanup: Auto-use fixture that clears FDB before tests
+
+Dependencies:
+    - ptf.testutils: Packet generation and transmission
+    - tests.common.helpers.snmp_helpers: SNMP fact gathering
+    - tests.common.helpers.portchannel_to_vlan: VLAN and PortChannel utilities
+
+Notes:
+    - FDB cleanup performed before test to ensure clean state
+    - Test sends packets with dummy MAC prefix 02:11:22:33
+    - Verifies SNMP snmp_fdb and snmp_interfaces MIBs match FDB table
+    - PortChannel members validated separately from regular interfaces
+    - Waits up to 40 seconds for MACs to populate in FDB
+    - SNMP validation includes interface index to name mapping
+    - PTF port mapping uses original interfaces for t0-backend topologies
+    - Test ensures PortChannel status (up + all members selected) before packet send
+=============================================================================
+"""
+
 import pytest
 import ptf.testutils as testutils
 import logging

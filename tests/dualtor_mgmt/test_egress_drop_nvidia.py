@@ -1,3 +1,58 @@
+"""
+=============================================================================
+Module: dualtor_mgmt
+File: test_egress_drop_nvidia.py
+=============================================================================
+
+Description:
+    Test suite specific to NVIDIA platforms for validating egress drop behavior in dual-ToR
+    active-standby configurations. Unlike other platforms that use ingress drop, NVIDIA uses
+    egress drop ACL rules to prevent upstream traffic from standby mux ports. Tests verify
+    server-to-server traffic drop and counter behavior when one server is active and another
+    is standby.
+
+Test Intent:
+    - test_egress_drop_standby_server_to_active_server: Verify egress drop rule blocks traffic from standby server to active server
+    - test_egress_drop_active_server_to_active_server: Verify no egress drop occurs for traffic between two active servers
+
+Topology:
+    - dualtor: Dual-ToR topology with active-standby cable type
+
+Fixtures Used:
+    - upper_tor_host: Upper ToR DUT host object
+    - lower_tor_host: Lower ToR DUT host object
+    - toggle_all_simulator_ports_to_upper_tor: Sets all mux ports to upper ToR (active)
+    - toggle_simulator_port_to_lower_tor: Sets specific mux port to lower ToR (active)
+    - toggle_all_simulator_ports_to_rand_selected_tor: Randomly selects ToR and sets all ports active
+    - run_icmp_responder: Runs ICMP responder on PTF for server simulation
+    - run_garp_service: Runs GARP service on PTF for MAC address updates
+    - change_mac_addresses: Changes PTF MAC addresses to match server MACs
+    - ptfadapter: PTF adapter for packet generation and verification
+    - dualtor_info: Gets dual-ToR topology metadata
+
+Dependencies:
+    - PTF framework for packet generation and sniffing
+    - Egress ACL drop rules on NVIDIA platforms
+    - show muxcable status command for state verification
+    - show vlan brief command for VLAN and interface mapping
+    - portstat command for packet counter verification
+
+Notes:
+    - Tests are marked with pytest.mark.topology('dualtor')
+    - NVIDIA platforms use egress drop instead of ingress drop
+    - Test sends 2000 packets (PKT_NUM=2000) for reliable counter validation
+    - Counter margin: 10% (PKT_COUNTER_MARGIN_PERCENT=0.1) for background traffic
+    - Expected counter ranges: COUNTER_RANGE for forwarded, COUNTER_ZERO for dropped
+    - Test scenario 1: Server A (standby on lower) -> Server B (active on lower)
+    - Expected: Traffic dropped on lower ToR egress due to standby port
+    - Test scenario 2: Server A (active on upper) -> Server B (active on upper)
+    - Expected: Traffic forwarded normally, no egress drop
+    - Tests verify RX_OK and TX_OK counters on upper and lower ToRs
+    - Packet format: IPv4-in-IPv4 encapsulated packets for server-to-server traffic
+
+=============================================================================
+"""
+
 import time
 import logging
 import pytest

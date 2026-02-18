@@ -1,3 +1,48 @@
+"""
+=============================================================================
+Module: system_health
+File: test_watchdog.py
+=============================================================================
+
+Description:
+    This test file validates the watchdog functionality in SONiC which monitors
+    critical processes and triggers alerts when processes become unresponsive. It
+    tests that the watchdog can detect stuck processes (specifically orchagent)
+    and log appropriate warning messages.
+
+Test Intent:
+    - test_watchdog: Validates watchdog process monitoring by pausing orchagent
+      (via SIGSTOP), waiting for watchdog to detect the stuck process, verifying
+      "Process 'orchagent' is stuck in namespace" error message appears in syslog,
+      then resuming orchagent (via SIGCONT) and confirming it recovers.
+
+Topology:
+    any (works with any topology type)
+
+Fixtures Used:
+    - duthosts: Provides access to all DUT hosts
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hwsku
+    - enum_rand_one_asic_index: Selects one ASIC instance for multi-ASIC platforms
+    - pause_orchagent: Function-scoped fixture that pauses orchagent process using
+      SIGSTOP signal, validates process is paused by checking status 'Tl', and
+      provides cleanup to resume the process
+
+Dependencies:
+    - pytest: Test framework
+    - tests.common.helpers.assertions: For test assertions
+    - tests.common.plugins.loganalyzer.loganalyzer: For analyzing syslog messages
+
+Notes:
+    - Test is marked to disable log analyzer
+    - Sleep time between operations: 10 seconds
+    - Retries up to 3 times to find and pause orchagent PID
+    - Process status 'Tl' indicates process is stopped (paused)
+    - Uses SIGSTOP to pause process and SIGCONT to resume
+    - Supports both single-ASIC and multi-ASIC platforms
+    - Validates watchdog detection via syslog message pattern
+    - Cleans up by resuming orchagent even if test fails
+=============================================================================
+"""
 import logging
 import pytest
 import time

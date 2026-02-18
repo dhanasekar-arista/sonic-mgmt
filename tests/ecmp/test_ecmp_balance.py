@@ -1,3 +1,53 @@
+"""
+=============================================================================
+Module: ecmp
+File: test_ecmp_balance.py
+=============================================================================
+
+Description:
+    Test suite for validating ECMP hash distribution and load balancing across multiple
+    next hops. This module tests upstream and downstream traffic balancing with various
+    hash field combinations (L2, L3, L4), verifying traffic is distributed evenly across
+    ECMP paths based on configured hash algorithms and platform capabilities.
+
+Test Intent:
+    - test_upstream_ecmp_balance: Verify upstream traffic (server to T1) is balanced across ECMP next hops
+    - test_downstream_ecmp_balance: Verify downstream traffic (T1 to server) is balanced across ECMP next hops
+
+Topology:
+    - any: Test works on any topology (t0, t1, t2, etc.)
+
+Fixtures Used:
+    - duthost: DUT host object
+    - ptfadapter: PTF adapter for packet generation and verification
+    - tbinfo: Testbed information including topology type
+    - upstream_links: Upstream port links from DUT to T1/T2
+    - downstream_links: Downstream port links from DUT to servers
+    - hash_keys: Hash field configuration (default=['src-ip', 'dst-ip', 'src-port', 'dst-port'])
+    - balancing_test_times: Number of test iterations (default=1, configurable via function_completeness_level)
+
+Dependencies:
+    - PTF framework for packet generation and port statistics
+    - portstat command for port counter tracking
+    - Platform-specific hash managers (ECMPHashManager) for hash configuration
+    - Minigraph facts for neighbor and port information
+
+Notes:
+    - Test is marked with pytest.mark.topology("any")
+    - Default packet count: 100 packets per test (PACKET_COUNT=100)
+    - Packet count tolerance: ±5 packets (PACKET_COUNT_MAX_DIFF=5)
+    - Supported hash fields: src-ip, dst-ip, src-port, dst-port, ip-proto
+    - Platform handlers: Cisco, Mellanox, Broadcom, Innovium, Marvell
+    - Test validates packet count distribution across ECMP members
+    - Upstream test: Traffic from servers to T1 neighbors
+    - Downstream test: Traffic from T1 neighbors to servers
+    - IP version parametrized: ipv4, ipv6
+    - Test skips if ECMP neighbor count < 2
+    - Hash algorithm configurability depends on platform support
+
+=============================================================================
+"""
+
 import os
 import time
 import random

@@ -1,3 +1,40 @@
+"""
+=============================================================================
+Module: bgp
+File: test_bgp_multipath_relax.py
+=============================================================================
+
+Description:
+    Tests BGP multipath relax feature which allows multipath load balancing
+    across paths with different AS numbers. Validates that routes with VIPs
+    are properly load-balanced across multiple T0 neighbors with different ASNs.
+
+Test Intent:
+    - test_bgp_multipath_relax: Verifies BGP accepts multiple paths for VIP prefixes
+      from T0 neighbors with different ASNs, validates path count matches expected
+      T0s, checks AS path contains VIP ASN, and ensures routes are correctly advertised
+      to T2 neighbors
+
+Topology:
+    t1
+
+Fixtures Used:
+    - duthosts: Multi-DUT fixture
+    - rand_one_dut_hostname: Randomly selected DUT
+    - tbinfo: Testbed information with T0/T2 topology configuration
+
+Dependencies:
+    - tests.common.helpers.assertions.pytest_assert
+
+Notes:
+    - Tests BGP multipath-relax feature specific to T1 topology
+    - Validates VIP (Virtual IP) prefix handling with multiple paths
+    - Requires T0 neighbors with VIPs configured
+    - Verifies both route installation and advertisement to upstream T2
+    - AS path must include VIP ASN in all paths
+=============================================================================
+"""
+
 import pytest
 import logging
 from tests.common.helpers.assertions import pytest_assert

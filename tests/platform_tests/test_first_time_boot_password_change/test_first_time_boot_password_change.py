@@ -1,10 +1,46 @@
-'''
-This test case checks default password change after initial reboot.
-Due to new law passed in California, each default user must change their default password.
+"""
+=============================================================================
+Module: platform_tests
+File: test_first_time_boot_password_change.py
+=============================================================================
 
-Important Note:
-    Please run this test from sonic-mgmt/tests folder, otherwise it will fail.
-'''
+Description:
+    Tests mandatory default password change after first boot. Due to California law,
+    default users must change their default passwords on initial login. Validates
+    password expiration prompt, successful password change, and persistence across reboots.
+
+Test Intent:
+    - test_default_password_change_after_first_boot: Verify mandatory password change
+      on first boot, successful password update, and no expiration on subsequent logins
+
+Topology:
+    Any topology
+
+Fixtures Used:
+    - dut_hostname: DUT hostname fixture
+    - currentConfigurations: Fixture providing test configuration
+    - logger: Logging fixture
+
+Dependencies:
+    - pexpect for interactive SSH session handling
+    - default_consts.DefaultConsts for configuration values
+    - manufacture helpers (ping_till_down, ping_till_alive)
+
+Notes:
+    - IMPORTANT: Run test from sonic-mgmt/tests folder
+    - Test validates password expiration message on first login
+    - Verifies password change successful
+    - Confirms new password works on re-login
+    - Validates no expiration message after password change
+    - Tests password persistence across reboot
+    - Uses pexpect for interactive SSH session
+    - Sanity check skipped for this test
+    - DUT health check skipped (test modifies default passwords)
+    - Loganalyzer disabled (expected error logs during password changes)
+    - Test marks: default_password_change_after_initial_boot
+    - delaybeforesend=0.2 to prevent race conditions
+=============================================================================
+"""
 import pexpect
 import time
 import pytest

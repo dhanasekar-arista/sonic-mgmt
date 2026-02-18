@@ -1,3 +1,42 @@
+"""
+=============================================================================
+Module: bgp
+File: test_bgp_azng_migration.py
+=============================================================================
+
+Description:
+    Tests the AZNG (Azure Networking Gateway) migration process for BGP neighbors.
+    Validates route filtering and advertisement during various stages of migration
+    including rollback, deny, inbound permit, and outbound permit phases.
+
+Test Intent:
+    - test_bgp_azng_migration: Executes complete AZNG migration workflow, verifies
+      route count consistency through rollback (-r), deny route-map (-d), inbound
+      permit (-i), outbound permit (-o), and production set (-p) phases
+
+Topology:
+    t2
+
+Fixtures Used:
+    - duthosts: Multi-DUT fixture
+    - enum_upstream_dut_hostname: Upstream DUT selection for T2 topology
+
+Dependencies:
+    - tests.common.helpers.constants.DEFAULT_NAMESPACE
+    - tests.common.config_reload
+    - tests.common.utilities.get_image_type
+    - tests.common.helpers.assertions.pytest_assert
+
+Notes:
+    - Only runs on non-public images (AZNG Migration not supported on public images)
+    - Requires AZNGHub type neighbors in DEVICE_NEIGHBOR_METADATA
+    - Expects exactly 2 AZNGHub peer device IPs (IPv4 and IPv6)
+    - Validates totalPrefixCounter and filteredPrefixCounter at each stage
+    - Recovers via config_reload if migration fails
+    - Supports multi-ASIC configurations
+=============================================================================
+"""
+
 import time
 import ipaddress
 import json

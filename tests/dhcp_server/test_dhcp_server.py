@@ -1,3 +1,62 @@
+"""
+=============================================================================
+Module: dhcp_server
+File: test_dhcp_server.py
+=============================================================================
+
+Description:
+    Comprehensive test suite for SONiC DHCP server functionality (kea-dhcp4). This module
+    validates port-based IP assignment, single IP and range configurations, FDB-based client
+    tracking, MAC address learning, configuration changes, and custom DHCP options. Tests
+    ensure proper integration between DHCP server and relay agent in mx topology.
+
+Test Intent:
+    - test_dhcp_server_port_based_assignment_single_ip_tc1: Verify configured interface with client MAC not in FDB table can get IP
+    - test_dhcp_server_port_based_assignment_single_ip_tc2: Verify configured interface with client MAC in FDB table can get IP
+    - test_dhcp_server_port_based_assignment_single_ip_tc3: Verify configured interface with MAC learned from different interface can get IP
+    - test_dhcp_server_port_based_assignment_single_ip_tc4: Verify unconfigured interface cannot get IP
+    - test_dhcp_server_port_based_assignment_range_ip: Verify configured interface can get IP from IP range
+    - test_dhcp_server_port_based_assigenment_single_ip_mac_move: Verify client moving between interfaces with free IPs
+    - test_dhcp_server_port_based_assigenment_single_ip_mac_swap: Verify two clients swapping interfaces
+    - test_dhcp_server_port_based_customize_options: Verify DHCP server sends custom options in Offer/Ack packets
+    - test_dhcp_server_config_change_dhcp_interface: Verify DHCP interface enable/disable takes effect
+    - test_dhcp_server_config_change_common: Verify config changes (lease time, gateway, IP range) take effect
+    - test_dhcp_server_config_vlan_member_change: Verify DHCP server handles VLAN member add/remove correctly
+    - test_dhcp_server_lease_config_change: Verify lease time change doesn't affect existing leases
+    - test_dhcp_server_config_vlan_intf_change: Verify DHCP server validates subnet matches VLAN interface IP
+
+Topology:
+    - mx: Management extended topology with DHCP relay and server containers
+
+Fixtures Used:
+    - parse_vlan_setting_from_running_config: Parses VLAN configuration and returns VLAN name, gateway, netmask, hosts, and member interfaces
+    - enable_sonic_dhcpv4_relay_agent: Enables SONiC DHCPv4 relay agent (isc-relay-agent or sonic-relay-agent)
+    - dhcp_server_setup_teardown: Module-level setup to enable dhcp_server feature and verify containers are running
+    - clean_dhcp_server_config_after_test: Function-level cleanup to remove DHCP server configuration before and after each test
+
+Dependencies:
+    - PTF framework for packet generation and capture
+    - dhcp_server_test_common: Helper functions for DHCP server configuration and packet validation
+    - CONFIG_DB tables: DHCP_SERVER_IPV4, DHCP_SERVER_IPV4_RANGE, DHCP_SERVER_IPV4_PORT, DHCP_SERVER_IPV4_CUSTOMIZED_OPTIONS
+    - STATE_DB table: DHCP_SERVER_IPV4_LEASE for lease tracking
+    - dhcp_server container with kea-dhcp4 process
+    - dhcp_relay container with dhcprelayd process
+    - FDB table for MAC address learning
+
+Notes:
+    - Tests are parameterized with config_tool (GCU or CLI) to test both configuration methods
+    - Tests are parameterized with relay_agent (isc-relay-agent or sonic-relay-agent)
+    - Port-based assignment uses FDB table to map client MAC to switch port
+    - Custom options support various types (string, hex, IP address, etc.)
+    - Configuration changes take effect immediately without service restart
+    - Lease time changes don't affect existing leases (only new leases)
+    - DHCP server validates subnet matches VLAN interface IP before assigning
+    - Tests use PTF adapter to send DHCP Discover/Request and verify Offer/Ack packets
+    - Requires at least 2 VLAN members and sufficient IP address space for testing
+
+=============================================================================
+"""
+
 import logging
 import ipaddress
 import pytest

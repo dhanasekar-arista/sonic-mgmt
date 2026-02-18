@@ -1,3 +1,56 @@
+"""
+=============================================================================
+Module: test_arpall
+File: test_arpall.py
+=============================================================================
+
+Description:
+    This module contains comprehensive ARP functionality tests for T1/T2/M1 topologies.
+    It validates various ARP behaviors including unicast ARP replies, broadcast ARP
+    requests/replies, source IP validation, gratuitous ARP handling, and ensures
+    proper ARP table population and filtering based on interface subnet ranges.
+
+Test Intent:
+    - test_arp_unicast_reply: Verifies DUT responds to unicast ARP requests and
+      correctly populates ARP table with sender's MAC/IP on the correct interface
+    - test_arp_expect_reply: Tests standard broadcast ARP request handling, ensuring
+      DUT sends ARP reply and learns the requesting host's MAC address
+    - test_arp_no_reply_other_intf: Validates that DUT rejects ARP requests from
+      wrong interface (source IP not in that interface's subnet) and doesn't install
+      ARP entry for such invalid requests
+    - test_arp_no_reply_src_out_range: Ensures DUT ignores ARP packets with source
+      IP outside the interface's configured subnet range
+    - test_arp_garp_no_update: Tests gratuitous ARP behavior - verifies GARP doesn't
+      create new entries for unknown IPs, but does update existing entries
+
+Topology:
+    t1, t2, m1 (T1/T2 spine-leaf and M1 modular topologies)
+
+Fixtures Used:
+    - common_setup_teardown: Sets up test interfaces, copies PTF tests, retrieves
+      router MAC, and performs config reload cleanup after tests
+    - intfs_for_test: Provides test interface names and PTF port indices
+    - enum_frontend_asic_index: Iterates through frontend ASIC instances
+    - copy_ptftests_directory: Copies PTF test scripts to PTF host
+    - set_ptf_port_mapping_mode: Configures PTF port mapping for test execution
+
+Dependencies:
+    - tests.arp.arp_utils: clear_dut_arp_cache for ARP table cleanup
+    - tests.ptf_runner: PTF test execution framework
+    - tests.common.helpers.assertions: pytest_assert for validation
+    - tests.common.fixtures.ptfhost_utils: PTF infrastructure setup utilities
+
+Notes:
+    - Tests use IP range 10.10.1.x for ARP validation
+    - PTF scripts in arptest module: VerifyUnicastARPReply, ExpectReply,
+      SrcOutRangeNoReply, GarpNoUpdate, GarpUpdate
+    - All tests include ARP cache clearing before execution for clean state
+    - Multi-ASIC support via enum_frontend_asic_index iteration
+    - KVM support enabled via kvm_support parameter in PTF tests
+    - Log files timestamped and stored in /tmp for debugging
+=============================================================================
+"""
+
 import logging
 import pytest
 import time

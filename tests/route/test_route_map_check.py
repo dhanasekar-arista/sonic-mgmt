@@ -1,3 +1,45 @@
+"""
+=============================================================================
+Module: route
+File: test_route_map_check.py
+=============================================================================
+
+Description:
+    This test module validates BGP route-map configuration in FRR, specifically
+    ensuring that IPv6 route-maps contain the "set ipv6 next-hop prefer-global"
+    clause. This configuration is critical for proper IPv6 routing behavior,
+    ensuring global unicast addresses are preferred over link-local addresses
+    as next-hops in IPv6 BGP routes.
+
+Test Intent:
+    - test_route_map_check: Validates that all FROM_*_V6 route-maps in FRR
+      configuration include the "set ipv6 next-hop prefer-global" clause in
+      at least one permit block, ensuring proper IPv6 next-hop selection for
+      incoming BGP routes
+
+Topology:
+    - Supported: t0, t1
+    - Device type: vs (virtual switch)
+    - Supports both single-ASIC and multi-ASIC configurations
+
+Fixtures Used:
+    - duthosts: All DUT hosts in the testbed for multi-DUT validation
+
+Dependencies:
+    - re: Regular expression parsing for route-map configuration analysis
+    - vtysh: FRR command-line interface for querying running configuration
+
+Notes:
+    - Checks all ASIC namespaces on multi-ASIC devices
+    - Parses 'show run' output from vtysh to locate route-map configurations
+    - Only validates route-maps matching pattern FROM_*_V6 in permit mode
+    - The clause must appear in at least one permit block of each matching route-map
+    - Clause matching is case-insensitive and tolerant to extra whitespace
+    - Test fails if any DUT/ASIC is missing the required configuration
+    - Critical for preventing IPv6 routing issues with link-local next-hops
+=============================================================================
+"""
+
 import pytest
 import logging
 import re

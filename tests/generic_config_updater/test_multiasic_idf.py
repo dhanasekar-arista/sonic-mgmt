@@ -1,3 +1,37 @@
+"""
+=============================================================================
+Module: generic_config_updater
+File: test_multiasic_idf.py
+=============================================================================
+
+Description:
+    Tests IDF (Inter-DC Fabric) isolation configuration on multi-ASIC spine
+    routers using Generic Config Updater. Validates setting IDF isolation state
+    per ASIC with verification in CONFIG_DB and idf_isolation status.
+
+Test Intent:
+    - test_multiasic_idf_isolation_unisolated_config: Sets all ASICs to unisolated
+    - test_multiasic_idf_isolation_isolated_withdrawn_config: Sets specific
+      ASICs to isolated_withdrawn state
+    - test_multiasic_idf_isolation_mixed_config: Tests mixed states across ASICs
+
+Topology:
+    Supports any topology (multi-ASIC spine routers)
+
+Fixtures Used:
+    - setup_env: Creates checkpoint for rollback
+
+Dependencies:
+    - tests.common.gu_utils: GCU utilities for patch operations
+
+Notes:
+    - Only applies to spine routers (router_type='spinerouter')
+    - IDF states: unisolated, isolated_withdrawn
+    - Validates BGP_DEVICE_GLOBAL|STATE in CONFIG_DB per ASIC
+    - Uses "idf_isolation status" command for verification
+    - sonic-db-cli used for per-ASIC namespace operations
+=============================================================================
+"""
 import logging
 import pytest
 from tests.common.helpers.assertions import pytest_assert

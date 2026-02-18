@@ -1,3 +1,45 @@
+"""
+=============================================================================
+Module: bgp
+File: test_bgp_dual_asn.py
+=============================================================================
+
+Description:
+    Tests BGP passive peering with multiple ASNs (dual ASN) feature on SONiC.
+    Validates BGP peer range configuration with different ASNs and ensures
+    routes are learned and propagated correctly across different ASN peer groups.
+
+Test Intent:
+    - test_bgp_dual_asn_v4: Validates IPv4 BGP peer range configuration with
+      dual ASN, verifies BGP session establishment, route announcement, and
+      proper handling when adding/removing peer range groups
+
+Topology:
+    t0
+
+Fixtures Used:
+    - setup_env: Creates checkpoint and manages BGP speaker configuration
+    - duthosts: Multi-DUT fixture
+    - rand_one_dut_hostname: Randomly selected DUT
+    - ptfhost: PTF host for simulating BGP peers
+    - localhost: Local execution host
+    - tbinfo: Testbed information
+
+Dependencies:
+    - tests.common.gu_utils: Generic Updater utilities for config management
+    - tests.common.utilities: General utility functions
+    - bgp_helpers: BGP test helper functions for route updates
+    - tests.common.helpers.dut_ports: VLAN interface utilities
+
+Notes:
+    - Tests BGP passive peering with dynamic peer range configuration
+    - Uses exabgp on PTF to simulate external BGP speakers
+    - Validates BGP session stability when adding new peer ranges
+    - Requires SONiC image 202205 or newer
+    - Supports both tagged and untagged VLANs for backend topologies
+=============================================================================
+"""
+
 import pytest
 import time
 import logging

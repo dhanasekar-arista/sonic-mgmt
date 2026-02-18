@@ -1,3 +1,53 @@
+"""
+=============================================================================
+Module: test_bfd
+File: test_bfd.py
+=============================================================================
+
+Description:
+    Bidirectional Forwarding Detection (BFD) test suite for SONiC. This module
+    validates BFD session establishment, state transitions, scalability, and
+    multihop configurations between DUT and PTF hosts. Tests cover single-hop
+    and multi-hop BFD sessions with both IPv4 and IPv6 address families.
+
+Test Intent:
+    - test_bfd_basic: Validates BFD session establishment, Admin_Down state transitions,
+      and session suspension/resumption for both DUT-initiated and PTF-initiated sessions
+    - test_bfd_scale: Verifies BFD scalability by creating multiple sessions (default 128)
+      and ensuring all sessions are established and visible in show commands
+    - test_bfd_multihop: Tests multi-hop BFD sessions using loopback addresses with static
+      routes, validates BFD packets are sent on correct egress queue (queue 7)
+
+Topology:
+    T1 topology with physical devices
+
+Fixtures Used:
+    - gnmi_connection: gNMI connection for monitoring STATE_DB BFD_SESSION_TABLE changes
+    - rand_selected_dut: Randomly selected DUT from the testbed for test execution
+    - ptfhost: PTF host for simulating BFD peer using bfdd-beacon/bfdd-control
+    - tbinfo: Testbed information containing topology and port mapping details
+    - ignore_syslog_errors: Auto-used fixture to suppress expected BFD-related error logs
+    - toggle_all_simulator_ports_to_rand_selected_tor_m: For dualtor topology support
+
+Dependencies:
+    - tests.common.dualtor.mux_simulator_control: Dualtor mux simulator control
+    - tests.common.snappi_tests.common_helpers: Queue counter validation helpers
+    - tests.common.sai_validation.sonic_db: DB monitoring and state validation utilities
+    - tests.common.utilities: General wait_until utility functions
+    - tests.common.helpers.multi_thread_utils: Thread pool executor for parallel operations
+    - External: bfdd-beacon and bfdd-control tools on PTF host
+
+Notes:
+    - Tests use --num_sessions and --num_sessions_scale CLI options (defaults: 5, 128)
+    - IPv6 sessions require NDP warm-up via ping to establish neighbor reachability
+    - BFD sessions created via swssconfig with BFD_SESSION_TABLE entries in CONFIG_DB
+    - Multihop tests validate BFD traffic egress on queue 7 (BFD priority queue)
+    - Scale tests force PTF-first initialization to batch commands efficiently
+    - All tests clean up sessions and IP addresses in finally blocks
+    - Expected syslog errors are ignored via loganalyzer fixture (kernel bind errors, SDK errors)
+=============================================================================
+"""
+
 import pytest
 import random
 import time

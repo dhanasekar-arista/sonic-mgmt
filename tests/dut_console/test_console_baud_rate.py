@@ -1,3 +1,52 @@
+"""
+=============================================================================
+Module: dut_console
+File: test_console_baud_rate.py
+=============================================================================
+
+Description:
+    Test suite for validating console baud rate configuration on SONiC devices. This module
+    tests that the configured baud rate in kernel command line matches the expected baud rate
+    from inventory, and verifies console connectivity works correctly at the configured baud
+    rate through reboot cycles.
+
+Test Intent:
+    - test_console_baud_rate_config: Verify kernel cmdline console baud rate matches expected value from inventory
+    - test_console_init_baud_rate: Verify console communication works at configured baud rate after reboot to SONiC/bootloader
+    - test_console_session_after_reboot_to_sonic: Verify console session recovery after reboot to SONiC OS
+    - test_console_session_after_reboot_to_bootloader: Verify console session recovery after reboot to bootloader (ONIE/ABoot/UBoot)
+
+Topology:
+    - any: Test works on any topology (t0, t1, t2, m0, mx, etc.)
+
+Fixtures Used:
+    - duthost: DUT host object for executing commands
+    - conn_graph_facts: Connection graph facts including console connection info
+    - creds: Credentials for device login
+    - console_client_setup_teardown: Module-level fixture for console client setup
+
+Dependencies:
+    - Console connection via SSH to console server
+    - /proc/cmdline for kernel command line parsing
+    - console_baudrate variable in inventory (defaults to 9600)
+    - console_helper module for SSH client creation and session management
+    - pexpect for console interaction
+
+Notes:
+    - Test is marked with pytest.mark.disable_loganalyzer
+    - Test is marked with pytest.mark.disable_memory_utilization
+    - Default baud rate: 9600 (if not specified in inventory)
+    - Platform-specific boot types: UBoot-ONIE (Nokia), ABoot (Arista)
+    - Test skips if console port not defined in console_links.csv
+    - Test requires SSH console type (other types unsupported)
+    - Baud rate extracted from kernel cmdline: console=ttyS0,<baudrate>
+    - Test validates console works during: normal operation, SONiC reboot, bootloader reboot
+    - Console session timeout: 60 seconds for login prompt detection
+    - Test fails subsequent tests if baud rate config test fails (pass_config_test flag)
+
+=============================================================================
+"""
+
 import pytest
 import time
 from tests.common.helpers.assertions import pytest_assert, pytest_require

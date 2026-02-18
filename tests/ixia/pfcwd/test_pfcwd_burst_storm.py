@@ -1,3 +1,45 @@
+"""
+=============================================================================
+Module: ixia/pfcwd
+File: test_pfcwd_burst_storm.py
+=============================================================================
+
+Description:
+    This test module validates PFC watchdog behavior under bursty PFC storm
+    conditions. It tests PFCWD's ability to detect and recover from intermittent
+    PFC storms that occur in bursts rather than continuously.
+
+Test Intent:
+    - test_pfcwd_burst_storm_single_lossless_prio: Tests PFC watchdog detection
+      and recovery when subjected to bursty PFC storms on a single lossless
+      priority, ensuring PFCWD handles intermittent storm patterns correctly
+    - test_pfcwd_burst_storm_multi_lossless_prio: Validates PFCWD handles
+      bursty storms across multiple lossless priorities simultaneously
+
+Topology:
+    - tgen: Requires IXIA traffic generator topology
+
+Fixtures Used:
+    - ixia_api: IXIA session for traffic generation
+    - ixia_testbed_config: Testbed and port configuration
+    - conn_graph_facts: DUT-to-IXIA connection topology
+    - fanout_graph_facts: Fanout switch information
+    - rand_one_dut_lossless_prio: Random lossless priority for testing
+    - lossless_prio_list: List of all lossless priorities
+    - prio_dscp_map: Priority to DSCP mapping
+
+Dependencies:
+    - files.pfcwd_burst_storm_helper: Burst storm test implementation
+    - tests.common.ixia.ixia_fixtures: IXIA infrastructure
+    - tests.common.ixia.qos_fixtures: QoS test fixtures
+
+Notes:
+    - Tests intermittent PFC storms (bursts) rather than continuous storms
+    - Validates PFCWD detection threshold logic with bursty patterns
+    - Ensures proper recovery between storm bursts
+    - More challenging test pattern than continuous storms
+=============================================================================
+"""
 import pytest
 import logging
 

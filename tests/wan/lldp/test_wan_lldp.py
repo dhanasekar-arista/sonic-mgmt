@@ -1,3 +1,33 @@
+"""
+=============================================================================
+Module: wan/lldp
+File: test_wan_lldp.py
+=============================================================================
+
+Description:
+    Validates LLDP (Link Layer Discovery Protocol) functionality in WAN
+    topologies, ensuring neighbor discovery works correctly.
+
+Test Intent:
+    - test_wan_lldp: Validates LLDP neighbor discovery and information exchange
+
+Topology:
+    wan-pub, wan-pub-cisco (vs devices)
+
+Fixtures Used:
+    - lldp_setup: Module-scoped auto-use fixture for LLDP patching
+    - duthosts: Multi-DUT fixture
+    - patch_lldpctl/unpatch_lldpctl: LLDP control patching
+
+Dependencies:
+    - logging: For test logging
+
+Notes:
+    - Verifies LLDP messages on DUT
+    - Validates neighbor information
+    - Uses lldpctl patching for testing
+=============================================================================
+"""
 import logging
 import pytest
 

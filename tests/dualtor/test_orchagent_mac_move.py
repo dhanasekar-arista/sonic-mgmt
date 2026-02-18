@@ -1,3 +1,53 @@
+"""
+=============================================================================
+Module: Dual ToR Orchagent MAC Move Test
+File: test_orchagent_mac_move.py
+=============================================================================
+
+Description:
+    This test validates MAC address mobility (MAC move) behavior in dual ToR
+    topology. It verifies that when a MAC address moves between mux ports with
+    different states (active/standby), orchagent correctly updates forwarding
+    behavior including ARP/neighbor tables, FDB entries, and traffic forwarding
+    paths (direct vs tunnel).
+
+Test Intent:
+    - test_mac_move: Validates complete MAC move scenarios:
+      1. Learns new neighbor on active port and verifies direct forwarding
+      2. Moves MAC to standby port and verifies tunnel forwarding
+      3. Tests forwarding after FDB flush on standby port (should tunnel)
+      4. Moves MAC to another active port and verifies direct forwarding
+      5. Tests forwarding after FDB flush on active port (platform-dependent)
+
+Topology:
+    t0 - Requires t0 topology with mocked dual ToR configuration
+
+Fixtures Used:
+    - announce_new_neighbor: Generator fixture to announce GARP packets on different ports
+    - apply_active_state_to_orchagent: Sets all mux ports to active state
+    - cleanup_arp: Cleans up ARP entries after test
+    - enable_garp: Enables gratuitous ARP acceptance on VLAN interface
+    - set_crm_polling_interval: Sets CRM polling interval for resource tracking
+    - tunnel_traffic_monitor: Monitors tunnel traffic presence/absence
+    - run_garp_service: Runs GARP service on PTF
+    - run_icmp_responder: Runs ICMP responder on PTF
+
+Dependencies:
+    - tests.common.dualtor.dual_tor_mock: Dual ToR mocking utilities
+    - tests.common.dualtor.dual_tor_utils: Dual ToR utility functions
+    - tests.common.dualtor.server_traffic_utils: Server traffic monitoring
+    - tests.common.dualtor.tunnel_traffic_utils: Tunnel traffic monitoring
+
+Notes:
+    - Uses fixed test neighbor: 192.168.0.250 with MAC 02:AA:BB:CC:DD:EE
+    - GARP packets are sent 5 times per announcement to ensure learning
+    - Test enables arp_accept on VLAN interface to learn from GARP
+    - CRM neighbor counter changes are tracked (expected for IPv6)
+    - FDB flush behavior differs by platform (Mellanox/Cisco flood traffic)
+    - Test randomly selects mux ports to avoid order dependencies
+    - Properly restores neighbor entries in cleanup if test fails
+=============================================================================
+"""
 import logging
 import pytest
 import random

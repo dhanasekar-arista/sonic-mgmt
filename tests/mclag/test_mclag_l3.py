@@ -1,3 +1,74 @@
+"""
+=============================================================================
+Module: mclag
+File: test_mclag_l3.py
+=============================================================================
+
+Description:
+    This test validates Multi-Chassis Link Aggregation Group (MCLAG) L3
+    functionality on SONiC devices. It tests MCLAG setup, status verification,
+    data forwarding with member port failures, keepalive link failures, and
+    session timeout changes, ensuring proper redundancy and failover behavior.
+
+Test Intent:
+    - test_check_keepalive_link: Verifies MCLAG keepalive link status is 'OK'
+      on both MCLAG peers, ensuring control plane connectivity.
+    - test_check_teamd_system_id: Validates that MCLAG interface MAC addresses
+      on standby device match active device MAC addresses (MAC synchronization).
+    - test_mclag_intf_status_down: Tests data forwarding when MCLAG interface
+      members are shut down on both peers. Traffic should traverse the PeerLink.
+      Verifies packet reception at correct destinations.
+    - test_mclag_intf_status_up: Validates data forwarding when all MCLAG
+      interface members are Up. Tests traffic distribution and proper routing.
+    - test_keepalive_link_down: Tests MCLAG behavior when keepalive link is
+      down. Verifies standby device reverts to default MAC on MCLAG interfaces,
+      but data forwarding continues correctly via PeerLink.
+    - test_update_keepalive_timer: Validates dynamic session timeout update.
+      Changes session timeout from 15s to 3s, verifies keepalive goes down
+      within timeout when link is shut, then restores original timeout and
+      verifies recovery.
+
+Topology:
+    t0-mclag topology
+
+Fixtures Used:
+    - setup_mclag: Module-scoped fixture that configures MCLAG on both DUTs
+      and PTF, removes VLAN members, configures peer link and keepalive,
+      applies MCLAG domain configuration, and saves config
+    - duthost1, duthost2: DUT host objects for both MCLAG peers
+    - ptfhost: PTF host for traffic generation and verification
+    - ptfadapter: PTF adapter for packet injection
+    - mg_facts: Minigraph facts for both DUTs
+    - collect: Collects link connection information
+    - get_routes: Advertised routes for each DUT
+    - keep_and_peer_link_member: Keepalive and peer link member information
+    - tear_down: Performs cleanup after tests
+    - mclag_intf_num: Number of MCLAG interfaces to test
+    - update_and_clean_ptf_agent: Updates and cleans PTF agent
+
+Dependencies:
+    - tests.common.utilities: For wait_until polling
+    - tests.common.helpers.assertions: For pytest assertions
+    - mclag_helpers: Extensive helper functions for MCLAG operations
+
+Notes:
+    - Requires iccpd feature to be present in SONiC image
+    - DEFAULT_SESSION_TIMEOUT = 15 seconds
+    - NEW_SESSION_TIMEOUT = 3 seconds
+    - MCLAG_DOMAINE_ID configured from helper constants
+    - Peer link and keepalive link configured with specific IP addresses
+    - Static routes added for peer reachability via peer link
+    - Config saved to persist across reboots
+    - iccpd added to critical services list
+    - test_mclag_intf_status_down uses pre_setup fixture to shut interfaces
+    - pre_setup fixture waits up to 140 seconds for partner LAG members down
+    - pre_setup fixture waits up to 120 seconds for partner LAG members up on teardown
+    - test_keepalive_link_down shuts keepalive link and waits for timeout
+    - shutdown_keepalive_and_restore fixture restores keepalive in teardown
+    - test_update_keepalive_timer modifies session timeout in CONFIG_DB
+    - Configuration backup/restore handled by fixtures
+=============================================================================
+"""
 import os
 import ipaddress
 import pytest

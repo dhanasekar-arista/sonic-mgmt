@@ -1,3 +1,35 @@
+"""
+=============================================================================
+Module: generic_config_updater
+File: test_pg_headroom_update.py
+=============================================================================
+
+Description:
+    Tests priority group (PG) headroom configuration updates using Generic
+    Config Updater. Validates buffer profile headroom size updates are
+    properly applied to ASIC_DB.
+
+Test Intent:
+    - test_pg_headroom_single_update: Updates single PG headroom size value
+    - test_pg_headroom_multi_update: Updates multiple PG headroom parameters
+
+Topology:
+    Supports any topology (physical devices only)
+
+Fixtures Used:
+    - ensure_dut_readiness: Verifies orchagent and creates checkpoint
+
+Dependencies:
+    - tests.common.helpers.dut_utils: verify_orchagent_running_or_assert
+    - tests.common.gu_utils: GCU utilities, platform validation
+
+Notes:
+    - Reads from ASIC_DB with 20s timeout and 5s interval
+    - Validates SAI_BUFFER_PROFILE_ATTR_BUFFER_SIZE in ASIC_DB
+    - Only runs on physical devices, not virtual switches
+    - Platform and version validation via is_valid_platform_and_version
+=============================================================================
+"""
 import ast
 import logging
 import pytest

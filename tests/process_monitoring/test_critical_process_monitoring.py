@@ -1,6 +1,59 @@
 """
-Test the feature of monitoring critical processes on 20191130 image (Monit),
-202012 and newer images (Supervisor)
+=============================================================================
+Module: process_monitoring
+File: test_critical_process_monitoring.py
+=============================================================================
+
+Description:
+    This test validates the monitoring of critical processes in containers
+    using Monit (20191130 images) or Supervisord (202012+ images). It verifies
+    that alerting messages appear in syslog when critical processes exit after
+    autorestart is disabled, and validates orchagent heartbeat functionality.
+
+Test Intent:
+    - test_monitoring_critical_processes: Disables autorestart for all
+      containers, kills critical processes in each namespace, and validates
+      that expected alerting messages appear in syslog. Tests both Monit
+      (older images) and Supervisord (newer images) monitoring systems.
+    - test_orchagent_heartbeat: Freezes orchagent using orchagent_restart_check
+      to simulate warm-reboot preparation, verifies no stuck warnings are
+      generated during freeze period, and confirms orchagent recovers after
+      config reload.
+
+Topology:
+    any topology, t1-multi-asic
+
+Fixtures Used:
+    - config_reload_after_tests: Module-scoped fixture that performs config
+      reload after all tests complete to restore system state
+    - disable_and_enable_autorestart: Module-scoped fixture that disables
+      autorestart for all containers before testing and re-enables after
+    - check_image_version: Module-scoped fixture that skips test on images
+      older than 20191130.72
+    - modify_monit_config_and_restart: Module-scoped fixture that backs up
+      Monit config, modifies daemon interval and removes start delay, then
+      restores after testing
+    - recover_critical_processes: Function-scoped fixture that recovers
+      critical processes after test by power cycling (for database container
+      tests) or config reload (for other containers)
+
+Dependencies:
+    - tests.common.helpers.dut_utils: Process management utilities
+    - tests.common.plugins.loganalyzer.loganalyzer.LogAnalyzer: Syslog analysis
+    - tests.common.utilities: PDU reboot, process killing utilities
+    - tests.common.reboot: wait_for_startup function
+
+Notes:
+    - Skips certain containers: gbsyncd, restapi, radv (on non-T0), gnmi (on 202412)
+    - Special handling for database container - uses PDU power cycle for recovery
+    - For KVM testbeds without PDU, uses kernel SysRq trigger for forced reboot
+    - Skips dsserve process in syncd container (not managed by supervisord)
+    - Skips thermalctld/syseepromd in pmon (auto-restart enabled)
+    - Skips bgpmon in bgp container (auto-restart enabled)
+    - Moves lldpd to end of process list to avoid impacting lldp-syncd
+    - Waits 70s (90s for KVM) for alerting messages to appear in syslog
+    - Orchagent freeze uses 5000ms wait and 6 retries on weaker CPU platforms
+=============================================================================
 """
 from collections import defaultdict
 import time

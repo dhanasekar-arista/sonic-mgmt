@@ -1,10 +1,49 @@
 """
-Test port auto negotiation.
+=============================================================================
+Module: platform_tests
+File: test_auto_negotiation.py
+=============================================================================
 
-To save test time, the script randomly chooses 3 ports to do following test:
-1. Advertise all supported speeds and expect the negotiated speed is the highest speed
-2. Advertise each supported speed and expect the negotiated speed is the one configured
-3. Force each supported speed and expect the operational speed is the one configured
+Description:
+    Tests port auto-negotiation functionality. Validates speed advertisement,
+    negotiation to highest speed, and forced speed configuration. Tests randomly
+    selected ports to save time while ensuring comprehensive coverage.
+
+Test Intent:
+    - test_auto_negotiation_advertised_speeds_all: Verify autoneg to highest when all speeds advertised
+    - test_auto_negotiation_advertised_speeds_each: Test autoneg to each configured speed individually
+    - test_auto_negotiation_dut_advertises_each_speed: Validate DUT-side speed advertisement
+    - test_auto_negotiation_force_speed: Verify forced speed configuration
+
+Topology:
+    Any topology
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hardware SKU
+    - fanouthosts: Fanout switch fixture
+    - tbinfo: Testbed information
+
+Dependencies:
+    - STATE_DB for supported speeds
+    - APPL_DB for port configuration
+    - list_dut_fanout_connections for DUT-fanout mapping
+    - is_sfp_speed_supported for speed validation
+    - get_autoneg_tests_data for test port selection
+
+Notes:
+    - Test randomly selects 3 ports to save time
+    - Validates negotiation to highest speed when all advertised
+    - Tests each supported speed individually
+    - Forced speed test disables autoneg
+    - Wait times: ALL_PORT_WAIT_TIME=90s, SINGLE_PORT_WAIT_TIME=90s
+    - PORT_STATUS_CHECK_INTERVAL=10s for status polling
+    - Supported speeds from STATE_DB PORT_TABLE
+    - Config via APPL_DB PORT_TABLE
+    - Skips old releases lacking autoneg support
+    - Mellanox device-specific handling
+    - Global variable all_ports_by_dut caches candidate ports
+=============================================================================
 """
 import logging
 import pytest

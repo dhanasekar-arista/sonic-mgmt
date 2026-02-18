@@ -1,3 +1,59 @@
+"""
+=============================================================================
+Module: dualtor_mgmt
+File: test_ingress_drop.py
+=============================================================================
+
+Description:
+    Test suite for validating ingress packet drop behavior on standby ToR in dual-ToR setup.
+    This module tests ACL-based packet dropping on standby mux ports to ensure upstream
+    traffic from servers is correctly dropped when sent to standby ToR, preventing duplicate
+    packets and routing loops in both active-standby and active-active cable configurations.
+
+Test Intent:
+    - test_standby_tor_upstream_mux_toggle_active_standby: Verify standby ToR drops upstream traffic and becomes active when toggled (active-standby)
+    - test_standby_tor_upstream_mux_toggle_active_active: Verify standby ToR in active-active mode drops traffic when NIC simulator is stopped
+    - test_standby_tor_remove_neighbor_active_standby: Verify standby ToR drops traffic when server ARP neighbor is removed (active-standby)
+    - test_active_tor_remove_neighbor_active_standby: Verify active ToR forwards traffic normally when ARP neighbor is removed (active-standby)
+
+Topology:
+    - dualtor: Dual-ToR topology with active-standby or active-active cable types
+
+Fixtures Used:
+    - upper_tor_host: Upper ToR DUT host object
+    - lower_tor_host: Lower ToR DUT host object
+    - toggle_all_simulator_ports_to_lower_tor: Sets all mux ports to lower ToR (active)
+    - run_icmp_responder: Runs ICMP responder on PTF for server simulation
+    - cable_type: Cable type fixture (active-standby or active-active)
+    - active_active_ports: Active-active port configuration
+    - active_standby_ports: Active-standby port configuration
+    - mux_status_from_nic_simulator: Gets mux status from NIC simulator
+    - stop_nic_simulator: Stops NIC simulator for active-active tests
+    - setup_mux: Module-level fixture to setup and verify mux status before tests
+
+Dependencies:
+    - PTF ICMP responder for upstream traffic simulation
+    - verify_upstream_traffic helper for packet verification
+    - ACL drop rules on standby ToR mux ports
+    - ARP neighbor entries for server reachability
+    - NIC simulator for active-active forwarding state
+    - Mux simulator for active-standby state control
+
+Notes:
+    - Tests are marked with pytest.mark.topology("dualtor")
+    - Standby ToR should drop all upstream traffic from servers (ACL drop)
+    - Active ToR should forward upstream traffic normally
+    - Ingress drop implemented via ACL rules on standby mux ports
+    - verify_upstream_traffic sends ICMP packets and checks for drops
+    - Active-standby: Uses mux simulator to control active/standby state
+    - Active-active: Uses NIC simulator to control forwarding state
+    - ARP neighbor removal tests validate drop behavior when route is missing
+    - Expected behavior: standby drops packets, active forwards packets
+    - Tests verify standby->active transition enables traffic forwarding
+
+=============================================================================
+"""
+
 import logging
 import json
 import pytest

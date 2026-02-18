@@ -1,3 +1,42 @@
+"""
+=============================================================================
+Module: ipfwd
+File: test_dir_bcast.py
+=============================================================================
+
+Description:
+    This test module validates directed broadcast packet handling in SONiC.
+    It tests that directed broadcast packets are properly forwarded to all
+    ports in the target VLAN, ensuring correct broadcast behavior across
+    VLAN interfaces.
+
+Test Intent:
+    - test_dir_broadcast: Verifies that directed broadcast packets sent to
+      a VLAN subnet are correctly flooded to all member ports in that VLAN,
+      excluding the source port
+
+Topology:
+    - t0, m0, mx: Tests work on T0 and related topologies with VLANs
+
+Fixtures Used:
+    - copy_ptftests_directory: Copies PTF test scripts to PTF host
+    - toggle_all_simulator_ports_to_rand_selected_tor_m: DualTOR mux control
+    - gather_facts: Provides minigraph facts and network topology information
+
+Dependencies:
+    - tests.ptf_runner: PTF test execution framework
+    - tests.common.utilities: Neighbor port list utilities
+    - tests.common.dualtor.mux_simulator_control: DualTOR mux management
+
+Notes:
+    - Test sends directed broadcast to VLAN subnet addresses
+    - Validates broadcast to all active VLAN member ports
+    - DualTOR: Only active ports on active TOR are considered destination ports
+    - Uses PTF test port mapping stored in /root/ptf_test_port_map.json
+    - Upstream neighbor ports are used as source ports for testing
+    - PTF test validates packet replication to all VLAN members
+=============================================================================
+"""
 import pytest
 import json
 import logging

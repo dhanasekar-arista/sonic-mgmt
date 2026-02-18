@@ -1,3 +1,63 @@
+"""
+=============================================================================
+Module: dualtor_io
+File: test_tor_bgp_failure.py
+=============================================================================
+
+Description:
+    Test suite for validating dual-ToR resilience during BGP failures. This module tests
+    failover behavior when BGP sessions or the BGP daemon fail on active or standby ToR.
+    Tests verify traffic disruption and proper mux state transitions when BGP connectivity
+    is lost, ensuring proper failover to maintain server reachability.
+
+Test Intent:
+    - test_bgp_shutdown_active_upstream: Verify traffic failover when active ToR BGP sessions are shut down (server to T1)
+    - test_bgp_shutdown_standby_upstream: Verify standby ToR BGP shutdown does not affect traffic (server to T1)
+    - test_kill_bgpd_active_upstream: Verify traffic failover when active ToR BGP daemon is killed (server to T1)
+    - test_kill_bgpd_standby_upstream: Verify standby ToR BGP daemon kill does not affect traffic (server to T1)
+
+Topology:
+    - dualtor: Dual-ToR topology with active-standby or active-active cable types
+
+Fixtures Used:
+    - upper_tor_host: Upper ToR DUT host object
+    - lower_tor_host: Lower ToR DUT host object
+    - toggle_all_simulator_ports_to_upper_tor: Sets all mux ports to upper ToR (active)
+    - send_t1_to_server_with_action: Sends downstream traffic with action during transmission
+    - send_server_to_t1_with_action: Sends upstream traffic with action during transmission
+    - shutdown_bgp_sessions: Shuts down BGP sessions on specified ToR
+    - kill_bgpd: Kills BGP daemon (bgpd) on specified ToR
+    - run_icmp_responder: Runs ICMP responder on PTF for server simulation
+    - run_garp_service: Runs GARP service on PTF for MAC address updates
+    - change_mac_addresses: Changes PTF MAC addresses to match server MACs
+    - check_simulator_flap_counter: Verifies mux simulator flap counts
+    - cable_type: Cable type fixture (active-standby or active-active)
+    - tunnel_traffic_monitor: Monitors tunnel traffic during tests
+    - temp_enable_bgp_autorestart: Module-level fixture to enable BGP autorestart
+
+Dependencies:
+    - Mux simulator control for cable state management
+    - BGP container and bgpd daemon for routing
+    - PTF framework for traffic generation and verification
+    - tor_failure_utils for BGP shutdown and kill operations
+    - config feature autorestart for BGP recovery
+
+Notes:
+    - Tests are marked with pytest.mark.topology("dualtor")
+    - Disruption must be less than MUX_SIM_ALLOWED_DISRUPTION_SEC (1 second)
+    - BGP autorestart is temporarily enabled for all tests (restored after module)
+    - Out of scope cases: T1->Standby ToR->Server (Standby BGP Down), T1->Active ToR->Server (Active BGP Down)
+    - Reason: Shutting down BGP means T1 won't send traffic to that ToR anyway
+    - BGP session shutdown uses 'sudo config bgp shutdown neighbor <neighbor_ip>'
+    - Kill bgpd uses 'docker exec bgp pkill -9 bgpd' to kill BGP daemon
+    - BGP autorestart ensures bgpd automatically restarts after being killed
+    - Active ToR BGP failure should trigger failover to standby ToR
+    - Standby ToR BGP failure should not affect traffic (already on active)
+    - Tests verify control plane (mux state) and data plane (traffic forwarding)
+
+=============================================================================
+"""
+
 import pytest
 
 from tests.common.dualtor.control_plane_utils import verify_tor_states

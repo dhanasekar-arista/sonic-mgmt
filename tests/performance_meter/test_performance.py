@@ -1,3 +1,46 @@
+"""
+=============================================================================
+Module: performance_meter
+File: test_performance.py
+=============================================================================
+
+Description:
+    This test framework measures and analyzes performance of various operations on SONiC
+    devices. It runs operations N times, measures time to meet success criteria, and
+    collects statistics. The framework uses async/await for concurrent success criteria
+    checking during operations. Configurable via YAML files specifying operations,
+    success criteria, timeouts, and run conditions.
+
+Test Intent:
+    - test_performance: Run specified operation N times and measure time to meet success criteria
+    - test_performance_stats: Analyze results from previous performance runs and verify against thresholds
+
+Topology:
+    Configurable via test config files
+
+Fixtures Used:
+    - reorged_test_config: Reorganized test configuration from YAML config files
+    - call_sanity_check: Provides sanity check setup/cleanup functions
+    - store_test_result: Stores performance test results across multiple runs
+    - Various dynamic fixtures based on test configuration
+
+Dependencies:
+    - ops: Module containing operation implementations (e.g., config reload, reboot)
+    - success_criteria: Module with success criteria checkers and statistics analyzers
+    - asyncio: For concurrent success criteria checking
+    - Config files in config directory defining test scenarios
+
+Notes:
+    - Test process: sanity check -> prepare success criteria checker -> run operation setup -> check criteria concurrently -> operation cleanup -> sanity check
+    - Success criteria are checked every 1 second (configurable interval) during operation
+    - Each op can have multiple success criteria with different timeouts
+    - Results include: op_precheck_success, op_success, op_postcheck_success, passed, time_to_pass
+    - Statistics test analyzes mean, stdev, max, min of time_to_pass across runs
+    - run_when conditions in config determine if test runs for specific setup
+    - Supports filtering test variables for specific success criteria
+    - Async architecture allows checking multiple criteria simultaneously
+=============================================================================
+"""
 import logging
 import asyncio
 import time

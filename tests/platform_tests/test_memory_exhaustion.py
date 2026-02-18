@@ -1,3 +1,44 @@
+"""
+=============================================================================
+Module: platform_tests
+File: test_memory_exhaustion.py
+=============================================================================
+
+Description:
+    Tests DUT behavior under memory exhaustion conditions. Validates that the system
+    properly reboots when running out of memory and recovers to a healthy state.
+
+Test Intent:
+    - test_memory_exhaustion: Verify DUT reboots when memory is exhausted and recovers properly
+
+Topology:
+    Any topology
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hardware SKU
+    - localhost: Localhost connection
+    - pdu_controller: PDU controller for recovery
+    - tearDown: Autofixture for cleanup/recovery via PDU if needed
+
+Dependencies:
+    - wait_critical_processes for process health validation
+    - wait_for_startup for reboot completion
+    - PDU controller for emergency recovery
+
+Notes:
+    - Test allocates memory until system runs out and reboots
+    - SSH connection expected to drop during memory exhaustion
+    - SSH states: ABSENT (down), STARTED (up)
+    - Teardown fixture recovers DUT via PDU reboot if needed
+    - For supervisor nodes, validates line cards also recover
+    - Loganalyzer disabled (expected error logs during memory exhaustion)
+    - Test may take significant time to exhaust memory
+    - PDU reboot used as recovery mechanism if system doesn't auto-recover
+    - Validates critical processes healthy after recovery
+    - wait_until helper for asynchronous checks
+=============================================================================
+"""
 import logging
 import time
 import pytest

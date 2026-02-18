@@ -1,3 +1,54 @@
+"""
+=============================================================================
+Module: ip
+File: test_ip_packet.py
+=============================================================================
+
+Description:
+    This test module validates IP packet forwarding and RIF (Router Interface)
+    counter functionality in SONiC. It tests various IP packet scenarios including
+    normal forwarding, TTL handling, IP options, fragmentation, and ensures
+    counters accurately reflect packet processing.
+
+Test Intent:
+    - test_forward_ip_packet: Validates basic IPv4 packet forwarding between
+      interfaces and verifies RIF RX/TX counters increment correctly
+    - test_forward_ip_packet_with_0x0000_chksum_dropped: Tests that packets with
+      invalid IP checksum (0x0000) are dropped as expected
+    - test_forward_ip_packet_with_ttl_1_dropped: Verifies packets with TTL=1
+      are dropped and not forwarded (per RFC)
+    - test_forward_ip_packet_with_ttl_2: Tests that packets with TTL=2 are
+      properly forwarded with TTL decremented to 1
+    - test_forward_ip_packet_with_ip_option: Validates forwarding of packets
+      containing IP options and proper counter handling
+    - test_forward_ip_packet_reboot: Tests IP forwarding persistence across
+      warm/fast reboot scenarios
+
+Topology:
+    - any: Works with any topology that has port channels or router ports
+
+Fixtures Used:
+    - common_param: Class-scoped fixture providing DUT facts, interface mappings,
+      peer IP addresses, and port channel information
+    - reboot_type: Parametrized fixture for warm/fast reboot testing
+    - duthosts: Collection of DUT hosts in testbed
+    - ptfadapter: PTF adapter for packet injection and verification
+
+Dependencies:
+    - tests.ip.ip_util: Utility functions for interface parsing and MAC generation
+    - tests.common.portstat_utilities: Port statistics parsing utilities
+    - tests.common.utilities: RIF counter parsing functions
+    - ptf: PTF packet testing framework
+
+Notes:
+    - Tests send 1000 packets and verify 90-150% are received (accounting for duplication)
+    - Uses RIF counters when available, falls back to portstat otherwise
+    - Handles both single-ASIC and multi-ASIC scenarios
+    - Validates counters match expected packet counts within tolerance
+    - Tests skip if insufficient IP interfaces are available
+    - Mellanox fanout handling for specific platform considerations
+=============================================================================
+"""
 import time
 import logging
 

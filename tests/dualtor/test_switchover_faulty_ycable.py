@@ -1,3 +1,50 @@
+"""
+=============================================================================
+Module: Dual ToR Switchover with Faulty Y-Cable Test
+File: test_switchover_faulty_ycable.py
+=============================================================================
+
+Description:
+    This test validates mux switchover behavior when Y-cable driver encounters
+    faults such as probe failures (returning unknown state) or peer link down
+    conditions. It verifies that switchover operations can complete even when
+    one ToR cannot query Y-cable state or detects peer link issues.
+
+Test Intent:
+    - test_switchover_probe_unknown: Simulates Y-cable driver returning "unknown"
+      probe response. Verifies that the healthy ToR can still successfully trigger
+      switchover and the faulty ToR honors the toggle request despite probe failure.
+    - test_switchover_peer_link_down: Simulates Y-cable driver reporting peer link
+      down. Verifies that the ToR with faulty driver will attempt to toggle back
+      to active when peer link appears down, testing the self-healing behavior.
+
+Topology:
+    dualtor - Requires dual ToR topology with active-standby mux ports
+
+Fixtures Used:
+    - simulated_faulty_side: The ToR with simulated Y-cable driver fault (rand_unselected_dut)
+    - simulated_good_side: The healthy ToR (rand_selected_dut)
+    - select_mux_port: Randomly selected active-standby mux port for testing
+    - restore_pmon: Restores pmon container if fault persists after test
+    - toggle_all_simulator_ports_to_rand_unselected_tor: Sets simulator to unselected ToR
+    - run_icmp_responder: Runs ICMP responder on PTF
+
+Dependencies:
+    - tests.common.dualtor.control_plane_utils: Control plane verification utilities
+    - tests.common.dualtor.dual_tor_common: Dual ToR common utilities (active_standby_ports)
+    - tests.common.dualtor.mux_simulator_control: Mux simulator control utilities
+
+Notes:
+    - Uses Jinja2 template (y_cable_simulated.py.j2) to create faulty driver
+    - Faulty driver is temporarily installed in pmon container's Python path
+    - ycabled is restarted after driver replacement (waits 10 seconds for restart)
+    - Test waits up to 90 seconds for peer link down scenario (ycabled polls every 60s)
+    - Restore fixture checks probe state and link status, removes pmon container if needed
+    - Probe response stored in APPL_DB MUX_CABLE_RESPONSE_TABLE
+    - Link status stored in STATE_DB MUX_CABLE_INFO table
+    - Test requires active-standby ports; skipped if none available
+=============================================================================
+"""
 import ast
 import contextlib
 import logging

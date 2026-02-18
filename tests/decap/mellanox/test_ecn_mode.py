@@ -1,3 +1,62 @@
+"""
+Module: tests.decap.mellanox.test_ecn_mode
+File: test_ecn_mode.py
+Description:
+    This Mellanox-specific test validates ECN (Explicit Congestion Notification) mode
+    behavior during IPinIP tunnel decapsulation across different SONiC versions. The test
+    verifies that ECN mode transitions correctly between 'standard' and 'copy_from_outer'
+    modes when upgrading from older releases (< 202511) to newer releases (>= 202511).
+    It supports both upgrade testing and single-version validation.
+
+Test Intent:
+    - Validate ECN mode behavior specific to Mellanox platforms with 'mlnx' in platform name
+    - Test ECN mode before and after warm-reboot upgrade scenarios
+    - Verify ECN mode is 'standard' for releases < 202511
+    - Verify ECN mode is 'copy_from_outer' for releases >= 202511
+    - Ensure correct ECN value propagation from outer to inner packet post-decapsulation
+    - Validate IPinIP packet decapsulation with correct ECN handling
+    - Test configuration persistence through warm-reboot
+
+Topology:
+    - Supports: t0, t1 topologies
+    - Mellanox devices only (platforms with 'mlnx' in platform name)
+    - Traffic flow: PTF downlink port -> DUT -> PTF uplink ports
+    - Single DUT testing (rand_selected_dut)
+
+Fixtures Used:
+    - skip_non_mellanox: Ensures test runs only on Mellanox devices with 'mlnx' platform
+    - skip_unsupported_image: Skips master branch images (ECN mode unstable)
+    - restore_image: Restores original image after test if --restore_to_image provided
+    - prepare_param: Prepares test parameters (IPs, MACs, ports, ECN values, image lists)
+    - init_param: Initializes test class parameters from prepare_param fixture
+
+Dependencies:
+    - APPL_DB key: TUNNEL_DECAP_TABLE:IPINIP_TUNNEL (field: ecn_mode)
+    - PTF test: Custom IPinIP packet creation and verification
+    - Upgrade helpers: install_sonic, check_sonic_version
+    - Reboot: Warm-reboot support with BGP/interface validation
+    - BGP validation: Ensures BGP routes synced after reboot
+    - Allure reporting: Step-by-step test execution tracking
+    - Image management: Supports base_image_list, target_image_list CLI options
+
+Notes:
+    - Test class: TestECNMode with PKT_NUM=10, PTF_QLEN=100000, PTF_TIMEOUT=30
+    - ECN mode change version threshold: 202511
+    - Supported ECN modes:
+        * 'standard': ECN = max(inner_ecn, outer_ecn)
+        * 'copy_from_outer': ECN = outer_ecn
+    - Test uses random ECN values from ECN_MODE_LIST = [(2, 3)]
+    - Packet verification ignores: Ether src/dst, IP id/ttl/chksum
+    - Skips if platform name contains 'nvidia' (already uses copy_from_outer by default)
+    - Skips master branch testing (ECN mode not stable)
+    - Requires '--base_image_list' and/or '--target_image_list' CLI options for upgrade testing
+    - Warm-reboot used for upgrade to preserve state
+    - Validates BGP docker UP and route sync after reboot (timeout: 100s/120s)
+    - Uses sonic-cfggen to read SONiC release from /etc/sonic/sonic_version.yml
+
+Recent Changes:
+    654749d2b - Add ecn_mode validation during warm-reboot
+"""
 import logging
 import pytest
 import ptf.testutils as testutils

@@ -1,6 +1,45 @@
 """
-This script is to test the EBGP Authentication feature of SONiC.
+=============================================================================
+Module: bgp
+File: test_bgp_authentication.py
+=============================================================================
+
+Description:
+    Tests BGP authentication feature for both peer-group and individual neighbor
+    configurations. Validates password protection for BGP sessions and ensures
+    sessions properly establish or drop based on password match/mismatch.
+
+Test Intent:
+    - test_bgp_peer_group_password: Tests BGP authentication at peer-group level,
+      verifies session drops when passwords don't match and establishes when matching
+    - test_bgp_neighbor_password: Tests BGP authentication at individual neighbor level,
+      validates session behavior with password configuration changes
+
+Topology:
+    t2
+
+Fixtures Used:
+    - setup: Configures test environment with neighbor selection and backup config
+    - duthosts: Multi-DUT fixture
+    - enum_frontend_dut_hostname: Frontend DUT selection
+    - nbrhosts: Neighbor hosts fixture
+    - tbinfo: Testbed information
+
+Dependencies:
+    - tests.common.helpers.assertions.pytest_assert
+    - tests.common.helpers.constants.DEFAULT_NAMESPACE
+    - tests.common.config_reload
+    - tests.common.utilities.wait_until
+
+Notes:
+    - Tests both SONiC and EOS neighbors
+    - Uses MD5 password authentication
+    - Tests both IPv4 and IPv6 BGP sessions
+    - Supports multi-ASIC DUT configurations
+    - Restores original configuration via config reload or backup restoration
+=============================================================================
 """
+
 import logging
 
 import pytest

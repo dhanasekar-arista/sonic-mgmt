@@ -1,3 +1,64 @@
+"""
+Module: tests.dhcp_relay.test_dhcpv4_relay
+File: test_dhcpv4_relay.py
+
+Description:
+    Test suite for SONiC native DHCPv4 relay agent functionality and advanced features. This module
+    focuses exclusively on the sonic-dhcpv4-relay agent implementation and validates various Option 82
+    sub-options, VRF configurations, agent relay modes, max hop count settings, and feature flag behavior.
+    Tests ensure proper DHCP relay operation in complex multi-VRF and multi-option scenarios.
+
+Test Intent:
+    - Verify SONiC DHCPv4 relay agent feature flag enable/disable behavior
+    - Validate DHCP relay with feature flag disabled (no process, no response)
+    - Test Option 82 sub-options: source_interface, link_selection, server_id_override
+    - Verify agent relay modes: discard, replace, append (Option 82 handling)
+    - Test DHCP relay with non-default VRF (client-facing interface in VRF)
+    - Validate DHCP relay with different VRFs for client and server interfaces
+    - Test VRF selection, source interface, and server VRF configuration combinations
+    - Verify max hop count enforcement (configurable and default 16)
+    - Validate socket binding and process startup for sonic-dhcpv4-relay
+
+Topology:
+    - t0: Standard leaf-spine topology with T0 switches
+    - m0: Management topology
+    Tests run on virtual switches (device_type='vs')
+
+Fixtures Used:
+    - dut_dhcp_relay_data: DHCP relay configuration data for each VLAN interface
+    - validate_dut_routes_exist: Validates routes to DHCP servers
+    - testing_config: Determines single/dual-ToR mode and provides active DUT
+    - enable_sonic_dhcpv4_relay_agent: Enables SONiC DHCPv4 relay agent feature flag
+    - setup_standby_ports_on_rand_unselected_tor: Sets up standby ports on unselected ToR
+    - toggle_all_simulator_ports_to_rand_selected_tor_m: Toggles mux ports to selected ToR
+    - ignore_expected_loganalyzer_exceptions: Ignores expected error logs
+
+Dependencies:
+    - PTF framework for packet generation and validation
+    - dhcp_relay_test.DHCPTest PTF test suite
+    - sonic-dhcpv4-relay agent (not ISC dhcrelay)
+    - CONFIG_DB DHCPV4_RELAY table configuration
+    - VRF support in SONiC for multi-VRF tests
+    - PortChannel interfaces with assigned IPs for VRF routing
+    - Static routes in VRFs for DHCP server reachability
+
+Notes:
+    - Tests are marked with relay_agent="sonic-relay-agent" parameter
+    - Feature flag tests use @pytest.mark.skip_config_dhcpv4_relay_agent marker
+    - VRF tests create temporary VRFs (Vrf01, Vrf03) and bind interfaces
+    - VRF cleanup restores original interface bindings and IP addresses
+    - Option 82 sub-option tests reconfigure relay per VLAN before test
+    - Agent relay modes: discard (drop), replace (replace Option 82), append (add Option 82)
+    - Max hop count: CONFIG_HOP_COUNT=2, MAX_HOP_COUNT=16
+    - Source interface uses loopback interface for relay
+    - Link selection uses VLAN network base address
+    - Server VRF enables routing to servers in different VRF than clients
+    - Tests validate packet forwarding but not actual DHCP lease assignment
+
+Git History (last 10 commits):
+    4a239541e DHCPv4 test update for new sonic-dhcpv4-relay design and added functionality
+"""
+
 import pytest
 import random  # noqa: F401
 import time    # noqa: F401

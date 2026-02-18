@@ -1,10 +1,45 @@
 """
-On SONiC device reboot, tests the link down on fanout switches
-This test supports different platforms including:
-    1. T0
-    2. T1
-    3. T2 Chassis
+=============================================================================
+Module: platform_tests
+File: test_link_down.py
+=============================================================================
 
+Description:
+    Tests that fanout switch links properly go down when SONiC device reboots and
+    come back up after device recovery. Supports T0, T1, T2, LT2, and FT2 topologies.
+
+Test Intent:
+    - test_link_down: Verify fanout links go down during DUT reboot and come back up after recovery
+
+Topology:
+    T0, T1, T2, LT2, FT2 topologies
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - request: Pytest request object
+    - localhost: Localhost connection
+    - conn_graph_facts: Connection graph for fanout mapping
+    - fanouthosts: Fanout switch fixture
+    - xcvr_skip_list: Transceiver skip list
+
+Dependencies:
+    - SafeThreadPoolExecutor for parallel link status checks
+    - reboot and wait_for_startup for reboot operations
+    - get_max_to_reboot for timeout calculation
+    - fanout_hosts_and_ports for fanout mapping
+    - link_status_on_host for link status validation
+    - check_interfaces_and_services validator
+
+Notes:
+    - Test validates links down after reboot command
+    - Waits for DUT startup completion
+    - Confirms all fanout links back up after recovery
+    - Uses parallel execution for multi-DUT scenarios
+    - get_frontend_nodes_per_hwsku caches frontend node list
+    - max_time_to_reboot calculated from platform reboot control
+    - Verifies link status across all DUTs and corresponding fanouts
+    - Loganalyzer disabled (expected error logs during reboot)
+=============================================================================
 """
 import logging
 

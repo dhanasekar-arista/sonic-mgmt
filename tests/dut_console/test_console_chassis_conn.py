@@ -1,3 +1,49 @@
+"""
+=============================================================================
+Module: dut_console
+File: test_console_chassis_conn.py
+=============================================================================
+
+Description:
+    Test suite for validating console connectivity to line cards in T2 chassis systems.
+    This module tests that each line card can be accessed via serial console from the
+    supervisor card, verifying proper serial port connections and console configuration
+    in modular chassis deployments.
+
+Test Intent:
+    - test_console_availability_serial_ports: Verify console access to all line cards via serial ports from supervisor card
+
+Topology:
+    - t2: Test is only for T2 chassis topology
+
+Fixtures Used:
+    - duthost: DUT host object (supervisor card)
+    - duthosts: All DUT hosts in the testbed
+    - enum_supervisor_dut_hostname: Supervisor DUT hostname
+    - creds: Credentials for device login
+
+Dependencies:
+    - pexpect for console interaction and automation
+    - picocom for serial console access (/dev/ttySCD<N>)
+    - SSH access to supervisor card
+    - Serial connections from supervisor to line cards
+    - console_helper module for line card detection
+
+Notes:
+    - Test is marked with pytest.mark.topology("t2") - T2 chassis only
+    - Test connects from supervisor to each line card via serial console
+    - Serial device naming: /dev/ttySCD<N> for Arista platforms
+    - Login timeout: 20 seconds for initial prompt, 10 seconds for password
+    - Test validates SONiC banner: "Software for Open Networking in the Cloud"
+    - get_target_lines returns list of serial port numbers for connected line cards
+    - Console access command: sudo /usr/bin/picocom /dev/ttySCD<N>
+    - Exit sequence: Ctrl+A, then Ctrl+X to exit picocom
+    - Test ensures all line cards are accessible via console
+    - Failure indicates serial port misconfiguration or line card issues
+
+=============================================================================
+"""
+
 import pexpect
 import pytest
 import time

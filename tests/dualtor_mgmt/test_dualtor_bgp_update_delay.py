@@ -1,3 +1,54 @@
+"""
+=============================================================================
+Module: dualtor_mgmt
+File: test_dualtor_bgp_update_delay.py
+=============================================================================
+
+Description:
+    Test suite for validating BGP route update delay configuration in dual-ToR topology.
+    This module tests that BGP route withdrawals and announcements are properly delayed
+    during mux cable state transitions to prevent traffic blackholing. Tests capture BGP
+    packets and verify withdrawal/announcement timing matches configured delay values.
+
+Test Intent:
+    - test_active_tor_route_withdraw_delay: Verify BGP route withdrawal is delayed when active ToR transitions to standby
+    - test_standby_tor_route_announce_delay: Verify BGP route announcement is delayed when standby ToR transitions to active
+
+Topology:
+    - dualtor: Dual-ToR topology with active-standby or active-active cable types
+
+Fixtures Used:
+    - tbinfo: Testbed information including topology and DUT facts
+    - ptfhost: PTF host for packet capture and analysis
+    - duthosts: All DUT hosts in the testbed
+    - rand_selected_dut: Randomly selected DUT for testing
+    - localhost: Localhost object for file operations
+
+Dependencies:
+    - tcpdump for BGP packet capture
+    - Scapy for BGP packet parsing
+    - config mux mode command for mux state transitions
+    - BGP route advertisement delay configuration
+    - show mux status command for state verification
+
+Notes:
+    - Test is marked with pytest.mark.topology("dualtor")
+    - Default BGP route withdrawal delay: 0 seconds (immediate)
+    - Default BGP route announcement delay: 30 seconds
+    - Test configures custom delays: withdrawal=15s, announcement=35s
+    - BGP packets captured to file: /tmp/bgp_neighbor_<neighbor_ip>.pcap
+    - tcpdump listens on port 179 (BGP) for all interfaces
+    - Scapy parses BGP UPDATE messages for WITHDRAW and NLRI (announcement)
+    - Test procedure: Change mux state -> Capture BGP updates -> Parse timing -> Verify delay
+    - IPv4 and IPv6 BGP updates are analyzed separately
+    - Withdrawal test: active->standby transition should delay route withdrawal
+    - Announcement test: standby->active transition should delay route announcement
+    - Timing tolerance: ±2 seconds for delay verification
+    - Cleanup restores original delay configuration
+
+=============================================================================
+"""
+
 import contextlib
 import ipaddress
 import logging

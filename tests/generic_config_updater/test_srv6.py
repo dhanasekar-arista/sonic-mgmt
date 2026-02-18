@@ -1,3 +1,35 @@
+"""
+=============================================================================
+Module: generic_config_updater
+File: test_srv6.py
+=============================================================================
+
+Description:
+    Tests SRv6 (Segment Routing over IPv6) configuration using Generic Config
+    Updater. Validates adding SRv6 locators and SIDs with proper uN action
+    and decapsulation DSCP mode.
+
+Test Intent:
+    - test_srv6_my_sid_add: Adds SRv6 MY_SIDS configuration with locator,
+      action (uN), and decap_dscp_mode (pipe/uniform)
+
+Topology:
+    Supports t0, t1 topologies
+
+Fixtures Used:
+    - setup_and_cleanup: Creates checkpoint and pre-configures SRv6 locator
+      and uN SID entries in CONFIG_DB
+
+Dependencies:
+    - tests.common.gu_utils: GCU utilities including create_path
+
+Notes:
+    - Pre-configures locator: fcbb:bbbb:1:: with func_len 0
+    - Pre-configures uN SID: fcbb:bbbb:1::/48 with action uN, decap_dscp_mode pipe
+    - Uses sonic-db-cli for CONFIG_DB operations
+    - Supports both single-ASIC and multi-ASIC configurations
+=============================================================================
+"""
 import pytest
 import logging
 

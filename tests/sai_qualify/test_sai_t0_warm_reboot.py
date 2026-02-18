@@ -1,3 +1,53 @@
+"""
+=============================================================================
+Module: sai_qualify
+File: test_sai_t0_warm_reboot.py
+=============================================================================
+
+Description:
+    This test module runs SAI (Switch Abstraction Interface) qualification tests
+    for T0 topology during warm reboot scenarios. It validates that SAI test cases
+    execute correctly while the switch undergoes warm reboot, ensuring data plane
+    continuity and proper SAI implementation behavior during hitless upgrades.
+
+Test Intent:
+    - test_sai: Executes parametrized SAI test cases from WARM_REBOOT_T0_TEST_CASE
+      suite on a T0 topology during warm reboot, validates SAI behavior and data
+      plane forwarding, stores test results, and ensures proper cleanup of test
+      containers and warmboot configuration restoration
+
+Topology:
+    - Supported: ptf topology
+    - Requires saiserver running on DUT with warmboot configuration
+    - Tests executed via PTF framework against SAI implementation
+
+Fixtures Used:
+    - sai_testbed: Prepares SAI test environment and testbed setup
+    - sai_test_env_check: Validates test environment readiness
+    - creds: Docker registry credentials for container access
+    - duthost: DUT host object for switch under test
+    - localhost: Local host for test orchestration
+    - ptfhost: PTF server for running SAI test cases
+    - request: Pytest request object for test metadata
+    - create_sai_test_interface_param: Interface parameters for SAI testing
+    - start_warm_reboot_watcher: Monitors warm reboot process during test
+
+Dependencies:
+    - cases_t0_warmreboot: Test case definitions for T0 warm reboot scenarios
+    - sai_infra: SAI test infrastructure for running PTF-based tests
+    - conftest: Shared fixtures and helper functions
+
+Notes:
+    - Sanity checks are skipped (mark: skip_sanity=True)
+    - Loganalyzer is disabled due to expected reboot-related log messages
+    - DUT health checks are skipped during warm reboot testing
+    - SAI test container is cleaned up after each test case
+    - Warmboot configuration is restored to original state after testing
+    - Test results are stored on PTF host for analysis
+    - Test environment can be preserved with --sai_test_keep_test_env option
+=============================================================================
+"""
+
 import pytest
 import logging
 

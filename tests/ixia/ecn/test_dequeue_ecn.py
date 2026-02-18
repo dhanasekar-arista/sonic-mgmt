@@ -1,3 +1,48 @@
+"""
+=============================================================================
+Module: ixia/ecn
+File: test_dequeue_ecn.py
+=============================================================================
+
+Description:
+    This test module validates ECN (Explicit Congestion Notification) marking
+    behavior at the egress queue of a SONiC switch. It uses IXIA traffic
+    generator to create congestion and verify that packets are properly marked
+    with ECN bits when queue thresholds are exceeded.
+
+Test Intent:
+    - test_dequeue_ecn: Validates that the DUT correctly performs ECN marking
+      at egress queues when congestion occurs, ensuring packets exceeding
+      queue thresholds receive proper ECN CE (Congestion Experienced) marking
+
+Topology:
+    - tgen: Requires IXIA traffic generator topology
+
+Fixtures Used:
+    - ixia_api: IXIA session for traffic generation and control
+    - ixia_testbed_config: Testbed configuration with port mappings
+    - conn_graph_facts: Connection graph for DUT-to-IXIA connections
+    - fanout_graph_facts: Fanout switch topology information
+    - prio_dscp_map: Priority to DSCP mapping for QoS configuration
+    - rand_one_dut_portname_oper_up: Random operational DUT port for testing
+    - rand_one_dut_lossless_prio: Random lossless priority queue to test
+
+Dependencies:
+    - files.helper: ECN test execution and packet marking verification
+    - tests.common.cisco_data: Cisco platform-specific ECN marking configuration
+    - tests.ixia.ptf_utils: SAI attribute retrieval utilities
+    - tests.common.ixia.ixia_fixtures: IXIA connection and configuration
+    - tests.common.ixia.qos_fixtures: QoS-related test fixtures
+
+Notes:
+    - Test can be disabled with --disable_ecn_test flag
+    - Validates egress ECN marking (dequeue ECN)
+    - Tests lossless priority queues for ECN behavior
+    - Cisco platforms require special marking configuration
+    - Uses IXIA to generate controlled congestion scenarios
+    - Verifies ECN CE marking occurs at appropriate queue depths
+=============================================================================
+"""
 import pytest
 
 from tests.common.helpers.assertions import pytest_require, pytest_assert

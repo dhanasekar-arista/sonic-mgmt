@@ -1,3 +1,40 @@
+"""
+=============================================================================
+Module: generic_config_updater
+File: test_ecn_config_update.py
+=============================================================================
+
+Description:
+    Tests ECN (Explicit Congestion Notification) WRED configuration updates
+    using Generic Config Updater. Validates green thresholds and drop probability
+    changes are properly applied to ASIC_DB.
+
+Test Intent:
+    - test_ecn_gmax_update: Updates green_max_threshold and validates in ASIC_DB
+    - test_ecn_gmin_update: Updates green_min_threshold and validates in ASIC_DB
+    - test_ecn_gdrop_update: Updates green_drop_probability and validates
+    - test_ecn_multi_update: Updates multiple ECN parameters simultaneously
+    - test_ecn_invalid_update: Tests error handling for invalid ECN values
+
+Topology:
+    Supports any topology
+
+Fixtures Used:
+    - ensure_dut_readiness: Checkpoint/rollback setup for ECN config tests
+
+Dependencies:
+    - tests.common.helpers.dut_utils: verify_orchagent_running_or_assert
+    - tests.common.gu_utils: GCU utilities for patch operations
+    - tests.common.utilities: wait_until for polling
+
+Notes:
+    - WRED mapping: green_min_threshold, green_max_threshold, green_drop_probability
+    - Reads from ASIC_DB with 20s timeout and 5s interval
+    - Validates SAI_WRED_ATTR values in ASIC_DB
+    - Platform and version validation via is_valid_platform_and_version
+=============================================================================
+"""
+
 """Tests for ECN/WRED configuration updates via Generic Config Updater.
 """
 import ast

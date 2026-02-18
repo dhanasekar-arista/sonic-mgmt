@@ -1,3 +1,46 @@
+"""
+=============================================================================
+Module: pc
+File: test_po_cleanup.py
+=============================================================================
+
+Description:
+    This test suite validates that PortChannel interfaces are properly cleaned
+    up from the Linux kernel when swss/teamd services are stopped and after
+    config reload. Tests verify that teammgrd and teamsyncd processes handle
+    SIGTERM gracefully and that no PortChannel interfaces remain in the kernel
+    after cleanup.
+
+Test Intent:
+    - test_po_cleanup: Verify PortChannel interfaces are cleaned up when swss service is stopped
+    - test_po_cleanup_after_reload: Verify PortChannel cleanup after config reload under system stress
+
+Topology:
+    any - Can run on any topology
+
+Fixtures Used:
+    - ignore_expected_loganalyzer_exceptions: Ignores expected log messages during LAG cleanup
+    - disable_route_check_for_duthost: Disables route checking for T2 topologies before test
+    - duthosts: All DUT hosts
+    - enum_rand_one_per_hwsku_frontend_hostname: Randomly selected frontend DUT per hwsku
+    - enum_asic_index: ASIC index for multi-asic systems
+
+Dependencies:
+    - tests.common.config_reload: Config reload functionality
+    - tests.common.fixtures.duthost_utils: Route checker utilities
+    - tests.common.plugins.loganalyzer: Log analysis utilities
+
+Notes:
+    - Test stops swss service which triggers PortChannel cleanup
+    - teammgrd sends SIGTERM to PortChannel processes
+    - teamsyncd cleans up team synchronization
+    - Expected log messages: "cleanTeamProcesses: Sent SIGTERM" and "cleanTeamSync"
+    - Verifies no PortChannel interfaces remain via 'ip link show | grep PortChannel'
+    - Multi-asic systems have separate cleanup per ASIC namespace
+    - Stress test creates CPU load and multiple config reloads to verify cleanup robustness
+    - Config reload restores services after test completion
+=============================================================================
+"""
 import pytest
 import logging
 

@@ -1,3 +1,54 @@
+"""
+=============================================================================
+Module: wol
+File: test_wol.py
+=============================================================================
+
+Description:
+    This test suite validates Wake-on-LAN (WoL) functionality in SONiC. It
+    tests the creation, forwarding, and filtering of WoL magic packets with
+    various configurations including broadcast, unicast, and password-protected
+    magic packets across different interfaces and VLANs.
+
+Test Intent:
+    Tests verify WoL magic packet behavior including:
+    - Building and validating magic packet structure
+    - Forwarding to broadcast MAC and specific target MAC
+    - Password-protected magic packets (IPv4 address and hex format)
+    - VLAN member packet forwarding
+    - Portchannel forwarding
+    - Packet interval and count verification
+    - Log error filtering for expected VLAN changes
+
+Topology:
+    mx, m0
+
+Fixtures Used:
+    - loganalyzer: Log analysis with expected error filtering for VLAN member
+      changes and TACACS connection errors
+    - duthosts: Multi-DUT fixture
+    - rand_one_dut_hostname: Random DUT selection
+    - ptfadapter: PTF adapter for packet transmission and verification
+    - mg_facts: Minigraph facts for port and VLAN information
+
+Dependencies:
+    - scapy: For packet construction (Ether, UDP, Raw)
+    - ptf.testutils: For packet transmission utilities
+    - tests.common.helpers.assertions: For pytest assertions
+    - binascii: For hexadecimal conversions
+    - ipaddress: For IP address manipulation
+
+Notes:
+    - Target MAC for tests: 1a:2b:3c:d1:e2:f0
+    - Broadcast MAC: ff:ff:ff:ff:ff:ff
+    - Default WoL port: 9 (UDP)
+    - Default broadcast IP: 255.255.255.255
+    - Magic packet format: 6 bytes 0xFF + 16 repetitions of target MAC + optional password
+    - Password formats supported: hex (colon-separated) or IPv4 address (dotted)
+    - Error margin for interval verification: 100 milliseconds
+    - Tests validate packet count, ports, and timing intervals
+=============================================================================
+"""
 import binascii
 import logging
 import pytest

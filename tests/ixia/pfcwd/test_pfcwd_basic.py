@@ -1,3 +1,49 @@
+"""
+=============================================================================
+Module: ixia/pfcwd
+File: test_pfcwd_basic.py
+=============================================================================
+
+Description:
+    This comprehensive test module validates basic PFC watchdog functionality
+    including storm detection, recovery, and configuration persistence across
+    reboots. It tests PFCWD on individual lossless priorities and verifies
+    proper handling of PFC storms.
+
+Test Intent:
+    - test_pfcwd_basic_single_lossless_prio: Validates basic PFCWD functionality
+      on a single lossless priority with parametrized storm triggering
+    - test_pfcwd_basic_multi_lossless_prio: Tests PFCWD across multiple lossless
+      priorities simultaneously
+    - test_pfcwd_basic_reboot: Verifies PFCWD configuration and functionality
+      persist across various reboot types (config reload, cold, fast, warm)
+
+Topology:
+    - tgen: Requires IXIA traffic generator topology
+
+Fixtures Used:
+    - ixia_api: IXIA session for traffic generation
+    - ixia_testbed_config: Testbed and port configuration
+    - conn_graph_facts: DUT-to-IXIA connection topology
+    - fanout_graph_facts: Fanout switch information
+    - enum_dut_lossless_prio: Enumerated lossless priority for testing
+    - lossless_prio_list: List of all lossless priorities
+    - prio_dscp_map: Priority to DSCP mapping
+    - trigger_pfcwd: Parametrized boolean for storm triggering
+
+Dependencies:
+    - files.pfcwd_basic_helper: Basic PFCWD test implementation
+    - files.helper: PFCWD test skip logic and warm reboot handling
+    - tests.common.reboot: Reboot utilities for different reboot types
+
+Notes:
+    - Tests both storm detection and normal operation modes
+    - Validates PFCWD detects storms and initiates recovery
+    - Checks dependent services (teamd, snmp, dhcp_relay, radv) after reboot
+    - Warm reboot may be skipped on some platforms
+    - Configuration saved before reboot tests
+=============================================================================
+"""
 import pytest
 import logging
 

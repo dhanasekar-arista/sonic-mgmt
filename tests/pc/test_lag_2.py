@@ -1,3 +1,45 @@
+"""
+=============================================================================
+Module: pc
+File: test_lag_2.py
+=============================================================================
+
+Description:
+    This comprehensive test suite validates LAG (Link Aggregation Group) functionality
+    in SONiC including member operations, fallback modes, LACP interaction, and traffic
+    distribution. Tests cover adding/removing members, testing with all members down,
+    fallback behavior, and verifying traffic flows correctly across LAG members.
+
+Test Intent:
+    - Verify LAG member addition and removal
+    - Test LAG behavior when all members are down
+    - Validate LAG fallback mode functionality
+    - Verify LACP negotiation and state changes
+    - Test traffic distribution across LAG members
+    - Validate LAG configuration persistence across config reload
+
+Topology:
+    any - Can run on any topology
+
+Fixtures Used:
+    - common_setup_teardown: Module-level setup/teardown with config reload after test
+    - copy_acstests_directory, copy_ptftests_directory: Copy test files to PTF
+    - duthosts: All DUT hosts
+    - ptfhost: PTF host for traffic generation
+    - conn_graph_facts: Connection graph information
+
+Dependencies:
+    - tests.ptf_runner: Runs PTF test scripts for LAG verification
+    - tests.common.config_reload: Config reload functionality
+    - LagTest class: Main test class with LAG test methods
+
+Notes:
+    - Config reload performed after test to prevent route_check failures affecting subsequent tests
+    - Supports multi-DUT and multi-ASIC configurations
+    - vtestbed detection for virtual testbed-specific handling
+    - Tests use PTF for traffic generation and verification
+=============================================================================
+"""
 import pytest
 
 import time

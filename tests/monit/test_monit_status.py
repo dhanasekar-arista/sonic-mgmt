@@ -1,5 +1,52 @@
 """
-Test the running status and format of alerting message of Monit service.
+=============================================================================
+Module: monit
+File: test_monit_status.py
+=============================================================================
+
+Description:
+    This test validates the Monit service running status and its alerting
+    message format. Monit is used in older SONiC releases (201811, 201911)
+    to monitor critical processes. Tests verify Monit is operational and
+    can correctly detect and report process failures.
+
+Test Intent:
+    - test_monit_status: Verifies that the Monit service is running and
+      configured correctly on the DUT. Waits up to 320 seconds (accounting
+      for Monit's 300s start delay) to confirm Monit status command succeeds.
+    - test_monit_reporting_message: Validates the format of Monit's alerting
+      messages when a critical process (lldpmgrd) is stopped. Verifies Monit
+      detects the stopped process and reports it correctly. Only runs on
+      201811 and 201911 releases (Supervisord replaced Monit in 202012+).
+
+Topology:
+    any topology, including t1-multi-asic
+
+Fixtures Used:
+    - stop_and_start_lldpmgrd: Stops lldpmgrd process in a random LLDP
+      container at setup and restarts it at teardown. For multi-ASIC, randomly
+      selects lldp0 or lldp1 container.
+    - duthosts: Provides list of DUT hosts for testing
+    - enum_rand_one_per_hwsku_frontend_hostname: Selects one random frontend
+      DUT per hardware SKU
+
+Dependencies:
+    - tests.common.utilities: For wait_until polling functionality
+    - tests.common.helpers.assertions: For pytest assertions and requirements
+    - tests.common.helpers.monit: For checking Monit container logging
+
+Notes:
+    - Disables loganalyzer for all tests in this module
+    - Monit has a 300-second start delay, so test waits up to 320 seconds
+    - test_monit_reporting_message only runs on 201811 and 201911 releases
+    - test_monit_reporting_message skipped for 202012+ (Supervisord replaced Monit)
+    - Expected Monit message format for single ASIC: "'/usr/bin/lldpmgrd' is
+      not running in host"
+    - Expected Monit message format for multi-ASIC: "'/usr/bin/lldpmgrd' is
+      not running in host and in namespace asic0"
+    - Waits up to 180 seconds for Monit to detect process failure and log message
+    - Also checks for expected container logging format
+=============================================================================
 """
 import logging
 

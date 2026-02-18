@@ -1,3 +1,53 @@
+"""
+=============================================================================
+Module: route
+File: test_route_flow_counter.py
+=============================================================================
+
+Description:
+    This test module validates the route flow counter feature on SONiC switches.
+    Route flow counters allow tracking packet statistics for specific route
+    patterns. Tests verify pattern matching, dynamic pattern updates, and maximum
+    match count enforcement. The module ensures counters are created, updated,
+    and removed correctly based on configuration changes.
+
+Test Intent:
+    - test_update_route_pattern: Validates dynamic route pattern updates by adding
+      two routes, configuring a pattern to match one route, verifying only the
+      matching route gets a counter, then updating the pattern to match the other
+      route and verifying counter rebinding
+    - test_max_match_count: Tests the maximum match count limit by adding routes
+      beyond the limit, verifying only the configured maximum number of counters
+      are created, and testing automatic counter filling when routes are removed
+      and maximum count is adjusted dynamically
+
+Topology:
+    - Supported: any topology
+    - Feature requires platform support for route flow counters
+
+Fixtures Used:
+    - rand_selected_dut: Randomly selected DUT for testing
+    - is_route_flow_counter_supported: Platform capability check (test skipped if not supported)
+    - skip_if_not_supported: Auto-use fixture that skips test if feature unavailable
+    - clear_route_flow_counter: Auto-use cleanup fixture that disables flow counters,
+      removes all patterns, and deletes added static routes
+    - route_flow_counter_params: Parametrized fixture for IPv4/IPv6 test scenarios
+
+Dependencies:
+    - tests.common.flow_counter.flow_counter_utils: Flow counter configuration and parsing
+    - tests.common.plugins.allure_wrapper: Test step reporting with Allure
+    - tests.common.utilities: wait_until helper for state verification
+
+Notes:
+    - Tests are skipped on platforms without route flow counter support
+    - Both IPv4 and IPv6 route patterns are tested via parametrization
+    - Static routes are added via CLI and tracked for cleanup
+    - Route flow counter status is verified by parsing 'show' command output
+    - Tests validate automatic counter allocation when capacity is available
+    - Nexthop addresses are obtained from BGP neighbors for realistic testing
+=============================================================================
+"""
+
 import logging
 import pytest
 from tests.common.plugins.allure_wrapper import allure_step_wrapper as allure

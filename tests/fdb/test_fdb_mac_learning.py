@@ -1,3 +1,60 @@
+"""
+=============================================================================
+Module: fdb
+File: test_fdb_mac_learning.py
+=============================================================================
+
+Description:
+    This module tests FDB MAC address learning behavior in SONiC switches,
+    specifically validating that stale MAC entries are properly removed after
+    port shutdown and FDB flush operations. It ensures the FDB table only
+    contains active MAC entries for operational ports.
+
+Test Intent:
+    - test_fdb_mac_learning: Validates that stale MAC entries are not present
+      after sonic-clear fdb all by:
+      1. Shutting down all ports
+      2. Bringing up 1 port and populating FDB
+      3. Bringing up 3 more ports and populating FDB
+      4. Shutting down the 3 additional ports
+      5. Verifying MAC entries for shutdown ports are removed
+      6. Executing sonic-clear fdb all
+      7. Repopulating FDB for the UP port
+      8. Verifying no MAC entries exist for shutdown ports
+
+Topology:
+    Supports t0 topology
+
+Fixtures Used:
+    - copy_ptftests_directory: Copies PTF test scripts to PTF host
+    - ignore_expected_loganalyzer_exception: Ignores expected log errors
+    - toggle_all_simulator_ports_to_rand_selected_tor_m: Mux control for dualtor
+    - ptfhost: PTF host for traffic generation
+    - duthosts: DUT host objects
+    - rand_one_dut_hostname: Randomly selected DUT for testing
+    - tbinfo: Testbed information
+
+Dependencies:
+    - tests.common.config_reload: Config reload utilities
+    - tests.common.utilities: wait_until for polling
+    - tests.common.helpers.assertions: pytest_assert for validations
+    - tests.common.fixtures.ptfhost_utils: PTF utilities
+    - tests.ptf_runner: PTF test execution framework
+    - tests.common.dualtor.mux_simulator_control: Mux control for dualtor
+    - .utils: fdb_table_has_dummy_mac_for_interface utility
+
+Notes:
+    - Uses dummy MAC prefix "00:11:22:33:55" for test entries
+    - Test MAC address: "00:11:22:33:55:66"
+    - FDB populate sleep timeout: 5 seconds
+    - PTF host IP: 20.0.0.2/24, DUT interface IP: 20.0.0.1/24
+    - Configures IP addresses on DUT interface for testing
+    - Ignores expected swss orchagent and tunnel handler errors
+    - Tests both IPv4 and IPv6 neighbor learning
+    - Validates FDB cleanup after interface state changes
+    - Ensures no stale entries remain after FDB flush operations
+=============================================================================
+"""
 import logging
 import pytest
 import time

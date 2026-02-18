@@ -1,3 +1,42 @@
+"""
+=============================================================================
+Module: voq
+File: test_voq_fabric_capacity.py
+=============================================================================
+
+Description:
+    This test validates the fabric capacity monitoring functionality on VOQ
+    chassis systems. It verifies that the "show fabric monitor capacity"
+    command correctly reports operating fabric links and responds to link
+    isolation events.
+
+Test Intent:
+    - test_fabric_capacity: Validates fabric capacity monitor by checking
+      initial operating link count, manually isolating a fabric link, waiting
+      for capacity event trigger, verifying event is reported, then unisolating
+      the link and confirming capacity returns to normal.
+
+Topology:
+    t2 (VOQ chassis topology)
+
+Fixtures Used:
+    - duthosts: Multi-DUT fixture for chassis systems
+    - enum_frontend_dut_hostname: Enumerates frontend DUTs (linecards)
+
+Dependencies:
+    - tests.common.helpers.assertions: For pytest assertions
+    - tests.common.utilities: For wait_until polling
+
+Notes:
+    - Test randomly selects an ASIC on multi-ASIC systems
+    - Checks "show fabric monitor capacity" output for operating links count
+    - Uses "show fabric isolation" to find unisolated links
+    - Manually isolates one link to trigger capacity threshold event
+    - Polls for up to 600 seconds for capacity event to be reported
+    - Always restores link to unisolated state in cleanup
+    - Test skips if no unisolated links are available
+=============================================================================
+"""
 import logging
 import pytest
 import random

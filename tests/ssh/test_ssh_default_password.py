@@ -1,3 +1,45 @@
+"""
+=============================================================================
+Module: ssh
+File: test_ssh_default_password.py
+=============================================================================
+
+Description:
+    This test file verifies that the default SSH credentials for SONiC devices are
+    correctly configured according to the image type. It ensures that SSH access
+    using expected default username and password works as intended, which is
+    important for initial device setup and automation workflows that rely on
+    default credentials before password customization.
+
+Test Intent:
+    - test_ssh_default_password: Validates that SSH connection to the DUT succeeds
+      using the expected default username and password based on the SONiC image type
+      (e.g., different credentials for ONIE vs regular SONiC images). The test
+      retrieves image-specific default credentials and attempts SSH authentication,
+      failing if the expected credentials don't work.
+
+Topology:
+    any (works with any topology type)
+
+Fixtures Used:
+    - duthost: AnsibleHost instance providing access to the DUT for SSH connection
+      testing and image type detection
+
+Dependencies:
+    - pytest: Test framework
+    - paramiko: For SSH client functionality
+    - tests.common.constants: Provides DEFAULT_SSH_CONNECT_PARAMS mapping
+    - tests.common.utilities: Provides get_image_type function
+
+Notes:
+    - Test is marked to disable log analyzer
+    - Default credentials vary based on SONiC image type
+    - Uses paramiko with allow_agent=False and look_for_keys=False to ensure
+      only password authentication is tested
+    - Raises AuthenticationException if default password doesn't work
+    - Important for validating initial device access in automation scenarios
+=============================================================================
+"""
 import pytest
 import paramiko
 import logging

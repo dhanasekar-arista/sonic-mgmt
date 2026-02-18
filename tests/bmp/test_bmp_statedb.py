@@ -1,3 +1,45 @@
+"""
+=============================================================================
+Module: bmp
+File: test_bmp_statedb.py
+=============================================================================
+
+Description:
+    This module validates BMP (BGP Monitoring Protocol) state database
+    population for neighbor tables and RIB tables. It verifies that BMP
+    state entries are correctly created in BMP_STATE_DB for both IPv4 and
+    IPv6 BGP neighbors. The test ensures proper tracking of neighbor state,
+    RIB-in, and RIB-out tables.
+
+Test Intent:
+    - test_bmp_population: Validates that BMP state database is correctly
+      populated with BGP neighbor information, RIB-in routes, and RIB-out
+      routes for both IPv4 and IPv6 neighbors. Ensures proper state tracking
+      by enabling each table type and verifying entries exist in the database
+      with retry logic to handle timing variations.
+
+Topology:
+    any - Works with any topology containing BGP neighbors
+
+Fixtures Used:
+    - duthosts: Multi-DUT fixture providing access to all DUTs in the testbed
+    - rand_one_dut_hostname: Randomly selects one DUT hostname from available DUTs
+    - localhost: Provides access to the localhost/test server
+
+Dependencies:
+    - bmp.helper: Helper functions for enabling BMP tables
+    - BMP_STATE_DB: Redis database instance for BMP state tracking
+    - BGP configuration with established neighbors
+
+Notes:
+    - Test uses retry logic (120 attempts with 3s intervals) to handle timing
+      variations in BMP state population
+    - Validates entries for BGP_NEIGHBOR_TABLE, BGP_RIB_IN_TABLE, and
+      BGP_RIB_OUT_TABLE
+    - Log analyzer is disabled for these tests
+    - Supports both IPv4 and IPv6 neighbor monitoring
+=============================================================================
+"""
 import logging
 import pytest
 import time

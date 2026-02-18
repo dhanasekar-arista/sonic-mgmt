@@ -1,3 +1,54 @@
+"""
+=============================================================================
+Module: macsec
+File: test_deployment.py
+=============================================================================
+
+Description:
+    This test validates MACsec deployment scenarios including configuration
+    persistence across config reload and scale rekey operations when multiple
+    MACsec sessions are shut down and brought back up simultaneously.
+
+Test Intent:
+    - test_config_reload: Validates MACsec configuration persistence across
+      config reload. Saves current config, performs config reload, and verifies
+      APPL_DB MACsec entries are restored with correct policy, cipher suite,
+      and send_sci settings within 300 seconds.
+    - test_scale_rekey: Tests MACsec rekey at scale by shutting down all
+      controlled links simultaneously, waiting for MKA timeout, bringing
+      interfaces back up, and verifying new SA tables are established. If
+      rekey_period is configured, waits for automatic rekey and verifies
+      SA tables change again, demonstrating MACsec resilience at scale.
+
+Topology:
+    t0, t2, t0-sonic topologies with MACsec support required
+
+Fixtures Used:
+    - duthost: DUT host object for test execution
+    - ctrl_links: Dictionary of MACsec-controlled links on the DUT
+    - policy: MACsec policy configuration
+    - cipher_suite: MACsec cipher suite (e.g., GCM-AES-128, GCM-AES-256)
+    - send_sci: Whether to send SCI in MACsec frames
+    - wait_mka_establish: Waits for MKA session establishment before tests
+    - rekey_period: Period for automatic key rotation
+
+Dependencies:
+    - tests.common.utilities: For wait_until polling functionality
+    - tests.common.config_reload: For configuration reload operations
+    - tests.common.macsec.macsec_helper: APPL_DB validation and data retrieval
+
+Notes:
+    - MKA_TIMEOUT is 6 seconds
+    - test_config_reload saves original config and restores it after test
+    - test_config_reload disables loganalyzer
+    - test_config_reload waits up to 300 seconds for APPL_DB restoration
+    - test_scale_rekey shuts down all controlled links simultaneously
+    - test_scale_rekey waits 30 seconds for new MKA session after interface startup
+    - If rekey_period is non-zero, waits 2x rekey_period for automatic rekey
+    - test_scale_rekey disables loganalyzer
+    - Validates SA table changes to confirm new MKA sessions established
+=============================================================================
+"""
 import pytest
 import logging
 

@@ -1,3 +1,43 @@
+"""
+=============================================================================
+Module: Dual ToR BGP Loopback Interface Control Test
+File: test_bgp_block_loopback1.py
+=============================================================================
+
+Description:
+    This test validates BGP session blocking functionality on Loopback1 interface
+    while allowing BGP sessions on Loopback3 interface in dual ToR topology. This
+    ensures proper security boundaries and prevents unintended BGP peering on
+    critical loopback interfaces.
+
+Test Intent:
+    - test_bgp_block_loopback1: Verifies that BGP sessions are blocked on Loopback1
+      interface (should not establish) and allowed on Loopback3 interface (should
+      establish successfully). Tests both upper and lower ToR devices to ensure
+      consistent behavior across the dual ToR pair.
+
+Topology:
+    dualtor - Requires dual ToR topology with active-active support
+
+Fixtures Used:
+    - bgp_neighbors: Provides BGP neighbor objects for both upper and lower ToR
+    - upper_tor_host: Upper ToR device host object
+    - lower_tor_host: Lower ToR device host object
+    - setup_interfaces: Configures test interfaces and BGP session parameters
+    - toggle_all_simulator_ports_to_upper_tor: Sets mux simulator ports to upper ToR
+    - test_device_interface: Parametrized fixture for testing Loopback1 vs Loopback3
+
+Dependencies:
+    - tests.common.dualtor.dual_tor_utils: Dual ToR utility functions
+    - tests.common.dualtor.mux_simulator_control: Mux simulator control utilities
+
+Notes:
+    - Test is parametrized to run on both Loopback1 (blocked) and Loopback3 (allowed)
+    - Uses active-active mux ports for testing
+    - Waits 30 seconds for BGP session establishment before verification
+    - Properly cleans up BGP sessions in finally block to avoid state pollution
+=============================================================================
+"""
 import pytest
 import time
 

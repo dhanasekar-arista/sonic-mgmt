@@ -1,3 +1,55 @@
+"""
+=============================================================================
+Module: test_stress_arp
+File: test_stress_arp.py
+=============================================================================
+
+Description:
+    This module performs stress testing of ARP and NDP (IPv6 Neighbor Discovery)
+    functionality by populating large numbers of neighbor entries (up to 12000) and
+    verifying proper table management, FDB synchronization, and conntrack behavior.
+    It validates system stability under high neighbor table load across multiple
+    test iterations based on completeness level.
+
+Test Intent:
+    - test_ipv4_arp: Stress tests IPv4 ARP table by sending large numbers of GARP
+      packets, verifying entries are learned in both ARP and FDB tables, and validating
+      cleanup. Runs multiple iterations based on completeness level (debug=1, thorough=100)
+    - test_ipv6_nd: Stress tests IPv6 neighbor discovery by sending large numbers of
+      Neighbor Solicitation packets, verifying NDP and FDB table population with proper
+      cleanup between iterations
+    - test_ipv6_nd_incomplete: Tests IPv6 conntrack table behavior with incomplete
+      neighbor entries, ensuring ICMPv6 echo requests to unreachable neighbors don't
+      cause excessive conntrack entry growth or dying list pollution
+
+Topology:
+    t0 (ToR topology with VLAN interfaces, supports dualtor active-standby)
+
+Fixtures Used:
+    - arp_cache_fdb_cleanup: Autouse fixture that clears ARP/NDP cache and FDB before
+      and after each test to ensure clean state
+    - garp_enabled: Enables gratuitous ARP on VLAN interfaces
+    - proxy_arp_enabled: Enables proxy ARP/NDP for IPv6 neighbor learning
+    - ip_and_intf_info: Provides VLAN IPv4/IPv6 addresses and PTF interface mapping
+    - intfs_for_test: Returns test interface names and PTF port indices
+    - get_function_completeness_level: Determines test iteration count (debug to diagnose)
+
+Dependencies:
+    - tests.arp.arp_utils: MAC conversion, CRM resource queries, FDB/ARP cleanup
+    - scapy.all: IPv6 packet construction for Neighbor Solicitation
+    - tests.common.utilities: wait_until, IP address increment, IPv6-only detection
+    - tests.common.errors: RunAnsibleModuleFail for error handling
+
+Notes:
+    - Test scale limited by CRM available resources (ipv4/ipv6_neighbor, fdb_entry)
+    - Cisco-8000 platforms also limited by nexthop availability
+    - Hash collision tolerance set to 250 entries (out of up to 12000)
+    - Conntrack test prevents memory exhaustion from incomplete neighbor states
+    - VS platform skipped from FDB validation due to timing differences
+    - IPv6-only topologies use specialized cleanup to avoid IPv4 operations
+=============================================================================
+"""
+
 import logging
 import time
 import pytest

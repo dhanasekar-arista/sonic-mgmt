@@ -1,3 +1,56 @@
+"""
+=============================================================================
+Module: dualtor_mgmt
+File: test_grpc_periodical_sync.py
+=============================================================================
+
+Description:
+    Test suite for validating gRPC periodic synchronization between active-active ToRs and
+    NIC simulator. This module tests the periodic state sync mechanism that ensures ToR mux
+    state (APP_DB) and NIC simulator state remain consistent during normal operation and
+    after ICMP probe failures. Tests verify recovery from transient failures.
+
+Test Intent:
+    - test_grpc_periodical_sync: Verify gRPC periodic sync restores correct mux state after transient ICMP probe failure
+
+Topology:
+    - dualtor: Dual-ToR topology with active-active cable type only
+
+Fixtures Used:
+    - upper_tor_host: Upper ToR DUT host object
+    - lower_tor_host: Lower ToR DUT host object
+    - active_active_ports: Active-active port configuration (skips if no ports available)
+    - run_icmp_responder: Runs ICMP responder on PTF for link health monitoring
+    - pause_icmp_responder: Temporarily pauses ICMP responder to simulate probe failure
+    - mux_status_from_nic_simulator: Gets mux status from NIC simulator
+    - toggle_active_active_simulator_ports: Toggles active-active mux ports to specified state
+    - test_duthost: Randomly selects upper or lower ToR for testing (based on day)
+    - test_mux_ports: Randomly selects up to 4 active-active ports for testing
+    - init_port_state: Parametrizes test with ACTIVE and STANDBY initial states
+
+Dependencies:
+    - gRPC server running on NIC simulator
+    - linkmgrd process for mux state management
+    - ICMP link prober for health detection
+    - APP_DB MUX_CABLE table for ToR mux state
+    - NIC simulator for active-active forwarding state
+    - Periodic state sync mechanism (every few seconds)
+
+Notes:
+    - Test is marked with pytest.mark.topology("dualtor")
+    - Test selects ToR based on current day (odd=upper, even=lower)
+    - Test selects random sample of up to 4 active-active ports
+    - Test parametrized with initial state: ACTIVE or STANDBY
+    - Test procedure: Set initial state -> pause ICMP -> wait 10s -> verify state unchanged
+    - ICMP pause duration: 10 seconds (simulates transient failure)
+    - Periodic sync should maintain state during transient ICMP loss
+    - Tests verify NIC simulator state matches ToR APP_DB state
+    - ForwardingState: ACTIVE (forwarding), STANDBY (not forwarding), UNKNOWN (error)
+    - Validates gRPC sync prevents state divergence between ToR and NIC
+
+=============================================================================
+"""
+
 import logging
 import datetime
 import json

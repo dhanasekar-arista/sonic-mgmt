@@ -1,3 +1,55 @@
+"""
+=============================================================================
+Module: snappi_tests
+File: test_snappi.py
+=============================================================================
+
+Description:
+    This test module validates SONiC data plane functionality using the Snappi
+    traffic generator framework. It tests all-to-all traffic patterns with QoS
+    priority support on single-DUT snappi topologies. Tests verify packet
+    forwarding, traffic statistics, and QoS behavior using Keysight's Snappi
+    (formerly IxNetwork) API.
+
+Test Intent:
+    - test_snappi: Generates all-to-all bidirectional traffic between Snappi
+      ports with configurable QoS priorities, verifies packets are forwarded
+      correctly, and validates traffic statistics match expected rates and
+      packet counts
+
+Topology:
+    - Supported: snappi (single-DUT with traffic generator)
+    - Requires Snappi API server connection
+    - Uses fanout connections to traffic generator ports
+
+Fixtures Used:
+    - snappi_api: Snappi API client for traffic configuration
+    - snappi_testbed_config: Testbed configuration for Snappi setup
+    - snappi_api_serv_ip: Snappi API server IP address
+    - snappi_api_serv_port: Snappi API server port
+    - conn_graph_facts: Connection graph information
+    - fanout_graph_facts: Fanout switch topology facts
+    - prio_dscp_map: QoS priority to DSCP mapping
+    - gen_data_flow_dest_ip: Destination IP generation for flows
+
+Dependencies:
+    - tests.common.snappi_tests.snappi_helpers: ARP resolution utilities
+    - tests.common.snappi_tests.port: Port selection for traffic patterns
+    - tests.common.snappi_tests.variables: PFC queue value definitions
+
+Notes:
+    - Loganalyzer disabled for traffic generation tests
+    - Default polling delay: 2 seconds (SNAPPI_POLL_DELAY_SEC)
+    - Traffic pattern: all-to-all (each port sends to all other ports)
+    - Default packet size: 1024 bytes
+    - Default duration: 2 seconds
+    - Rate distribution: 100% divided evenly among destination ports
+    - ARP resolution performed before traffic generation
+    - Supports priority-based traffic with DSCP marking
+    - Statistics validated for tx/rx packet counts and rates
+=============================================================================
+"""
+
 import time
 import pytest
 

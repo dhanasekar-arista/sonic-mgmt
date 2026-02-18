@@ -1,3 +1,48 @@
+"""
+=============================================================================
+Module: portstat
+File: test_portstat.py
+=============================================================================
+
+Description:
+    This test validates the portstat CLI utility functionality including
+    clearing counters, managing tagged statistics files, displaying all
+    counters, and verifying various command-line options work correctly
+    without exceptions.
+
+Test Intent:
+    - test_portstat_clear: Verifies that 'portstat -c' and 'portstat --clear'
+      commands properly clear RX/TX counters and reset statistics
+    - test_portstat_delete_all: Validates that 'portstat -D' and
+      'portstat --delete-all' remove all tagged statistics files from /tmp
+    - test_portstat_delete_tag: Verifies selective deletion of tagged stats
+      files using 'portstat -d -t <tag>' while preserving other files
+    - test_portstat_display_all: Confirms 'portstat -a' and 'portstat --all'
+      display additional columns beyond the base portstat output
+    - test_portstat_period: Validates period option displays correct time
+      period message in output
+    - test_portstat_no_exceptions: Ensures common portstat commands execute
+      without tracebacks (help, version, json, raw output modes)
+
+Topology:
+    any topology
+
+Fixtures Used:
+    - reset_portstat: Function-scoped autouse fixture that clears all tagged
+      stats files before and after each test to ensure clean state
+
+Dependencies:
+    - tests.common.portstat_utilities.parse_portstat: Parses portstat output
+    - tests.common.utilities.wait: Sleep utility with logging
+
+Notes:
+    - Waits 30 seconds before testing clear to ensure counters have values
+    - Uses COUNT_THRES=10 to avoid false positives from background traffic
+    - Tagged stats files stored in /tmp/cache/portstat/{uid}-{filename}
+    - Handles 'N/A' values in counter output by converting to 0
+    - Test only validates counters that exceed threshold before clearing
+=============================================================================
+"""
 
 import logging
 import pytest

@@ -1,3 +1,58 @@
+"""
+=============================================================================
+Module: dualtor_mgmt
+File: test_dualtor_linkmgrd_restart_mux_port_status.py
+=============================================================================
+
+Description:
+    Test suite for validating mux port status recovery after linkmgrd restarts. This module
+    tests that mux ports return to their expected states (active or standby) after linkmgrd
+    process is killed and automatically restarted, both with heartbeat enabled and disabled.
+    Tests verify linkmgrd's state recovery mechanism across multiple restart iterations.
+
+Test Intent:
+    - test_linkmgr_restart: Verify mux port status correctly recovers to expected state after linkmgrd restart (parametrized by heartbeat on/off)
+
+Topology:
+    - dualtor: Dual-ToR topology with active-standby or active-active cable types
+
+Fixtures Used:
+    - upper_tor_host: Upper ToR DUT host object
+    - lower_tor_host: Lower ToR DUT host object
+    - toggle_all_simulator_ports_to_upper_tor: Sets all mux ports to upper ToR (active)
+    - run_icmp_responder: Runs ICMP responder on PTF for link health monitoring
+    - shutdown_icmp_responder: Stops ICMP responder to simulate heartbeat loss
+    - start_icmp_responder: Starts ICMP responder to restore heartbeat
+    - cable_type: Cable type fixture (active-standby or active-active)
+    - active_active_ports: Active-active port configuration
+    - active_standby_ports: Active-standby port configuration
+    - rand_selected_dut: Randomly selected DUT for testing
+    - loop_times: Number of restart iterations based on completeness level (debug=1, basic=10, thorough=60)
+    - heartbeat_control: Parametrized fixture to control heartbeat on/off
+
+Dependencies:
+    - linkmgrd process in mux container
+    - ICMP link prober for heartbeat monitoring
+    - show muxcable status command for state verification
+    - docker exec for process control within mux container
+    - Automatic process restart via supervisord
+
+Notes:
+    - Test is marked with pytest.mark.topology("dualtor")
+    - Test parametrized with heartbeat: "on" or "off"
+    - Loop times controlled by --function_completeness_level flag
+    - Completeness levels: debug(1), basic(10), confident(50), thorough(60), diagnose(100)
+    - Test procedure: Toggle to upper ToR -> Kill linkmgrd -> Wait for restart -> Verify state
+    - Linkmgrd is killed with 'pkill linkmgrd' in mux container
+    - Heartbeat "off" simulates scenario where servers are unreachable
+    - Expected state with heartbeat on: active on upper ToR, standby on lower ToR
+    - Expected state with heartbeat off: standby on upper ToR, standby on lower ToR
+    - Test validates linkmgrd can recover state from APP_DB and STATE_DB after restart
+    - Maximum wait time for state recovery: 60 seconds per iteration
+
+=============================================================================
+"""
+
 import logging
 import json
 import pytest

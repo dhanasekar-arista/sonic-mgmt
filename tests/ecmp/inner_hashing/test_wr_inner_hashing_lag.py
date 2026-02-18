@@ -1,3 +1,62 @@
+"""
+=============================================================================
+Module: ecmp.inner_hashing
+File: test_wr_inner_hashing_lag.py
+=============================================================================
+
+Description:
+    Test suite for validating inner packet hashing across LAG members during warm reboot.
+    This module tests that dynamic PBH configuration maintains inner hash behavior on LAG
+    interfaces across warm reboots, ensuring traffic distribution based on encapsulated
+    packet headers continues uninterrupted on LAG links during warm reboot scenarios.
+
+Test Intent:
+    - test_inner_hashing: Verify inner packet hashing on LAG works correctly during warm reboot with dynamic PBH
+
+Topology:
+    - t0: Standard T0 leaf-spine topology with LAG configuration
+
+Fixtures Used:
+    - duthost: DUT host object
+    - ptfhost: PTF host for traffic generation
+    - hash_keys: Hash field configuration for inner packets
+    - outer_ipver: Outer IP version (ipv4/ipv6) parametrized
+    - inner_ipver: Inner IP version (ipv4/ipv6) parametrized
+    - router_mac: DUT router MAC address
+    - vlan_ptf_ports: VLAN member ports on PTF
+    - symmetric_hashing: Symmetric hash enable/disable
+    - localhost: Localhost object for warm reboot
+    - lag_mem_ptf_ports_groups: LAG member port groups
+    - get_function_completeness_level: Test completeness level (debug/thorough)
+    - setup_dynamic_pbh: Module-level fixture to add LAG config and configure dynamic PBH
+    - lag_port_map: LAG port mapping
+    - lag_ip_map: LAG IP address mapping
+
+Dependencies:
+    - PTF framework for traffic generation
+    - inner_hash_test.InnerHashTest PTF test module
+    - PBH (Policy-Based Hashing) configuration
+    - LAG configuration on DUT
+    - Warm reboot capability
+    - VXLAN/NVGRE/IP-in-IP encapsulation support
+
+Notes:
+    - Test is marked with @pytest.mark.dynamic_config
+    - Test is marked with pytest.mark.disable_loganalyzer
+    - Test runs PTF inner hash test in parallel with warm reboot
+    - Outer encapsulation formats: VXLAN, NVGRE, IP-in-IP
+    - Random encapsulation format selected to reduce test time
+    - Test completeness levels: debug (50 iterations), thorough (200 iterations)
+    - VXLAN port: 13330, NVGRE TNI: 0x4000
+    - PTF queue length: 1000 (PTF_QLEN)
+    - Test validates hash distribution on LAG during and after warm reboot
+    - Symmetric hashing: Hash same for bidirectional flows if enabled
+    - LAG members must maintain even distribution during warm reboot
+    - Test ensures inner hash fields continue to affect LAG distribution across reboot
+
+=============================================================================
+"""
+
 import logging
 import threading
 import pytest

@@ -1,3 +1,65 @@
+"""
+=============================================================================
+Module: test_bfd_static_route
+File: test_bfd_static_route.py
+=============================================================================
+
+Description:
+    BFD static route integration tests for T2 multi-linecard chassis platforms.
+    Validates BFD session state management, static route addition/removal behavior
+    during BFD state changes, and resilience across various failure scenarios including
+    linecard reboots, supervisor reboots, link flaps, and config reloads.
+
+Test Intent:
+    - test_bfd_with_lc_reboot: Validates BFD sessions survive linecard cold reboot
+    - test_bfd_static_route_deletion: Verifies static route behavior when BFD sessions
+      are deleted (routes added on src, removed on dst until both BFD deleted)
+    - test_bfd_flap: Stress test for repeated BFD session flapping (up/down cycles)
+      with configurable iteration count based on completeness level
+    - test_bfd_with_rp_reboot: Validates BFD sessions survive supervisor (RP) cold reboot
+    - test_bfd_remote_link_flap: Tests BFD and route behavior when remote portchannels
+      are shut down and brought back up
+    - test_bfd_lc_asic_shutdown: Tests BFD and route behavior when local portchannels
+      are shut down and brought back up
+    - test_bfd_portchannel_member_flap: Tests BFD resilience when portchannel member
+      links are flapped (all members down causes BFD down)
+    - test_bfd_config_reload: Validates BFD sessions persist across config reload
+    - test_bfd_with_rp_config_reload: Validates BFD sessions persist across RP config reload
+    - test_bfd_with_bad_fc_asic: Tests BFD recovery after simulating bad fabric ASIC
+      by stopping swss containers on supervisor
+
+Topology:
+    T2 multi-ASIC chassis topology with physical devices
+
+Fixtures Used:
+    - select_src_dst_dut_with_asic: Randomly selects source and destination DUTs with ASICs,
+      extracts backend portchannel nexthops and static routes for both IPv4/IPv6
+    - bfd_cleanup_db: Function-scoped cleanup fixture that clears BFD configs and ensures
+      interfaces are restored to up state
+    - get_function_completeness_level: Determines test iteration count for flap tests
+    - localhost: Localhost connection for reboot operations
+    - duthosts: All DUT hosts in the testbed
+    - enum_supervisor_dut_hostname: Supervisor/RP hostname for RP-specific tests
+
+Dependencies:
+    - tests.bfd.bfd_base: BfdBase class with common fixtures for DUT/ASIC selection
+    - tests.bfd.bfd_helpers: Helper functions for BFD operations, verification, and interface control
+    - tests.common.config_reload: Config reload utilities
+    - tests.common.platform.processes_utils: Critical process monitoring
+    - tests.common.reboot: Reboot utilities for linecard and supervisor
+    - tests.common.helpers.multi_thread_utils: Thread pool for parallel execution
+
+Notes:
+    - All tests parametrized for both IPv4 and IPv6 via select_src_dst_dut_with_asic fixture
+    - Tests use SafeThreadPoolExecutor for parallel BFD operations on src/dst DUTs
+    - Static routes automatically added/removed based on BFD state (bfd: true in STATIC_ROUTE)
+    - Completeness levels: debug(1), basic(10), confident(50), thorough(100), diagnose(200)
+    - Config saves (config save -y) performed before reboots to persist BFD state
+    - Test results require 98% success rate for flap tests
+    - Orchagent CPU threshold checks temporarily disabled due to stability issues
+=============================================================================
+"""
+
 import logging
 import time
 

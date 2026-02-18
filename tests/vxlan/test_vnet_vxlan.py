@@ -1,3 +1,58 @@
+"""
+=============================================================================
+Module: vxlan
+File: test_vnet_vxlan.py
+=============================================================================
+
+Description:
+    This comprehensive test suite validates VNET (Virtual Network) and VXLAN
+    (Virtual Extensible LAN) functionality in SONiC. It tests encapsulation,
+    decapsulation, tunnel creation, routing, neighbor learning, and traffic
+    forwarding across VNETs using VXLAN tunnels.
+
+Test Intent:
+    - test_vnet_vxlan_with_config: Tests basic VNET/VXLAN setup with
+      configuration from config_db.json source
+    - test_vnet_vxlan: Main test that validates VNET route programming,
+      tunnel creation, neighbor learning, packet encapsulation/decapsulation,
+      and forwarding across VXLANtunnels using PTF tests
+    - test_vnet_vxlan_single_endpoint: Tests VNET with single endpoint
+    - test_vxlan_src_port: Validates VXLAN UDP source port range configuration
+    - test_vnet_wr_arp: Tests write ARP functionality in VNET context
+    - test_vnet_route_flow_counter: Validates route-based flow counters
+      for VNET routes
+
+Topology:
+    t0
+
+Fixtures Used:
+    - load_minigraph_after_test: Restores minigraph config after test completion
+    - rand_selected_dut: Randomly selected DUT for testing
+    - ptfhost: PTF host for packet generation and verification
+    - mg_facts: Minigraph facts
+    - dut_facts: DUT facts
+    - setup_vnet: Sets up VNET configuration on DUT
+    - RouteFlowCounterTestContext: Context manager for flow counter testing
+
+Dependencies:
+    - tests.ptf_runner: For running PTF dataplane tests
+    - .vnet_utils: VNET configuration generation and application utilities
+    - .vnet_constants: VNET-related constants
+    - tests.common.flow_counter: For route flow counter validation
+    - tests.common.arp_utils: For ARP-related utilities
+    - tests.common.config_reload: For config reload operations
+
+Notes:
+    - Loganalyzer is disabled for this test module
+    - Tests use Jinja2 templates for configuration generation
+    - PTF tests validate encap/decap with various scenarios
+    - VXLAN UDP source port range can be configured
+    - Cleanup removes VNET routes, tunnels, and neighbors after tests
+    - Supports tagged and untagged VLAN modes
+    - Config is restored to minigraph after test completion
+    - Flow counter tests only run if supported on the platform
+=============================================================================
+"""
 import json
 import logging
 import re

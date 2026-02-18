@@ -1,5 +1,76 @@
 """
-Tests sub-port interfaces in SONiC.
+=============================================================================
+Module: sub_port_interfaces
+File: test_sub_port_interfaces.py
+=============================================================================
+
+Description:
+    This test file comprehensively validates sub-port interface (802.1Q VLAN tagged
+    interfaces) functionality in SONiC. It tests packet routing, VLAN tagging,
+    administrative controls, MTU inheritance, traffic balancing, tunneling, and
+    inter-sub-port routing. Tests verify both basic forwarding capabilities and
+    advanced scenarios like load balancing across multiple sub-ports.
+
+Test Intent:
+    - test_packet_routed_with_valid_vlan: Verifies ICMP packets are correctly routed
+      between PTF and DUT when sub-ports have valid VLAN tags configured.
+    - test_untagged_packet_not_routed: Ensures untagged ICMP packets are dropped
+      and not routed through sub-ports that expect VLAN tags.
+    - test_admin_status_down_disables_forwarding: Validates that shutdown sub-ports
+      stop forwarding traffic while other sub-ports remain operational, and traffic
+      resumes when the sub-port is brought back up.
+    - test_mtu_inherited_from_parent_port: Confirms sub-ports inherit MTU settings
+      from their parent physical interface.
+    - test_vlan_config_impact: Tests that incorrect VLAN configuration (mismatched
+      VLAN IDs between source and destination) prevents packet forwarding, then
+      verifies forwarding works after VLAN correction.
+    - test_routing_between_sub_ports: Validates routing works between different
+      sub-ports on the same or different parent interfaces with proper static routes.
+    - test_routing_between_sub_ports_unaffected_by_sub_ports_removal: Ensures
+      routing between remaining sub-ports continues to work after other sub-ports
+      are removed from the configuration.
+    - test_routing_between_sub_ports_and_port: Tests routing between sub-ports and
+      regular interfaces (SVI or L3 RIF) works correctly with static routes.
+    - test_tunneling_between_sub_ports: Validates packet forwarding through MUX
+      tunnels configured on sub-port source IPs.
+    - test_balancing_sub_ports: Verifies traffic load balancing across multiple
+      sub-ports on the same parent interface based on packet hash distribution.
+    - test_packet_routed_with_invalid_vlan: Ensures packets with invalid VLAN IDs
+      (mismatch between PTF and DUT configuration) are properly dropped.
+    - test_max_numbers_of_sub_ports: Stress tests the maximum number of sub-ports
+      that can be created and verifies all can forward traffic correctly.
+
+Topology:
+    t0, t1 (standard topologies with VLAN members)
+
+Fixtures Used:
+    - duthost: DUT host object for configuration and traffic verification
+    - ptfhost: PTF host object for configuring sub-ports and routing
+    - ptfadapter: PTF adapter for sending and receiving test packets
+    - apply_config_on_the_dut: Creates sub-port configuration on DUT
+    - apply_config_on_the_ptf: Creates matching sub-port configuration on PTF
+    - apply_route_config: Configures static routes between sub-ports on PTF
+    - apply_route_config_for_port: Configures routes between sub-ports and ports
+    - apply_tunnel_table_to_dut: Applies MUX tunnel configuration to DUT
+    - apply_balancing_config: Configures multiple sub-ports for load balancing tests
+    - type_of_traffic: Parametrized fixture for TCP/UDP/IP traffic types
+
+Dependencies:
+    - pytest: Test framework
+    - tests.common.helpers.assertions: For test assertions
+    - sub_ports_helpers: Extensive helper module for sub-port operations including
+      traffic generation, port manipulation, VLAN configuration, and routing
+
+Notes:
+    - Uses PTF_PORT_MAPPING_MODE = 'use_orig_interface' for port mapping
+    - Tests cover both port and port-in-lag scenarios via port_type fixture
+    - Maximum sub-ports tested is configurable via --max_numbers_of_sub_ports option
+    - Spectrum1 ASICs limited to 215 sub-ports maximum
+    - Sub-port naming limited to 15 characters (Linux interface name limit)
+    - PortChannel sub-ports limited to 99 VLANs due to naming constraints
+    - Traffic tests validate both forwarding and dropping behaviors
+    - Load balancing test sends 200 packets and expects distribution across sub-ports
+=============================================================================
 """
 
 import random

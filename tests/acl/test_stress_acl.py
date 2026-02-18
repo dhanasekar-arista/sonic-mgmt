@@ -1,3 +1,65 @@
+"""
+=============================================================================
+Module: acl
+File: test_stress_acl.py
+=============================================================================
+
+Description:
+    This test module performs stress testing of ACL functionality in SONiC by testing
+    rapid addition and deletion of ACL rules, as well as creating ACL tables with a
+    large number of rules to validate TCAM resource management and rule programming
+    at scale. Tests ensure ACL rules are correctly installed, activated, and traffic
+    is properly forwarded or dropped according to the configured rules.
+
+Test Intent:
+    - test_acl_add_del_stress: Validates ACL rule stability under repeated add/delete
+      operations. Creates ACL table and iteratively adds rules, verifies they are active,
+      then randomly deletes rules and adds new ones. Tests loop based on completeness
+      level (debug: 10, basic: 50, confident: 200 iterations).
+    - test_scale_acl_rules: Validates ACL functionality with large number of rules
+      (platform-dependent: 200-767 rules). Creates rules with various src/dst IP
+      combinations and FORWARD/DROP actions, then sends matching traffic to verify
+      each rule is correctly applied and ACL counters increment.
+
+Topology:
+    - Supports t0, t1, m0, mx, m1 topologies
+    - Runs on virtual switch (vs) devices
+    - Requires upstream ports (T1/T2 neighbors for t0/t1, M1 neighbors for m0, etc.)
+
+Fixtures Used:
+    - setup_table_and_rules: Module-scoped fixture that creates ACL table with maximum
+      number of rules supported by platform, generates rules dynamically, verifies all
+      rules are installed and active
+    - remove_dataacl_table: Module-scoped autouse fixture that removes DATAACL table
+      to free TCAM resources, restores it after tests complete
+    - prepare_test_file: Module-scoped fixture that copies ACL configuration templates
+      and loads custom ACL table type definitions
+    - prepare_test_port: Module-scoped fixture that identifies test ports (portchannel
+      or dataacl port) and upstream neighbors for traffic injection
+    - get_function_completeness_level: Provides test completeness level (debug/basic/confident)
+    - toggle_all_simulator_ports_to_rand_selected_tor: DualTOR mux simulator control
+    - skip_traffic_test: Skips traffic tests when traffic testing is disabled
+
+Dependencies:
+    - tests.common.utilities: wait_until for polling operations
+    - tests.common.dualtor: DualTOR mux simulator control
+    - tests.common.fixtures.ptfhost_utils: Traffic test skip fixture
+    - ptf.testutils: PTF packet generation and verification
+    - ipaddress: IP address generation and manipulation
+
+Notes:
+    - Platform-specific maximum ACL entries defined in rules_per_platform dictionary
+    - Default maximum is 200 entries if platform not in dictionary
+    - Arista 7060X6 supports up to 767 entries (highest)
+    - Rules generated with alternating FORWARD/DROP actions
+    - Source IP pattern: 20.0.X.Y based on rule ID
+    - Destination IPs generated from predefined /25 subnets
+    - 60-second wait time after rule installation for convergence
+    - Tests verify ACL counters are N/A-free before proceeding
+    - Supports isolated T1 topologies (t1-isolated-d32, t1-isolated-d128)
+=============================================================================
+"""
+
 import ipaddress
 import logging
 import math

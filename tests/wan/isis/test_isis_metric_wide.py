@@ -1,3 +1,23 @@
+"""
+=============================================================================
+Module: wan/isis
+File: test_isis_metric_wide.py
+=============================================================================
+
+Description:
+    Validates ISIS wide metric configuration (24-bit metrics).
+
+Test Intent:
+    - test_isis_metric_wide: Tests wide metric support
+
+Topology:
+    wan-com
+
+Notes:
+    - Wide metric: 16777215 (max 24-bit value)
+    - Standard metric: 63 (max 6-bit value)
+=============================================================================
+"""
 import pytest
 import logging
 import functools

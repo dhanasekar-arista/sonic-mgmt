@@ -1,3 +1,66 @@
+"""
+=============================================================================
+Module: syslog
+File: test_logrotate.py
+=============================================================================
+
+Description:
+    This test file validates logrotate functionality in SONiC, which manages log
+    file rotation to prevent disk space exhaustion. It tests various scenarios
+    including normal partition sizes, small partition sizes that trigger more
+    frequent rotation, orchagent-specific log rotation, and cleanup behavior when
+    partitions are completely full.
+
+Test Intent:
+    - test_logrotate_normal_size: Validates basic logrotate functionality with
+      normal /var/log partition by generating log messages, triggering rotation,
+      and verifying that syslog.1 archive is created and syslog file is reset.
+    - test_logrotate_small_size: Tests logrotate on a simulated small partition
+      (300MB) by filling it with FDB entries, triggering rotation, verifying logs
+      are rotated and compressed, then confirming system recovers after cleanup.
+    - test_orchagent_logrotate: Validates orchagent-specific log rotation by
+      generating orchagent log entries, checking rotation occurs, verifying
+      compressed archives are created, and ensuring logs persist after reload.
+    - test_logrotate_full_partition_no_archives_cleanup: Tests edge case where
+      partition is 100% full with no existing archives to clean up, generates
+      additional logs to trigger logrotate, and verifies that rotation still
+      succeeds by creating new archives and freeing space.
+
+Topology:
+    any (works with any topology type)
+
+Fixtures Used:
+    - rand_selected_dut: Randomly selects one DUT for testing
+    - disable_logrotate_cron_job: Module-scoped fixture that disables the logrotate
+      cron job during testing to prevent interference with manual test triggers
+    - backup_syslog: Module-scoped fixture that backs up syslog file before tests
+      and restores it after completion
+    - simulate_small_var_log_partition: Function-scoped fixture that creates a
+      300MB loop device mounted at /var/log to simulate constrained disk space
+    - orch_logrotate_setup: Configures orchagent log rotation settings for testing
+
+Dependencies:
+    - pytest: Test framework
+    - allure: For test reporting and step documentation
+    - tests.common.plugins.loganalyzer.loganalyzer: Provides DisableLogrotateCronContext
+    - tests.common.config_reload: For performing config reload operations
+    - tests.common.helpers.assertions: For test assertions
+    - tests.common.utilities: Provides wait_until helper
+
+Notes:
+    - Tests are marked to disable log analyzer
+    - Small partition size: 300MB (changed from 100MB for reliability)
+    - Uses fake IP (10.20.30.40) and MAC (aa:bb:cc:dd:11:22) for FDB entry generation
+    - Logrotate triggered manually via 'logrotate -f' command
+    - Archives are compressed with .gz extension
+    - Tests verify both archive creation and space reclamation
+    - Config reload performed with safe_reload=True for stability
+    - Orchagent logs typically located in /var/log/swss/
+    - Full partition test ensures logrotate works even with 100% disk usage
+    - Uses loop device (/dev/loop2) for partition simulation
+    - Cron job disabled to prevent automatic rotation during tests
+=============================================================================
+"""
 import time
 import logging
 import pytest

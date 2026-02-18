@@ -1,4 +1,65 @@
 #!/usr/bin/env python
+"""
+=============================================================================
+Module: stress
+File: test_stress_routes.py
+=============================================================================
+
+Description:
+    This test file performs BGP route stress testing on SONiC devices by repeatedly
+    announcing and withdrawing large numbers of IPv4 and IPv6 routes. It validates
+    that the routing system can handle continuous route churn without memory leaks,
+    route table corruption, or FRR daemon memory growth. The test monitors CRM
+    (Critical Resource Monitoring) statistics and FRR daemon memory usage to ensure
+    system stability under routing stress.
+
+Test Intent:
+    - test_announce_withdraw_route: Stress tests the BGP routing stack by repeatedly
+      announcing and withdrawing all routes for a configurable number of iterations
+      (based on completeness level). Validates that (1) IPv4/IPv6 route counts return
+      to baseline values after all iterations complete (within 5 routes tolerance),
+      (2) BGP queue status (inq/outq) stabilizes after route operations, (3) FRR
+      daemon memory usage (bgpd and zebra) doesn't exceed thresholds (bgpd < 100 MiB
+      increase, zebra < 200 MiB increase) for SONiC versions 202405+, ensuring no
+      memory leaks during route churn.
+
+Topology:
+    t0, t1, m0, mx, m1, t2, lt2, ft2 (supports multiple topology types)
+
+Fixtures Used:
+    - duthosts: Provides access to all DUT hosts in the testbed
+    - localhost: Provides access to localhost for route announcement/withdrawal
+    - tbinfo: Provides testbed information including PTF IP and topology name
+    - get_function_completeness_level: Returns test completeness level (thorough,
+      basic, confident, debug) which controls loop iteration count
+    - withdraw_and_announce_existing_routes: Module-scoped fixture that withdraws
+      all existing routes before test, captures baseline route counts, and
+      re-announces routes after test completion
+    - loganalyzer: Fixture for analyzing and ignoring expected syslog errors
+    - enum_rand_one_per_hwsku_frontend_hostname: Selects one DUT per hwsku
+    - enum_rand_one_frontend_asic_index: Selects one frontend ASIC instance
+    - rotate_syslog: Rotates syslog to ensure clean log analysis
+    - set_polling_interval: Sets CRM polling interval to 1 second for faster updates
+    - cleanup_neighbors_dualtor: Cleans up ARP/NDP neighbors on dualtor topologies
+    - check_system_memmory: Drops caches and performs config reload after test
+
+Dependencies:
+    - pytest: Test framework
+    - tests.common.helpers.assertions: For test assertions
+    - tests.common.utilities: For wait_until helper
+    - utils: Provides CRM status helpers and loop time mappings
+
+Notes:
+    - CRM polling interval set to 1 second during test (default: 300 seconds)
+    - Route count tolerance: 5 routes difference allowed after stress test
+    - FRR memory checks only run on SONiC 202405+ versions
+    - Ignores expected errors: route_check.py failures, orchagent stuck messages
+    - Specific Arista hardware ignores memory threshold check errors
+    - Non-VS ASICs validate exact route counts; VS testbeds skip route validation
+    - Test waits 120 seconds after final withdraw for route processing to complete
+    - Loop iterations: thorough=20, basic=5, confident=2, debug=1
+=============================================================================
+"""
 
 import logging
 

@@ -1,3 +1,45 @@
+"""
+=============================================================================
+Module: platform_tests
+File: test_sensors.py
+=============================================================================
+
+Description:
+    Tests hardware sensor readings from lm-sensors. Validates that sensor values
+    are within expected ranges per platform SKU and dynamically adjusts checks
+    based on installed PSU models.
+
+Test Intent:
+    - test_sensors: Verify all lm-sensors readings are within expected ranges per SKU
+      with dynamic PSU sensor validation
+
+Topology:
+    Any topology
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hardware SKU
+    - sensors_data: Module-scoped fixture loading sensor ranges from YAML
+
+Dependencies:
+    - lm-sensors for sensor data collection
+    - sku-sensors-data.yml for expected sensor ranges per SKU/platform
+    - psu-sensors-data.yml for PSU-specific sensor ranges
+    - SensorHelper for dynamic PSU sensor validation
+    - mellanox_data for hardware version detection
+
+Notes:
+    - Test skips if sensors not supported on platform
+    - Expected sensor ranges defined in ../../ansible/group_vars/sonic/sku-sensors-data.yml
+    - Dynamic PSU support: removes checks for missing PSUs, adds checks for installed PSUs
+    - PSU-specific sensor ranges in psu-sensors-data.yml
+    - Validates voltage, current, power, temperature sensors
+    - Test supports Mellanox platforms with dynamic PSU detection
+    - Sensor values must fall within min/max thresholds
+    - JSON and YAML formatters for diagnostic output
+    - Hardware version used to select correct sensor data
+=============================================================================
+"""
 import json
 import logging
 import os

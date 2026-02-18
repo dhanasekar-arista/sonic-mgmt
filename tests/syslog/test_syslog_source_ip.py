@@ -1,3 +1,79 @@
+"""
+=============================================================================
+Module: syslog
+File: test_syslog_source_ip.py
+=============================================================================
+
+Description:
+    This comprehensive test file validates the Syslog Source IP (SSIP) feature in
+    SONiC, which allows configuring source IP addresses and VRFs for remote syslog
+    servers. It tests various combinations of VRF (default, management, data),
+    source IP configuration, custom ports, protocol (TCP/UDP), message filtering
+    (include/exclude), severity levels, and configuration persistence across reboots.
+
+Test Intent:
+    - test_basic_syslog_config: Tests 8 parameter combinations (VRF set/unset, source
+      IP set/unset, port default/custom) by adding syslog servers, verifying config
+      appears in show commands, capturing packets to confirm messages are sent with
+      correct source IP and port, removing config, and verifying messages stop.
+    - test_config_syslog_non_existing_ip: Validates that configuring syslog with
+      non-existing source IP (either not on any VRF or only on a different VRF)
+      fails with appropriate error message.
+    - test_config_syslog_with_non_existing_vrf: Ensures configuration fails when
+      specifying a VRF that doesn't exist on the system.
+    - test_syslog_config_work_after_reboot: Verifies syslog configuration persists
+      across cold/warm/fast/soft reboots by configuring servers, saving config,
+      rebooting, and confirming settings and message forwarding still work.
+    - test_remove_vrf_exist_syslog_config: Tests that attempting to remove a VRF
+      that has active syslog configuration fails with appropriate error.
+    - test_syslog_protocol_filter_severity: Validates advanced features including
+      TCP/UDP protocol selection, include/exclude regex filtering, and severity
+      level filtering by configuring each feature and verifying packet forwarding
+      behavior matches expectations.
+
+Topology:
+    any (works with any topology type)
+
+Fixtures Used:
+    - duthosts: Provides access to all DUT hosts
+    - enum_rand_one_per_hwsku_frontend_hostname: Selects one DUT per hwsku
+    - enum_frontend_asic_index: Selects frontend ASIC index
+    - is_support_ssip: Skips tests if SSIP feature not supported in image
+    - restore_config_by_config_reload: Module cleanup via config reload
+    - ignore_expected_loganalyzer_exceptions: Ignores expected rsyslog errors
+    - error_on_raise_in_thread: Captures thread exceptions for proper reporting
+    - routed_interfaces: Provides 2 routed interfaces for testing
+    - mgmt_interface: Provides management interface configuration
+    - setup_ssip_test_env: Class fixture that configures test environment including
+      IP addresses, VRFs, and neighbor entries for default, mgmt, and data VRFs
+    - clear_syslog_config: Function fixture that removes syslog config after each test
+    - backup_and_restore_config_db_on_duts: Backs up and restores config DB
+
+Dependencies:
+    - pytest: Test framework
+    - scapy: For packet capture analysis (rdpcap)
+    - allure: For test reporting
+    - threading: For parallel packet capture across multiple VRFs
+    - tests.common.reboot: For reboot operations
+    - tests.common.config_reload: For config reload
+    - syslog_utils: Custom utilities for VRF and syslog operations
+
+Notes:
+    - Tests 3 VRFs: default, mgmt, Vrf-data
+    - Default port: 514, custom ports: 600, 650, 700, 800
+    - Tests both IPv4 and IPv6 syslog servers
+    - Uses tcpdump with 90-second timeout for packet capture
+    - Tests rsyslog forwarding rules for various log sources (teamd, bgp, gnmi, etc.)
+    - Attaches pcap files to allure reports for debugging
+    - Link-local IPv6 addresses are skipped
+    - Thread timeout: 90 seconds for parallel capture operations
+    - Skips reboot test if mgmt network is subnet of forced_mgmt_routes
+    - Handles multi-ASIC systems with per-ASIC container instances
+    - Validates TCP and UDP protocols for syslog transport
+    - Supports include/exclude regex filtering on log messages
+    - Severity levels can be configured (tested with 'notice' level)
+=============================================================================
+"""
 import logging
 import pytest
 import threading

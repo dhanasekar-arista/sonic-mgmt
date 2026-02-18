@@ -1,3 +1,35 @@
+"""
+=============================================================================
+Module: wan/lacp
+File: test_wan_lag_member.py
+=============================================================================
+
+Description:
+    Validates LAG member port management in WAN topologies, including adding/
+    removing members and verifying traffic distribution.
+
+Test Intent:
+    - test_lag_member_add_remove: Tests dynamic LAG member addition/removal
+    - Validates traffic continues flowing after member changes
+
+Topology:
+    wan-pub, wan-4link (vs devices)
+
+Fixtures Used:
+    - copy_ptftests_directory: Copies PTF test scripts
+    - ptfhost: PTF host object
+    - duthosts: Multi-DUT fixture
+
+Dependencies:
+    - tests.ptf_runner: For running PTF tests
+    - tests.common.utilities: For wait utilities
+
+Notes:
+    - PTF LAG: bond1
+    - Tests member port bundling and unbundling
+    - Validates traffic distribution across members
+=============================================================================
+"""
 import pytest
 
 import logging

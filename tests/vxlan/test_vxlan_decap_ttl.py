@@ -1,3 +1,52 @@
+"""
+=============================================================================
+Module: vxlan
+File: test_vxlan_decap_ttl.py
+=============================================================================
+
+Description:
+    This test validates VXLAN decapsulation TTL (Time To Live) handling for
+    both uniform and pipe modes. It verifies that inner packet TTL is correctly
+    decremented in uniform mode and preserved in pipe mode during decapsulation.
+
+Test Intent:
+    - test_vxlan_decap_uniform: Validates uniform mode where inner packet TTL
+      is decremented during VXLAN decapsulation
+    - test_vxlan_decap_pipe: Validates pipe mode where inner packet TTL is
+      preserved during VXLAN decapsulation
+    Tests cover all combinations of IPv4/IPv6 for inner and outer headers.
+
+Topology:
+    t0
+
+Fixtures Used:
+    - inner_ip_version: Parametrized fixture for inner IP version (v4 or v6)
+    - outer_ip_version: Parametrized fixture for outer IP version (v4 or v6)
+    - setup_ecmp_utils: Module-scoped auto-use fixture to configure ECMP utils
+    - configure_vxlan_global: Configures global VXLAN parameters and restores them
+    - setup: Creates VXLAN tunnel, VNET, and routes for testing
+    - duthost: DUT host object
+    - ptfadapter: PTF adapter for packet operations
+
+Dependencies:
+    - tests.common.vxlan_ecmp_utils: For VXLAN and ECMP utilities
+    - tests.common.helpers.assertions: For pytest assertions
+    - tests.common.utilities: For wait_until polling
+    - ptf.testutils: For packet generation and verification
+    - ptf.packet: For packet construction
+    - ptf.mask: For packet masking
+
+Notes:
+    - Loganalyzer is disabled for this test module
+    - VNI: 8000
+    - VXLAN destination port: 4789
+    - Tests four encapsulation combinations: v4_in_v4, v4_in_v6, v6_in_v4, v6_in_v6
+    - Uniform mode: inner TTL decremented by 1 during decapsulation
+    - Pipe mode: inner TTL remains unchanged during decapsulation
+    - Configures vxlan_port and vxlan_router_mac in APPL_DB
+    - Restores original VXLAN global configuration after test
+=============================================================================
+"""
 import pytest
 import logging
 import ptf.testutils as testutils

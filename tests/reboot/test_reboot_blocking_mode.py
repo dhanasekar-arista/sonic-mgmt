@@ -1,3 +1,51 @@
+"""
+=============================================================================
+Module: reboot
+File: test_reboot_blocking_mode.py
+=============================================================================
+
+Description:
+    This test validates the SONiC reboot blocking mode functionality which
+    allows the reboot command to wait for system readiness before initiating
+    reboot. Tests both CLI-based blocking mode and config file-based blocking
+    mode configurations.
+
+Test Intent:
+    - test_non_blocking_mode: Verifies default non-blocking reboot behavior
+      where the reboot command returns immediately after execution without
+      waiting for system state checks
+    - test_blocking_mode: Validates blocking mode enabled via CLI flag (-b)
+      ensures the reboot command blocks and displays progress dots, not
+      returning until system is ready or timeout occurs
+    - test_timeout_for_blocking_mode: Tests blocking mode configured via
+      /etc/sonic/reboot.conf with blocking_mode_timeout=0, verifying command
+      returns immediately when timeout is zero
+
+Topology:
+    any topology
+
+Fixtures Used:
+    - setup_teardown: Function-scoped autouse fixture that mocks systemctl
+      reboot to prevent actual reboots, disables watchdog, and performs
+      cleanup by restoring original reboot script and rebooting DUT safely
+
+Dependencies:
+    - tests.common.reboot: Safe reboot functionality
+    - tests.common.helpers.assertions: Assertion utilities
+
+Notes:
+    - Skips test if platform_reboot is enabled on the device
+    - Mocks /sbin/reboot to prevent actual system reboot during test
+    - Backs up original /sbin/reboot to /sbin/reboot.bak before mocking
+    - Disables watchdog by replacing /usr/local/bin/watchdogutil references
+    - Uses 90-second timeout for command execution
+    - Blocking mode config file format: blocking_mode=true, show_timer=true
+    - Validates progress dots appear in blocking mode output
+    - Restores all mocked files and performs real reboot in teardown
+    - Test expects "ExpectedFinished" in non-blocking output
+    - Test expects absence of "UnexpectedFinished" in blocking output
+=============================================================================
+"""
 import pytest
 import re
 from tests.common.reboot import reboot

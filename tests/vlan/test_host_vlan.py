@@ -1,3 +1,46 @@
+"""
+=============================================================================
+Module: vlan
+File: test_host_vlan.py
+=============================================================================
+
+Description:
+    This test verifies that packets destined to the host VLAN interface
+    are not flooded to other member ports in the host bridge VLAN. The test
+    ensures proper MAC learning and forwarding behavior for traffic targeting
+    the VLAN interface itself.
+
+Test Intent:
+    - test_host_vlan_no_floodling: Verifies that ICMP packets (IPv4 or IPv6)
+      destined to the DUT's VLAN interface MAC address are not incorrectly
+      flooded to other VLAN member ports, confirming proper L2 forwarding behavior.
+
+Topology:
+    t0, m0, mx, t0-2vlans
+
+Fixtures Used:
+    - testbed_params: Provides VLAN interface information and member port mappings
+    - verify_host_port_vlan_membership: Validates that ports are correctly
+      associated with the VLAN in the bridge
+    - setup_host_vlan_intf_mac: Configures a temporary MAC address on the VLAN
+      interface for testing and restores it after test completion
+    - toggle_all_simulator_ports_to_rand_selected_tor: For dualtor topologies,
+      ensures consistent mux state during testing
+
+Dependencies:
+    - scapy: For packet sniffing and analysis
+    - ptf.testutils: For packet generation and transmission
+    - tests.common.dualtor: For dualtor-specific configuration
+    - tests.common.utilities: For address validation and configuration management
+
+Notes:
+    - This test requires SONiC release 201911 or later
+    - For Mellanox ASICs, special MAC address handling is required
+    - The test uses tcpdump to capture ICMP packets on VLAN member ports
+    - A custom fingerprint string is embedded in packets for identification
+    - Test supports both IPv4 and IPv6 VLAN interfaces
+=============================================================================
+"""
 import contextlib
 import pytest
 import random

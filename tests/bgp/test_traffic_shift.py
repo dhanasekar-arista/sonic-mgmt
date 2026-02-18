@@ -1,3 +1,48 @@
+"""
+=============================================================================
+Module: bgp
+File: test_traffic_shift.py
+=============================================================================
+
+Description:
+    Tests Traffic Shift Away (TSA) and Traffic Shift Back (TSB) functionality
+    which allows graceful BGP traffic draining for maintenance. Validates route
+    announcement behavior and traffic shift state transitions.
+
+Test Intent:
+    - test_TSA: Verifies TSA mode only announces loopback routes to neighbors
+      while announcing all routes to BGP monitor
+    - test_TSB: Validates TSB mode restores all route announcements to neighbors
+    - test_TSC: Tests TSC (Traffic Shift Check) command output
+    - test_TSA_TSB_with_config_reload: Ensures TSA persists through config reload
+    - test_TSA_TSB_with_default_route_absent: Validates behavior when default route missing
+    - test_TSA_TSB_with_no_neighbors: Tests TSA/TSB when no BGP neighbors present
+
+Topology:
+    t1
+
+Fixtures Used:
+    - nbrhosts_to_dut: Filters neighbors connected to test DUT
+    - bgpmon_setup_teardown: Sets up BGP monitor session
+    - ptfhost: PTF host for BGP monitoring
+    - traffic_shift_community: Traffic shift BGP community value
+
+Dependencies:
+    - tests.bgp.bgp_helpers: BGP helper functions
+    - tests.bgp.route_checker: Route validation utilities
+    - tests.bgp.traffic_checker: Traffic shift state verification
+    - tests.bgp.constants: Traffic shift state constants
+    - tests.common.config_reload
+
+Notes:
+    - Tests TSA/TSB persistence support when available
+    - Validates both IPv4 and IPv6 route announcements
+    - Ensures critical processes remain healthy after operations
+    - For T2 topology, validates supervisor and line card TSA state
+    - BGP monitor receives all routes even in TSA mode
+=============================================================================
+"""
+
 import logging
 import re
 import pytest

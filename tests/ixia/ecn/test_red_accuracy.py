@@ -1,3 +1,48 @@
+"""
+=============================================================================
+Module: ixia/ecn
+File: test_red_accuracy.py
+=============================================================================
+
+Description:
+    This test module measures the accuracy of RED (Random Early Detection) and
+    ECN marking probability in SONiC switches. It validates that ECN marking
+    follows the configured RED profile, measuring the relationship between
+    queue depth and ECN marking probability.
+
+Test Intent:
+    - test_red_accuracy: Measures and validates RED/ECN marking accuracy by
+      testing various queue depths and recording ECN marking probability,
+      ensuring marking behavior matches configured RED thresholds and slopes
+
+Topology:
+    - tgen: Requires IXIA traffic generator topology
+
+Fixtures Used:
+    - ixia_api: IXIA session for traffic generation
+    - ixia_testbed_config: Testbed and port configuration
+    - conn_graph_facts: DUT-to-IXIA connection topology
+    - fanout_graph_facts: Fanout switch information
+    - prio_dscp_map: Priority to DSCP mapping
+    - rand_one_dut_portname_oper_up: Random operational port
+    - rand_one_dut_lossless_prio: Random lossless priority to test
+
+Dependencies:
+    - files.helper: ECN test execution and marking verification
+    - tests.common.cisco_data: Cisco-specific ECN configurations
+    - tests.common.ixia.ixia_fixtures: IXIA infrastructure
+    - tests.common.ixia.qos_fixtures: QoS test fixtures
+
+Notes:
+    - Test can be disabled with --disable_ecn_test flag
+    - Outputs queue length vs. ECN marking probability data to file
+    - Tests RED algorithm accuracy across various queue depths
+    - Validates ECN marking follows RED profile (min/max thresholds, slope)
+    - Uses IXIA to precisely control queue depth
+    - Cisco platforms require special marking setup
+    - Results can be used for RED tuning and validation
+=============================================================================
+"""
 import pytest
 import collections
 

@@ -1,3 +1,49 @@
+"""
+=============================================================================
+Module: pfcwd
+File: test_pfc_config.py
+=============================================================================
+
+Description:
+    This test validates PFC Watchdog configuration validation and the
+    default PFCwd configuration behavior after load_minigraph operations.
+
+Test Intent:
+    - test_forward_action_cfg: Validates that valid forward action configuration
+      is accepted and loaded properly
+    - test_invalid_action_cfg: Verifies syslog error when invalid action is configured
+    - test_invalid_detect_time_cfg: Verifies syslog error for invalid detection time
+    - test_low_detect_time_cfg: Verifies error for detection time below lower bound
+    - test_high_detect_time_cfg: Verifies error for detection time above upper bound
+    - test_invalid_restore_time_cfg: Verifies syslog error for invalid restoration time
+    - test_low_restore_time_cfg: Verifies error for restoration time below lower bound
+    - test_high_restore_time_cfg: Verifies error for restoration time above upper bound
+    - test_default_cfg_after_load_mg: Validates PFCwd starts automatically after
+      load_minigraph when default_pfcwd_status is enabled
+
+Topology:
+    any topology (all topologies supported)
+
+Fixtures Used:
+    - cfg_setup: Class-scoped fixture that generates JSON config templates and
+      copies them to DUT, then cleans up after tests
+    - mg_cfg_setup: Class-scoped fixture to enable default PFCwd before load_minigraph
+    - stop_pfcwd: Function-scoped autouse fixture to stop/start PFCwd
+    - setup_pfc_test: Module-scoped PFC test setup
+
+Dependencies:
+    - tests.common.plugins.loganalyzer: Log analysis for config errors
+    - tests.common.config_reload: Config reload functionality
+    - tests.common.utilities.update_pfcwd_default_state: Update PFCwd default state
+
+Notes:
+    - Config templates are generated from pfc_config_params.json
+    - Test creates temporary directory for config files
+    - Uses sonic-cfggen to load configurations
+    - LogAnalyzer validates expected error messages in syslog
+    - Default config test requires 20 second wait for config to load
+=============================================================================
+"""
 import json
 import os
 import pytest

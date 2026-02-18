@@ -1,3 +1,51 @@
+"""
+=============================================================================
+Module: platform_tests
+File: test_show_chassis_module.py
+=============================================================================
+
+Description:
+    Tests for the 'show chassis modules' CLI commands on modular chassis platforms.
+    Validates module status, midplane reachability, and module shutdown/startup
+    operations through CLI interface.
+
+Test Intent:
+    - test_show_chassis_module_status: Verify 'show chassis modules status' output
+      shows correct Name, Description, Physical-Slot, Oper-Status, Admin-Status
+    - test_show_chassis_module_midplane_status: Validate 'show chassis modules midplane-status'
+      displays correct IP address and reachability status per module
+    - test_chassis_module_shutdown_startup: Test 'config chassis modules shutdown/startup'
+      commands and verify module operational state transitions
+
+Topology:
+    T2 modular chassis topology (supervisor + line cards)
+
+Fixtures Used:
+    - dut_vars: Module-scoped fixture loading inventory variables
+    - duthosts: Multi-DUT host fixture
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hardware SKU
+
+Dependencies:
+    - show chassis modules CLI commands
+    - config chassis modules CLI commands
+    - Inventory file module_slot_info (optional) for slot mapping validation
+    - util helpers: get_field_range, get_fields, get_skip_mod_list, get_skip_logical_module_list
+
+Notes:
+    - Test only runs on T2 modular chassis topology
+    - Skips absent modules using skip_mod_list
+    - Skips logical line cards (DPU-based) using skip_logical_lc_list
+    - Module slot info from inventory validates Physical-Slot field
+    - Oper-Status values: Online, Offline, Empty, Present, etc.
+    - Admin-Status values: up, down
+    - Midplane status shows IP and reachability (True/False)
+    - Shutdown/startup test validates state transitions and waits for Online status
+    - Critical processes must be running post-module operations
+    - Random module selection for shutdown/startup test
+    - Test waits up to timeout for module to reach expected status
+    - Module operations may cause temporary service disruption
+=============================================================================
+"""
 import logging
 import pytest
 import random

@@ -1,3 +1,54 @@
+"""
+=============================================================================
+Module: dualtor_io
+File: test_switchover_impact.py
+=============================================================================
+
+Description:
+    Performance test suite for measuring traffic impact during dual-ToR switchover operations.
+    This module quantifies packet loss during planned switchovers by repeatedly toggling mux
+    state and measuring traffic disruption. Results are written to JSON files for analysis
+    and validation against configurable thresholds.
+
+Test Intent:
+    - test_tor_switchover_impact: Measure and verify traffic impact during planned mux switchovers stays below threshold
+
+Topology:
+    - dualtor: Dual-ToR topology with active-standby or active-active cable types
+
+Fixtures Used:
+    - upper_tor_host: Upper ToR DUT host object
+    - lower_tor_host: Lower ToR DUT host object
+    - send_t1_to_server_with_action: Sends downstream traffic with action during transmission
+    - select_test_mux_ports: Selects random subset of mux ports for testing
+    - cable_type: Cable type fixture (active-standby or active-active)
+    - run_icmp_responder: Runs ICMP responder on PTF for server simulation
+    - run_garp_service: Runs GARP service on PTF for MAC address updates
+    - change_mac_addresses: Changes PTF MAC addresses to match server MACs
+
+Dependencies:
+    - PTF framework for traffic generation and impact measurement
+    - config mux mode command for mux state manipulation
+    - JSON file output for test results
+    - pytest --enable_switchover_impact_test flag to enable test
+
+Notes:
+    - Test is marked with @pytest.mark.enable_active_active
+    - Test is disabled by default (requires --enable_switchover_impact_test flag)
+    - Default parameters: 100 iterations, 10 IPv4 neighbors, 64 IPv6 neighbors
+    - Planned switchover threshold: 0.1 (10% max packet loss)
+    - Unplanned switchover threshold: 0.4 (40% max packet loss)
+    - Test procedure: Set upper ToR active -> measure -> switch to standby -> measure -> switch to active
+    - Results written to JSON file: test_switchover_impact_<timestamp>.json
+    - JSON format: {interface: [[disruption1, duplication1], [disruption2, duplication2], ...]}
+    - Test calculates max, average, and standard deviation of disruption across iterations
+    - Cleanup: Restores all interfaces to upper ToR active state via config reload
+    - Test validates: max_switchover_impact <= threshold
+    - Useful for performance regression testing and SLA validation
+
+=============================================================================
+"""
+
 import pytest
 import os
 import json

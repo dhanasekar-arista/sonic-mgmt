@@ -1,3 +1,50 @@
+"""
+=============================================================================
+Module: dhcp_server
+File: test_dhcp_server_stress.py
+=============================================================================
+
+Description:
+    Stress test suite for SONiC DHCP server to validate behavior under concurrent client
+    requests. This module tests the server's ability to handle multiple simultaneous DHCP
+    client requests from all VLAN member ports, ensuring proper lease assignment and
+    server responsiveness under load.
+
+Test Intent:
+    - test_dhcp_server_with_multiple_dhcp_clients: Verify all ports receive IP assignments when requesting simultaneously (stress test with concurrent dhclient requests)
+
+Topology:
+    - mx: Management extended topology with DHCP relay and server containers
+
+Fixtures Used:
+    - dhcp_client_setup_teardown_on_ptf: Module-level fixture to install/remove isc-dhcp-client on PTF host
+    - parse_vlan_setting_from_running_config: Module-level fixture to parse VLAN configuration (gateway, netmask, hosts, members)
+    - enable_sonic_dhcpv4_relay_agent: Enables SONiC DHCPv4 relay agent (isc-relay-agent or sonic-relay-agent)
+    - dhcp_server_setup_teardown: Module-level setup to enable dhcp_server feature (inherited from conftest)
+    - clean_dhcp_server_config_after_test: Function-level cleanup (inherited from conftest)
+
+Dependencies:
+    - PTF host with isc-dhcp-client package installed (dhclient command)
+    - dhcp_server_test_common: Helper functions for DHCP configuration
+    - CONFIG_DB tables: DHCP_SERVER_IPV4, DHCP_SERVER_IPV4_RANGE, DHCP_SERVER_IPV4_PORT
+    - dhcp_server container with kea-dhcp4 process
+    - dhcp_relay container with dhcprelayd process
+    - HTTP proxy credentials for apt-get on PTF host (if required)
+
+Notes:
+    - Tests are parameterized with relay_agent (isc-relay-agent or sonic-relay-agent)
+    - Stress test launches dhclient on all VLAN member interfaces simultaneously using -nw (no wait) flag
+    - Test waits up to 20 seconds for all expected IPs to appear on PTF interfaces
+    - Each VLAN member port is assigned a single IP from the configured range
+    - Test uses real dhclient from isc-dhcp-client package (not PTF packet generator)
+    - Cleanup releases all DHCP leases using dhclient -r and kills any remaining dhclient processes
+    - Test validates server can handle concurrent Discover/Request from multiple clients
+    - Requires at least 2 VLAN members and 2 available IPs for testing
+    - Gateway IP is excluded from assignment pool to avoid conflicts
+
+=============================================================================
+"""
+
 import logging
 import ipaddress
 import pytest

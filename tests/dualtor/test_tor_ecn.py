@@ -1,12 +1,53 @@
 """
-    Test cases :
-    1. Verification of DSCP -> Q mapping
-        1.1. During packet encapsulation while egressing out of standby and going to T1
-        1.2. During packet decapsulation while egressing out of active and going to server
-    2. ECN marking
-        2.1. During packet encapsulation while egressing out of standby and going to T1
-        2.2. During packet decapsulation while egressing out of active and going to server
-    3. Stamping of ECN marking after packet encapsulation while egressing out of standby and going to T1
+=============================================================================
+Module: Dual ToR ECN and DSCP QoS Test
+File: test_tor_ecn.py
+=============================================================================
+
+Description:
+    This test validates ECN (Explicit Congestion Notification) and DSCP (Differentiated
+    Services Code Point) handling during IPinIP tunnel encapsulation and decapsulation
+    in dual ToR topology. It verifies QoS marking preservation, queue mapping, and ECN
+    stamping behavior for both active (decap) and standby (encap) ToR scenarios.
+
+Test Intent:
+    - test_dscp_to_queue_during_decap_on_active: Validates that inner packet DSCP maps
+      to correct queue during decapsulation on active ToR. Verifies packet egress queue
+      matches expected queue based on inner DSCP value.
+    - test_dscp_to_queue_during_encap_on_standby: Validates that inner packet DSCP maps
+      to correct outer packet DSCP and queue during encapsulation on standby ToR.
+    - test_ecn_during_decap_on_active: Validates ECN bits are preserved from outer header
+      to inner header during decapsulation on active ToR.
+    - test_ecn_during_encap_on_standby: Validates ECN bits are copied from inner header
+      to outer header during encapsulation on standby ToR.
+
+Topology:
+    dualtor - Requires dual ToR topology with tunnel QoS support
+
+Fixtures Used:
+    - setup_dualtor_tor_active: Sets ToR to active state (mocked or real)
+    - setup_dualtor_tor_standby: Sets ToR to standby state (mocked or real)
+    - rand_selected_interface: Randomly selected mux interface for testing
+    - write_standby: Helper to trigger standby-specific setup (platform-dependent)
+    - tunnel_traffic_monitor: Monitors tunnel traffic
+    - mock_common_setup_teardown: Common mock setup for module
+
+Dependencies:
+    - tests.common.dualtor.dual_tor_mock: Dual ToR mocking utilities
+    - tests.common.dualtor.dual_tor_utils: Dual ToR utility functions
+    - tests.common.dualtor.tunnel_traffic_utils: Tunnel traffic and QoS utilities
+    - tests.common.fixtures.ptfhost_utils: PTF host utilities
+
+Notes:
+    - Tests use parametrized DSCP values: 2, 3, 4, 6 (lossless queues)
+    - DSCP 2 and 6 are skipped on Nvidia platforms when tunnel QoS remap is enabled
+    - Sends 100 packets per test for statistical accuracy (±10% tolerance)
+    - Temporarily stops GARP service to avoid neighbor updates during testing
+    - Queue counter verification uses regex parsing of "show queue counters" output
+    - ECN values tested: 0-2 (randomly selected)
+    - TTL decremented by 1 during decapsulation
+    - Outer DSCP derived from inner DSCP based on QoS remap configuration
+=============================================================================
 """
 
 import logging

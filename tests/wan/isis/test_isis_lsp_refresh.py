@@ -1,3 +1,22 @@
+"""
+=============================================================================
+Module: wan/isis
+File: test_isis_lsp_refresh.py
+=============================================================================
+
+Description:
+    Validates ISIS LSP refresh interval configuration.
+
+Test Intent:
+    - test_isis_lsp_refresh: Tests LSP refresh timing
+
+Topology:
+    wan-com
+
+Notes:
+    - Controls how often LSPs are refreshed
+=============================================================================
+"""
 import pytest
 import logging
 import functools

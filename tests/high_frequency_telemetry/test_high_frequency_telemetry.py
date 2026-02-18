@@ -1,3 +1,65 @@
+"""
+=============================================================================
+Module: high_frequency_telemetry
+File: test_high_frequency_telemetry.py
+=============================================================================
+
+Description:
+    This test module validates the High Frequency Telemetry (HFT) feature in
+    SONiC, which enables high-speed counter polling and streaming. It tests
+    various counter types (port, queue, ingress priority groups, buffer pools)
+    and validates configuration changes, state transitions, and counter accuracy.
+
+Test Intent:
+    - test_hft_port_counters: Validates basic HFT functionality for port counters
+      with enabled stream state and verifies counter collection
+    - test_hft_full_queue_counters: Tests HFT for all configured queue objects,
+      ensuring queue counter telemetry works across all device queues
+    - test_hft_full_ingress_priority_group_counters: Validates HFT for ingress
+      priority groups (buffer queues) across all configured IPGs
+    - test_hft_full_buffer_pool_counters: Tests HFT for all buffer pools,
+      verifying buffer telemetry collection
+    - test_hft_full_counters: Tests simultaneous monitoring of all counter types
+      (port, queue, IPG, buffer pool) in a single profile (currently skipped)
+    - test_hft_full_port_counters: Validates HFT with all available ports and
+      all supported port counter types
+    - test_hft_disabled_stream: Tests stream state transitions (enabled ->
+      disabled -> enabled) and validates Msg/s changes accordingly
+    - test_hft_config_deletion_stream: Tests configuration lifecycle (create ->
+      delete -> create) and verifies telemetry stream behavior
+    - test_hft_poll_interval_validation: Validates different poll intervals
+      (1ms to 10s) and verifies Msg/s matches expected frequency (skipped)
+    - test_hft_port_shutdown_stream: Tests port state changes (up -> down -> up)
+      with continuous traffic and validates counter behavior
+
+Topology:
+    - any: Works with any topology that has available ports
+
+Fixtures Used:
+    - duthosts: Collection of DUT hosts in testbed
+    - enum_rand_one_per_hwsku_hostname: Randomly selects one DUT per hardware SKU
+    - disable_flex_counters: Disables flex counters to avoid interference with HFT
+    - tbinfo: Testbed information including topology and port mappings
+    - ptfadapter: PTF adapter for traffic injection in port shutdown tests
+
+Dependencies:
+    - tests.high_frequency_telemetry.counter_profiles: Counter type definitions
+      and platform-specific counter lists
+    - tests.high_frequency_telemetry.utilities: Helper functions for HFT setup,
+      monitoring, validation, and cleanup
+    - tests.common.helpers.assertions: Test assertion utilities
+
+Notes:
+    - HFT requires specific platform support for high-frequency polling
+    - Tests disable flex counters to prevent conflicts with HFT
+    - Poll intervals are specified in microseconds (1000 = 1ms)
+    - Some tests validate message rate (Msg/s) to verify polling frequency
+    - Tests with continuous monitoring run for 240 seconds per phase
+    - Port shutdown test includes PTF traffic injection to verify counter behavior
+    - Some tests are skipped due to platform limitations or known issues
+    - Configuration is stored in CONFIG_DB (HFT_PROFILE and HFT_GROUP tables)
+=============================================================================
+"""
 import pytest
 import logging
 import time

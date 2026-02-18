@@ -1,3 +1,35 @@
+"""
+=============================================================================
+Module: generic_config_updater
+File: test_bgpl.py
+=============================================================================
+
+Description:
+    Tests BGP listener (BGP monitor) configuration using Generic Config Updater.
+    Validates adding and removing BGP monitor entries with proper verification
+    in BGP running configuration.
+
+Test Intent:
+    - test_bgp_listener_add_init_config: Adds initial BGP listener configuration
+    - test_bgp_listener_tc2_add_del: Adds then removes BGP listener
+
+Topology:
+    Supports t0, t1, m0, mx, m1, t2 topologies
+
+Fixtures Used:
+    - setup_env: Creates checkpoint and ensures BGP listener cleanup
+
+Dependencies:
+    - tests.common.helpers.generators: generate_ip_through_default_route
+    - tests.common.gu_utils: GCU utilities for patch operations
+    - netaddr: IPNetwork for IP address handling
+
+Notes:
+    - Validates "neighbor X description BGPMonitor" in running config
+    - Generates IP through default route for listener address
+    - Verifies BGP listener in "show runningconfiguration bgp"
+=============================================================================
+"""
 import logging
 import pytest
 import re

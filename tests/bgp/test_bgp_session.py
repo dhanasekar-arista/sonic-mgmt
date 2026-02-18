@@ -1,3 +1,48 @@
+"""
+=============================================================================
+Module: bgp
+File: test_bgp_session.py
+=============================================================================
+
+Description:
+    Tests BGP session establishment, recovery, and resilience under various
+    failure scenarios including neighbor shutdown, DUT reboot, and neighbor
+    reboot. Validates BGP session state transitions and automatic recovery.
+
+Test Intent:
+    - test_bgp_session_establishment: Verifies BGP sessions establish correctly
+    - test_bgp_session_neighbor_shutdown: Tests BGP recovery when neighbor
+      interface is shutdown and brought back up
+    - test_bgp_session_dut_reboot: Validates BGP sessions recover after DUT reboot
+    - test_bgp_session_neighbor_reboot: Ensures BGP sessions recover after
+      neighbor device reboot
+    - test_bgp_session_with_container_restart: Tests BGP resilience to BGP
+      container restart with autorestart enabled
+
+Topology:
+    t0, t1, m1, lt2, ft2
+
+Fixtures Used:
+    - setup: Configures test environment with neighbor mappings and interfaces
+    - enable_container_autorestart: Manages container autorestart configuration
+    - nbrhosts: Neighbor hosts fixture
+    - fanouthosts: Fanout switch hosts for interface manipulation
+
+Dependencies:
+    - tests.common.platform.device_utils.fanout_switch_port_lookup
+    - tests.common.utilities.wait_until
+    - tests.common.helpers.assertions
+    - tests.common.reboot
+
+Notes:
+    - Tests both direct interface and portchannel scenarios
+    - Validates session recovery within timeout periods
+    - Supports frr_mgmt_framework_config for VRF-based configurations
+    - Ensures fanout and neighbor interfaces are restored after tests
+    - Handles both IPv4 and IPv6 BGP neighbors
+=============================================================================
+"""
+
 import logging
 import pytest
 import re

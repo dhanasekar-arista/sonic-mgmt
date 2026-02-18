@@ -1,3 +1,42 @@
+"""
+=============================================================================
+Module: platform_tests
+File: test_thermal_state_db.py
+=============================================================================
+
+Description:
+    Tests thermal sensor data in STATE_DB for T2 modular chassis. Validates that
+    thermal data is properly populated across supervisor and line cards via chassis DB.
+
+Test Intent:
+    - test_thermal_statedb: Verify thermal sensor data in STATE_DB matches CLI output
+      across all chassis modules
+
+Topology:
+    T2 modular chassis topology
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - enum_supervisor_dut_hostname: Selects supervisor DUT
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hardware SKU
+
+Dependencies:
+    - STATE_DB for thermal sensor data
+    - chassisdb.conf for chassis DB IP
+    - show platform temperature CLI
+    - get_skip_mod_list for skipping absent modules
+
+Notes:
+    - Test validates thermal data across all DUTs in chassis
+    - Checks temperature values within high/low thresholds
+    - Verifies critical thresholds configured if present
+    - get_chassis_db_ip extracts chassis DB address from config
+    - get_expected_num_thermals counts sensors from CLI output
+    - check_therm_data validates threshold ranges
+    - Skips absent modules from skip_mod_list
+    - Test ensures STATE_DB populated for all thermal sensors
+=============================================================================
+"""
 
 import json
 import pytest

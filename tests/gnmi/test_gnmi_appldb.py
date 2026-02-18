@@ -1,3 +1,38 @@
+"""
+=============================================================================
+Module: gnmi
+File: test_gnmi_appldb.py
+=============================================================================
+
+Description:
+    Tests gNMI operations on APPL_DB in SONiC. Validates native write operations
+    for DASH_VNET_TABLE entries including add, update, and delete operations.
+
+Test Intent:
+    - test_gnmi_appldb_01: Tests DASH_VNET_TABLE operations via gNMI:
+      1. Adds VNET entry with VNI and GUID
+      2. Validates entry via gnmi_get
+      3. Removes VNET entry
+      4. Validates removal
+
+Topology:
+    Supports any topology
+
+Fixtures Used:
+    - duthosts: DUT host objects
+    - rand_one_dut_hostname: Randomly selected DUT
+    - ptfhost: PTF host for gNMI client operations
+
+Dependencies:
+    - .helper: gnmi_set, gnmi_get for gNMI operations
+
+Notes:
+    - Log analyzer disabled for these tests
+    - Uses APPL_DB DASH_VNET_TABLE path
+    - Tests both _DASH_VNET_TABLE and DASH_VNET_TABLE paths for compatibility
+    - VNI value: "1000", GUID: "559c6ce8-26ab-4193-b946-ccc6e8f930b2"
+=============================================================================
+"""
 import logging
 import pytest
 

@@ -1,3 +1,67 @@
+"""
+=============================================================================
+Module: lldp
+File: test_lldp.py
+=============================================================================
+
+Description:
+    This test validates LLDP (Link Layer Discovery Protocol) functionality on
+    SONiC devices. It verifies that LLDP neighbor information is correctly
+    received, advertised, and maintained both during normal operation and after
+    service restarts. Tests include validation of LLDP information on both DUT
+    and neighbor devices.
+
+Test Intent:
+    - test_lldp: Verifies LLDP neighbor information received by the DUT matches
+      expected neighbors from configuration. Validates chassis name and port
+      interface names match configured device neighbors. Handles both standard
+      and converged multi-VRF topologies. Supports both EOS (uses ifname) and
+      KVM neighbors (uses port description).
+    - test_lldp_neighbor: Validates LLDP information advertised by the DUT as
+      seen from neighbor devices via SNMP. Verifies DUT's system name, chassis
+      ID, system description, port ID, and port description are correctly
+      published to neighbors.
+    - test_lldp_neighbor_post_swss_reboot: Ensures LLDP neighbor information
+      is correctly restored after restarting the SWSS (Switch State Service)
+      container. Validates LLDP resilience across service disruptions.
+
+Topology:
+    t0, t1, t2, m0, mx, m1 topologies
+
+Fixtures Used:
+    - lldp_setup: Module-scoped fixture that patches lldpctl for testing and
+      unpatches after tests complete
+    - restart_swss_container: Restarts SWSS container and waits for critical
+      services and LLDP neighbor information to be restored
+    - duthosts: Provides list of DUT hosts for testing
+    - enum_rand_one_per_hwsku_frontend_hostname: Selects one random frontend
+      DUT per hardware SKU
+    - enum_frontend_asic_index: Provides ASIC instance index for multi-ASIC DUTs
+    - localhost: Localhost connection for SNMP queries to neighbors
+    - eos: EOS device credentials and SNMP community strings
+    - sonic: SONiC device credentials and SNMP community strings
+    - loganalyzer: Log analyzer for monitoring system logs during tests
+    - tbinfo: Testbed information including topology properties
+
+Dependencies:
+    - tests.common.platform.interface_utils: For filtering DPU/NPU internal ports
+    - tests.common.utilities: For wait_until polling functionality
+
+Notes:
+    - Device type marked as 'vs' (virtual switch)
+    - Skips eth0, Ethernet-BP, Ethernet-IB, and DPU-NPU internal ports
+    - Requires LLDP neighbors to be present before test execution
+    - For converged topologies, uses VRF mapping to verify LLDP information
+    - Chassis ID generation differs by topology: t2 uses router MAC, others
+      use management interface MAC
+    - test_lldp_neighbor_post_swss_reboot preserves SWSS autorestart state
+    - Waits up to 600 seconds for critical services to start after SWSS restart
+    - Waits up to 300 seconds for LLDP neighbor information to be re-learned
+    - Loganalyzer ignores syncd FDB event notification errors during neighbor tests
+    - test_lldp_neighbor_post_swss_reboot disables loganalyzer
+=============================================================================
+"""
+
 import contextlib
 import logging
 import re

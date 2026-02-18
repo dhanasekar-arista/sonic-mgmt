@@ -1,3 +1,48 @@
+"""
+=============================================================================
+Module: bgp
+File: test_bgp_router_id.py
+=============================================================================
+
+Description:
+    Tests BGP router ID configuration and behavior under different scenarios.
+    Validates default router ID selection, custom router ID configuration, and
+    router ID behavior when Loopback0 IP is removed.
+
+Test Intent:
+    - test_bgp_router_id_default: Verifies default BGP router ID matches
+      Loopback0 IPv4 address when no custom router ID is configured
+    - test_bgp_router_id_set: Validates custom bgp_router_id takes precedence
+      over Loopback0 IP and Loopback IP is still advertised to neighbors
+    - test_bgp_router_id_set_ipv6: Same as above but validates IPv6 loopback
+      address advertisement
+    - test_bgp_router_id_set_without_loopback: Ensures BGP works with custom
+      router ID even when Loopback0 IPv4 address is not configured
+
+Topology:
+    any
+
+Fixtures Used:
+    - loopback_ip: Extracts Loopback0 IPv4 address from CONFIG_DB
+    - loopback_ipv6: Extracts Loopback0 IPv6 address with /64 or /128 handling
+    - router_id_setup_and_teardown: Sets custom router ID and restarts BGP
+    - router_id_loopback_setup_and_teardown: Sets custom router ID and removes Loopback0 IP
+
+Dependencies:
+    - tests.common.helpers.assertions.pytest_require, pytest_assert
+    - tests.common.helpers.bgp.run_bgp_facts
+    - tests.common.utilities: wait_until, is_ipv6_only_topology
+
+Notes:
+    - Tests both SONiC and EOS neighbors
+    - Validates router ID from both DUT and peer perspectives
+    - Custom router ID used: 8.8.8.8
+    - Restarts BGP service after configuration changes
+    - Supports IPv6-only topologies
+    - Handles bgp_adv_lo_prefix_as_128 configuration flag
+=============================================================================
+"""
+
 import pytest
 import logging
 import re

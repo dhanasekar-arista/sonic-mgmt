@@ -1,3 +1,75 @@
+"""
+=============================================================================
+Module: iface_namingmode
+File: test_iface_namingmode.py
+=============================================================================
+
+Description:
+    This comprehensive test module validates the interface naming mode feature
+    in SONiC, which allows users to configure whether interfaces are displayed
+    using their alias names or default names. The tests verify that all CLI
+    show and config commands respect the configured naming mode across various
+    interface-related operations.
+
+Test Intent:
+    - TestShowLLDP.test_show_lldp_table: Verifies LLDP table displays interface
+      names according to configured mode (alias/default)
+    - TestShowLLDP.test_show_lldp_neighbor: Validates LLDP neighbor info uses
+      correct interface naming mode
+    - TestShowInterfaces.test_show_interfaces_counter: Checks interface counter
+      commands respect naming mode
+    - TestShowInterfaces.test_show_interfaces_description: Verifies interface
+      description output uses correct naming convention
+    - TestShowInterfaces.test_show_interfaces_status: Tests interface status
+      display matches configured mode
+    - TestShowInterfaces.test_show_interfaces_portchannel: Validates portchannel
+      member names follow naming mode
+    - test_show_pfc_counters: Checks PFC counters use correct interface names
+    - TestShowPriorityGroup tests: Validate priority group watermark commands
+      respect interface naming mode
+    - TestShowQueue tests: Verify queue counter and watermark commands follow
+      naming mode configuration
+    - TestShowVlan tests: Validate VLAN commands display correct interface names
+    - TestConfigInterface tests: Verify config commands (IP, state, speed) work
+      with both alias and default names, including speed changes and FEC config
+    - test_show_acl_table: Checks ACL table displays interface names correctly
+    - test_show_interfaces_neighbor_expected: Validates neighbor expected output
+    - TestNeighbors tests: Verify ARP and NDP tables use correct naming
+    - TestShowIP tests: Validate IP/IPv6 interface and route commands
+
+Topology:
+    - any, t1-multi-asic: Most tests work with any topology
+    - t0, m0: VLAN-specific tests require these topologies
+    - t1, lt2, ft2: Some config and route tests require T1-like topologies
+
+Fixtures Used:
+    - setup: Module-scoped fixture that creates common port aliases for all
+      platforms and provides interface mappings
+    - setup_config_mode: Parameterized fixture (alias/default) that creates
+      guest user with configured naming mode
+    - sample_intf: Selects test interface with IP and speed information
+    - static_route_intf: Creates static routes for route testing
+    - ignore_expected_loganalyzer_exception: Ignores expected syncd errors
+    - reset_config_interface: Restores interface configuration after tests
+
+Dependencies:
+    - tests.common.devices.base: AnsibleHost base class for guest user
+    - tests.common.platform.device_utils: Fanout port lookup utilities
+    - tests.common.helpers.sonic_db: Redis database CLI access
+    - netaddr: IP address manipulation
+
+Notes:
+    - Tests run twice per module: once in alias mode, once in default mode
+    - Port aliases are renamed to TestAliasX format for consistency
+    - Guest user is created to test user-specific naming mode configuration
+    - Interface naming mode is stored in ~/.bashrc and checked per command
+    - Some platforms (Nvidia SN5600) require special cable length considerations
+    - Speed change tests handle FEC configuration for different speeds
+    - VLAN tests may see DHCP relay restart warnings (expected)
+    - Some tests skip on multi-ASIC or specific topologies
+    - Converged peer topologies use VRF mapping for LLDP validation
+=============================================================================
+"""
 import logging
 import pytest
 import re

@@ -1,3 +1,34 @@
+"""
+=============================================================================
+Module: wan/lacp
+File: test_wan_lacp.py
+=============================================================================
+
+Description:
+    Validates LACP (Link Aggregation Control Protocol) functionality in WAN
+    topologies, including LAG formation, member ports, and traffic distribution.
+
+Test Intent:
+    - test_lag: Tests LAG creation and basic functionality
+    - test_lag_2: Additional LAG testing scenarios
+
+Topology:
+    wan-pub, wan-pub-cisco
+
+Fixtures Used:
+    - common_setup_teardown: Module-scoped setup for LAG testing
+    - ptfhost: PTF host object
+
+Dependencies:
+    - tests.ptf_runner: For running PTF tests
+    - tests.common.utilities: For wait_until polling
+
+Notes:
+    - Uses PTF test scripts in /tmp/acstests/
+    - Tests LAG member port bundling
+    - Validates LACP PDU exchange
+=============================================================================
+"""
 import pytest
 
 import time

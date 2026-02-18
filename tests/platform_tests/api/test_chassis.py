@@ -1,3 +1,66 @@
+"""
+=============================================================================
+Module: platform_tests
+File: test_chassis.py
+=============================================================================
+
+Description:
+    Validates Platform API functionality for the Chassis class, testing all
+    methods defined in ChassisBase and inherited from DeviceBase. Verifies
+    chassis-level operations including component enumeration, system EEPROM,
+    reboot cause tracking, and device metadata retrieval.
+
+Test Intent:
+    - test_get_name: Verify chassis name retrieval and match with platform.json
+    - test_get_presence: Confirm chassis presence is always True
+    - test_get_model: Validate chassis model against device facts
+    - test_get_serial: Verify serial number matches device facts
+    - test_get_revision: Test chassis revision retrieval (skips older releases)
+    - test_get_status: Confirm chassis status is retrievable as boolean
+    - test_get_position_in_parent: Validate position value is an integer
+    - test_is_replaceable: Verify replaceable status is boolean
+    - test_get_base_mac: Confirm base MAC address format and match with device facts
+    - test_get_system_eeprom_info: Validate ONIE TlvInfo EEPROM data completeness and correctness
+    - test_get_reboot_cause: Verify reboot cause returns tuple with valid data
+    - test_components: Validate component count and retrieval methods
+    - test_modules: Test module enumeration and index lookup (modular chassis)
+    - test_fans: Verify fan count and retrieval against platform.json
+    - test_fan_drawers: Validate fan drawer count and retrieval
+    - test_psus: Test PSU enumeration and retrieval
+    - test_thermals: Verify thermal sensor count and retrieval
+    - test_sfps: Validate SFP/transceiver count and retrieval by port index
+    - test_status_led: Test chassis status LED color control and retrieval
+    - test_get_thermal_manager: Verify thermal manager object retrieval
+    - test_get_watchdog: Confirm watchdog object retrieval
+    - test_get_eeprom: Validate EEPROM object retrieval
+    - test_get_supervisor_slot: Test supervisor slot identification (modular chassis only)
+    - test_get_my_slot: Verify current slot identification (modular chassis only)
+
+Topology:
+    Any topology (t0, t1, m0, mx) - tests run on all chassis types
+
+Fixtures Used:
+    - platform_api_conn: Platform API service connection
+    - physical_port_indices: Module-scoped fixture returning physical port mapping
+    - gather_facts: Loads inventory files for device facts comparison
+    - duthosts: Multi-DUT host fixture
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hardware SKU
+
+Dependencies:
+    - tests.common.helpers.platform_api (chassis, module)
+    - tests.common.helpers.assertions (pytest_assert)
+    - platform.json (chassis metadata)
+    - inventory files (device facts)
+    - ONIE TlvInfo specification
+
+Notes:
+    - Tests compare API values against platform.json and inventory facts
+    - EEPROM validation enforces OCP ONIE TlvInfo type codes
+    - LED tests skip colors not supported by platform
+    - Modular chassis tests skip on fixed chassis platforms
+    - SN2201 platform has special RJ45 port handling
+=============================================================================
+"""
 import logging
 import re
 import pytest

@@ -1,3 +1,48 @@
+"""
+=============================================================================
+Module: bgp
+File: test_bgpmon.py
+=============================================================================
+
+Description:
+    Tests BGP monitor (BGPMON) functionality which provides route monitoring
+    capabilities. Validates BGP monitor session establishment, route advertisement,
+    and packet forwarding behavior for monitoring sessions.
+
+Test Intent:
+    - test_bgpmon: Validates BGP monitor session can be established and routes
+      are properly advertised to the monitor
+    - test_bgpmon_no_asic: Tests BGP monitor when DUT doesn't have ASIC capability
+    - test_bgpmon_packet_sanity: Verifies packets to BGP monitor are correctly
+      forwarded through expected ports
+
+Topology:
+    any
+
+Fixtures Used:
+    - common_setup_teardown: Sets up BGP monitor configuration and peer addresses
+    - dut_with_default_route: Ensures DUT has default route for testing
+    - ptfhost: PTF host for packet injection and monitoring
+    - tbinfo: Testbed information
+    - change_mac_addresses: Manages PTF MAC addresses
+    - remove_ip_addresses: Cleans up PTF IP addresses
+
+Dependencies:
+    - bgp_helpers: BGP monitor configuration templates and constants
+    - tests.common.fixtures.ptfhost_utils
+    - tests.common.helpers.generators: IP address generation utilities
+    - tests.common.utilities: Topology and connection utilities
+    - ptf.testutils, ptf.packet: PTF packet manipulation
+
+Notes:
+    - Supports both IPv4 and IPv6 topologies
+    - Uses dynamically generated peer addresses to avoid conflicts
+    - Validates TCP connection establishment on BGP monitor port
+    - Tests packet forwarding behavior for monitor sessions
+    - For chassis testbeds, timeout can be customized via plt_reboot_ctrl
+=============================================================================
+"""
+
 import pytest
 import logging
 from netaddr import IPNetwork

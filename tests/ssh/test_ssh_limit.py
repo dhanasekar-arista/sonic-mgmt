@@ -1,3 +1,52 @@
+"""
+=============================================================================
+Module: ssh
+File: test_ssh_limit.py
+=============================================================================
+
+Description:
+    This test file validates SSH session limit functionality on SONiC devices by
+    testing the PAM (Pluggable Authentication Modules) limits configuration. It verifies
+    that template files for pam_limits and limits.conf are correctly rendered by hostcfgd
+    and that SSH login session limits are enforced properly to prevent excessive
+    concurrent logins from the same user.
+
+Test Intent:
+    - test_ssh_limits: Validates two critical scenarios - (1) ensures that the PAM
+      limit templates (pam_limits.j2 and limits.conf.j2) are correctly rendered by
+      hostcfgd, and (2) verifies that SSH login session limits work correctly by
+      testing that a first login succeeds while a second concurrent login from the
+      same user is properly rejected with "too many logins" message.
+
+Topology:
+    any (works with any topology type)
+
+Fixtures Used:
+    - duthosts: Provides access to all DUT hosts in the testbed
+    - rand_one_dut_hostname: Randomly selects one DUT hostname for testing
+    - tacacs_creds: Provides TACACS credentials including local user credentials
+    - setup_limit: Module-scoped fixture that sets up SSH limit testing by modifying
+      PAM templates, creating a local user, disabling AAA authentication if needed,
+      and restoring configuration after tests complete
+
+Dependencies:
+    - json: For parsing device configuration database
+    - pytest: Test framework
+    - paramiko: For creating multiple SSH sessions
+    - tests.common.helpers.assertions: For test assertions
+    - tests.common.helpers.tacacs.tacacs_helper: For setting up local users
+    - tests.common.utilities: For paramiko_ssh utility function
+
+Notes:
+    - Tests are marked to disable log analyzer and work with 'vs' device types
+    - Template paths: /usr/share/sonic/templates/pam_limits.j2 and limits.conf.j2
+    - The test handles different PAM versions (1.7.0+ requires one extra login slot)
+    - If AAA authentication is enabled, it's temporarily disabled for local user login
+    - The test skips if the limits.conf.j2 template doesn't exist on the DUT
+    - Uses a 10-second timeout for reading login messages from SSH sessions
+    - Sonic OS version 13+ (Debian Trixie) requires maxlogins=2 due to systemd-logind
+=============================================================================
+"""
 import json
 import logging
 import pytest

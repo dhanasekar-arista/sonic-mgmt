@@ -1,3 +1,74 @@
+"""
+=============================================================================
+Module: system_health
+File: test_system_health.py
+=============================================================================
+
+Description:
+    This test file validates the SONiC system health monitoring feature which
+    continuously checks system components (services, processes, devices, hardware)
+    and reports their health status. It tests service checkers, device checkers
+    (fan, PSU, ASIC temperature), external checkers, configuration customization,
+    and LED status based on system health.
+
+Test Intent:
+    - test_service_checker: Validates that system health correctly reports status
+      of critical system services and processes by checking the output includes
+      expected services (System, Process, Filesystem, Program) with proper status
+      and verifies Summary shows 'OK' when all services are healthy.
+    - test_service_checker_with_process_exit: Tests that system health detects
+      process failures by killing a critical process (orchagent), verifying health
+      status changes to 'Not OK', then restarting the process and confirming
+      status returns to 'OK' after recovery.
+    - test_device_checker: Validates hardware device monitoring by mocking various
+      failure scenarios (fan missing/broken/wrong speed/direction, ASIC overheating,
+      PSU missing/no power/hot/invalid voltage) and verifying corresponding error
+      messages appear in health status output.
+    - test_external_checker: Tests custom external health checker scripts by
+      deploying a mock checker, verifying it executes and reports status correctly,
+      and confirming proper cleanup after removal.
+    - test_system_health_config: Validates configuration customization by deploying
+      custom config files that ignore specific checks (ASIC, fan, PSU, device),
+      verifying those checks are skipped, and confirming default behavior returns
+      after config removal.
+    - test_device_fan_speed_checker: Tests fan speed validation by configuring
+      custom speed ranges, verifying health status is 'OK' when speed is in range
+      and 'Not OK' when out of range.
+
+Topology:
+    any (physical devices only, not virtual switches)
+
+Fixtures Used:
+    - duthosts: Provides access to all DUT hosts
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hwsku
+    - check_image_version: Skips test on 201911 images (kernel < 4.9.0)
+    - config_reload_after_tests: Reloads config after module completes
+    - device_mocker_factory: Creates device mockers for simulating hardware failures
+    - disable_thermal_policy: Disables thermal control during testing
+    - is_support_mock_asic/fan/psu: Checks if platform supports mocking
+
+Dependencies:
+    - pytest: Test framework
+    - tests.common.config_reload: For config reload
+    - tests.common.utilities: Provides wait_until helper
+    - tests.common.plugins.loganalyzer.loganalyzer: For log analysis
+    - tests.common.helpers.thermal_control_test_helper: For thermal control
+    - device_mocker: For mocking hardware device failures
+
+Notes:
+    - Requires SONiC version > 201911 (kernel > 4.9.0)
+    - Default health check interval: 62 seconds
+    - Fast interval for testing: 10 seconds
+    - Thermal check interval: 70 seconds
+    - Uses STATE_DB (database 6) for health info storage
+    - Config file location: /usr/share/sonic/device/{platform}/system_health_monitoring_config.json
+    - Supports custom external checker scripts
+    - Tests LED status changes based on system health (green=OK, red=Not OK)
+    - Boot timeout: 300 seconds
+    - Wait timeout for status updates: 180 seconds
+    - Service expect statuses: System/Process=Running, Filesystem=Accessible, Program=Status ok
+=============================================================================
+"""
 import json
 import logging
 import os

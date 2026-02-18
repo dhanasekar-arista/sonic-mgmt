@@ -1,3 +1,22 @@
+"""
+=============================================================================
+Module: wan/isis
+File: test_isis_spf_default_interval.py
+=============================================================================
+
+Description:
+    Validates ISIS SPF default interval configuration.
+
+Test Intent:
+    - test_isis_spf_default_interval: Tests SPF calculation timing
+
+Topology:
+    wan-com
+
+Notes:
+    - Controls SPF recalculation rate
+=============================================================================
+"""
 import re
 import time
 import pytest

@@ -1,3 +1,51 @@
+"""
+=============================================================================
+Module: vxlan
+File: test_vxlan_tunnel_route_scale.py
+=============================================================================
+
+Description:
+    This test validates VXLAN tunnel and route scale capabilities on Cisco-8000
+    ASICs. It tests large-scale VNET route programming, tunnel creation, and
+    verifies that routes are correctly synchronized to STATE_DB and ASIC_DB.
+
+Test Intent:
+    - test_vxlan_tunnel_route_scale: Validates large-scale VNET route programming
+      by creating multiple VNETs with thousands of routes per VNET, verifying
+      routes appear in STATE_DB and ASIC_DB, and ensuring cleanup is successful
+
+Topology:
+    t0 (physical devices only, Cisco-8000 ASIC)
+
+Fixtures Used:
+    - copy_ptftests_directory: Copies PTF test scripts to PTF host
+    - duthost: DUT host object
+    - ptfhost: PTF host object
+    - tbinfo: Testbed information
+    - cfg_facts: Configuration facts
+    - config_facts: Additional config facts
+
+Dependencies:
+    - tests.common.config_reload: For config reload operations
+    - tests.common.utilities: For wait_until polling
+    - tests.common.helpers.assertions: For pytest assertions
+    - tests.ptf_runner: For PTF test execution
+    - tests.common.vxlan_ecmp_utils: For VXLAN ECMP utilities
+
+Notes:
+    - Loganalyzer is disabled for this test module
+    - Physical device only (vs platform not supported)
+    - Cisco-8000 ASIC specific test
+    - PTF VTEP: 100.0.1.10
+    - Tunnel name: tunnel_v4
+    - Tests scale: multiple VNETs with thousands of routes each
+    - Generates routes in 30.{vnet_id}.0.0/32 range
+    - Validates routes in STATE_DB via redis-dump
+    - Confirms ASIC_DB programming
+    - Restores config via minigraph reload after test
+    - Uses sonic-cfggen for bulk route programming
+=============================================================================
+"""
 import json
 import random
 import sys

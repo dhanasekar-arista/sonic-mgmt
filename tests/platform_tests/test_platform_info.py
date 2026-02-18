@@ -1,8 +1,56 @@
 """
-Check platform information
+=============================================================================
+Module: platform_tests
+File: test_platform_info.py
+=============================================================================
 
-This script covers the test case 'Check platform information' in the SONiC platform test plan:
-https://github.com/sonic-net/SONiC/blob/master/doc/pmon/sonic_platform_test_plan.md
+Description:
+    Comprehensive platform information validation covering PSU status, fan status,
+    temperature monitoring, thermal control policies, and hardware component health.
+    Covers 'Check platform information' test case from SONiC platform test plan.
+
+Test Intent:
+    - test_show_platform_psustatus: Verify 'show platform psustatus' displays correct PSU info
+    - test_show_platform_psustatus_json: Validate JSON output format for PSU status
+    - test_show_platform_fan: Test 'show platform fan' displays fan status correctly
+    - test_show_platform_temperature: Verify temperature monitoring output
+    - test_thermal_control_load_invalid_format_json: Validate thermal policy rejects invalid JSON
+    - test_thermal_control_load_invalid_value_json: Test thermal policy rejects invalid values
+    - test_thermal_control_psu_absence: Verify PSU absence handling in thermal algorithm
+    - test_thermal_control_fan_status: Validate fan status monitoring and alerts
+    - test_sensord_running_status: Verify lm-sensors daemon is running
+
+Topology:
+    Any topology - physical devices only
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hardware SKU
+    - mocker_factory: Creates thermal control mockers
+    - disable_thermal_policy: Disables thermal policy for testing
+    - pdu_controller: PDU controller for PSU power cycling
+
+Dependencies:
+    - show platform CLI commands (psustatus, fan, temperature)
+    - Thermal control daemon and policy files
+    - lm-sensors daemon (sensord)
+    - LogAnalyzer for syslog monitoring
+    - PSU helpers for outlet control
+    - ThermalPolicyFileContext for policy file manipulation
+
+Notes:
+    - Test plan: https://github.com/sonic-net/SONiC/blob/master/doc/pmon/sonic_platform_test_plan.md
+    - PSU wait time: 20s (standard), 60s (modular chassis)
+    - Thermal control wait time: 65s with 5s check interval
+    - Invalid policy files trigger expected log messages
+    - Fan status alerts: remove, fault, under_speed, over_speed (with cleared variants)
+    - PSU status validated against JSON output and platform facts
+    - Temperature monitoring validates sensor readings are within thresholds
+    - Thermal control tests use mocker to simulate hardware conditions
+    - PDU cycling validates PSU absence handling
+    - Skip list excludes absent modules from testing
+    - sensord requires /etc/sensors.d/sensors.conf for support validation
+=============================================================================
 """
 import json
 import logging

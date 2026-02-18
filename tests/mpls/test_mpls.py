@@ -1,3 +1,57 @@
+"""
+=============================================================================
+Module: mpls
+File: test_mpls.py
+=============================================================================
+
+Description:
+    This test validates basic MPLS (Multiprotocol Label Switching) operations
+    on SONiC devices. It tests MPLS label push, pop, and swap operations for
+    both single labels and label stacks, ensuring proper packet forwarding
+    through the MPLS data plane.
+
+Test Intent:
+    - test_pop_label: Validates MPLS label pop operation. Sends MPLS packet
+      with label 1000001, verifies DUT pops the label and forwards as IP
+      packet with TTL decremented. Tests PHP (Penultimate Hop Popping).
+    - test_swap_label: Tests MPLS label swap operation. Sends MPLS packet
+      with label 1000001, verifies DUT swaps to new label 1000100 with TTL
+      decremented. Tests LSP (Label Switched Path) transit behavior.
+    - test_push_label: Validates MPLS label push operation. Sends IP packet,
+      verifies DUT pushes MPLS label 1000100 and forwards as MPLS packet with
+      TTL copied from IP TTL and decremented. Tests LER (Label Edge Router)
+      ingress behavior.
+    - test_swap_labelstack: Tests MPLS label swap with label stack. Sends
+      MPLS packet with 3-label stack, verifies DUT swaps top label to 1000100
+      while preserving remaining stack. Tests label stack manipulation.
+
+Topology:
+    t1 topology
+
+Fixtures Used:
+    - setup: Provides test setup information including DUT host, port
+      mappings, MAC addresses, IP addresses, and PTF port IDs
+    - ptfadapter: PTF adapter for packet injection and verification
+
+Dependencies:
+    - ptf.mask: For creating packet masks in verification
+    - ptf.packet: For packet construction
+    - ptf.testutils: For PTF test utilities
+    - MPLS configuration files in configs/ directory
+
+Notes:
+    - MPLS configuration files located in tests/mpls/configs/
+    - Uses label_pop_routes, label_push_routes, label_swap_routes config files
+    - Base class TestBasicMpls provides common MPLS test infrastructure
+    - teardown_labels applies empty configuration to clean up after tests
+    - ICMP packets used for IP packet tests
+    - Simple MPLS packets with configurable labels and TTL
+    - Label stack test uses 3-label stack with labels 1000001, 1000010, 1000011
+    - Verification masks ignore Ethernet src/dst and IP checksum
+    - TTL handling: decremented for both IP and MPLS forwarding
+    - Push operation copies IP TTL to MPLS TTL before decrement
+=============================================================================
+"""
 import logging
 import os
 import pprint

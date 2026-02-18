@@ -1,3 +1,66 @@
+"""
+Module: tests.dash
+File: test_dash_acl.py
+Description:
+    DASH ACL (Access Control List) test suite for DPU topology. This module provides
+    comprehensive testing of DASH ACL functionality including field matching, multi-stage
+    ACLs, IP tag-based ACLs, and special TCP RST handling on connection table misses.
+
+Test Intent:
+    - Validate ACL field matching (src/dst IP, ports, protocol)
+    - Test multi-stage ACL processing and rule priorities
+    - Verify IP tag-based ACL functionality (single and multiple tags)
+    - Test ACL tag ordering and priority handling
+    - Validate dynamic tag updates (IP add/remove from tags)
+    - Test ACL tag scale with large tag sets
+    - Verify handling of non-existent tags
+    - Validate TCP RST behavior on connection table miss with ACL permit/deny
+
+Topology:
+    - dpu: DPU topology for DASH testing
+    - Requires DASH configuration applied via fixtures
+    - Traffic flows through DPU ACL pipeline
+
+Fixtures Used:
+    - ptfadapter: PTF adapter for packet injection/verification
+    - skip_dataplane_checking: Flag to skip dataplane verification
+    - acl_fields_test: Fixture providing ACL field test configuration
+    - acl_multi_stage_test: Fixture for multi-stage ACL testing
+    - acl_tag_test: Fixture for single IP tag ACL testing
+    - acl_multi_tag_test: Fixture for multiple IP tag ACL testing
+    - acl_tag_order_test: Fixture for tag priority order testing
+    - acl_multi_tag_order_test: Fixture for multi-tag order testing
+    - acl_tag_update_ip_test: Fixture for dynamic IP add to tag testing
+    - acl_tag_remove_ip_test: Fixture for dynamic IP remove from tag testing
+    - acl_tag_scale_test: Fixture for tag scale testing
+    - acl_tag_not_exists_test: Fixture for non-existent tag testing
+    - acl_tcp_rst_test: Fixture for TCP RST on CT miss testing
+
+Dependencies:
+    - dash_acl: DASH ACL helper module with test fixtures and dataplane checkers
+    - ptf.testutils: PTF packet testing utilities
+    - pytest: Testing framework
+
+Notes:
+    - All ACL fixtures are defined in dash_acl module and imported here
+    - Tests use check_dataplane() for packet verification (except TCP RST test)
+    - TCP RST test uses check_tcp_rst_dataplane() for special validation
+    - Dataplane checking can be skipped via --skip_dataplane_checking flag
+    - TCP RST test validates two scenarios on NVIDIA DPU:
+      1. CT miss + No SYN packet (ACK) + ACL permit -> packet forwarded
+      2. CT miss + No SYN packet (ACK) + ACL deny -> packet dropped + RST sent
+    - ACL rules include src IP, dst IP, src port, dst port, protocol matching
+    - Tag tests validate dynamic tag membership and priority ordering
+    - Scale test ensures ACL performance with large tag sets
+
+Git History (last 5 commits):
+    dab77c420 Remove TACACS fixture from none TACACS test cases (#13422)
+    07f328770 Enable TACACS on test cases. (#12433)
+    7834ebaea [Mellanox] Add dash tcp rst test for DPU (#12609)
+    d6bf2ae8e [DASH] New test cases for dash acl tag (#11559)
+    d7371c53c [dash]: Add test cases for DASH ACL (#7848)
+"""
+
 import time
 import logging
 import pytest

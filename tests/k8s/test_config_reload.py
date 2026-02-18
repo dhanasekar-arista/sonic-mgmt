@@ -1,3 +1,39 @@
+"""
+=============================================================================
+Module: k8s
+File: test_config_reload.py
+=============================================================================
+
+Description:
+    This test module validates Kubernetes integration persistence across
+    configuration reload operations in SONiC. It ensures that when a DUT is
+    joined to a Kubernetes master and config reload is performed, the
+    connection to the master is maintained.
+
+Test Intent:
+    - test_config_reload_no_toggle: Verifies that a DUT joined to Kubernetes
+      master remains connected after config save and config reload operations
+
+Topology:
+    - any: Works with any topology
+
+Fixtures Used:
+    - duthost: DUT host object for configuration and validation
+    - k8scluster: Kubernetes master cluster fixture providing VIP address
+
+Dependencies:
+    - k8s_test_utilities: Helper functions for K8s join/status checking
+    - tests.common.config_reload: Configuration reload utilities
+    - tests.common.platform.processes_utils: Critical process monitoring
+
+Notes:
+    - Test joins DUT to Kubernetes master with disable=false
+    - Saves configuration before reload
+    - Performs config reload and waits for critical processes
+    - Validates server connection status is maintained after reload
+    - Polls for status change to ensure connection is stable
+=============================================================================
+"""
 import pytest
 import k8s_test_utilities as ku
 

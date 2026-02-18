@@ -1,3 +1,64 @@
+"""
+=============================================================================
+Module: srv6
+File: test_srv6_dataplane.py
+=============================================================================
+
+Description:
+    This test module validates SRv6 (Segment Routing over IPv6) data plane
+    functionality on SONiC switches including packet encapsulation, decapsulation,
+    segment processing, SID configuration persistence through reboots, counter
+    validation, and techsupport file generation for SRv6 operations.
+
+Test Intent:
+    - test_srv6_decap: Validates SRv6 packet decapsulation (uN behavior) by sending
+      SRv6-encapsulated packets and verifying proper inner packet extraction
+    - test_srv6_encap: Tests SRv6 packet encapsulation (T.Encaps/T.Insert behavior)
+      by validating segment list insertion and forwarding to correct nexthops
+    - test_srv6_counters: Verifies SRv6 counter statistics (RX/TX packets, drops)
+      are correctly incremented and clearable
+    - test_srv6_techsupport: Validates techsupport file generation includes SRv6
+      configuration and state information
+    - test_srv6_config_reload: Tests SRv6 configuration persistence through config
+      reload operations
+    - test_srv6_warm_reboot: Validates SRv6 functionality survives warm reboot
+    - test_srv6_cold_reboot: Ensures SRv6 configuration and forwarding persist
+      through cold reboot
+
+Topology:
+    - Supported: t0, t1
+    - ASIC types: Mellanox, Broadcom, VPP
+    - Requires SRv6-capable hardware and FRR with SRv6 support
+
+Fixtures Used:
+    - duthosts: All DUT hosts in testbed
+    - enum_frontend_dut_hostname: Frontend DUT selection
+    - enum_rand_one_asic_index: Random ASIC selection for multi-ASIC
+    - ptfadapter: PTF adapter for packet generation and verification
+    - ptfhost: PTF host for management operations
+    - tbinfo: Testbed information
+    - localhost: Local connection
+    - toggle_all_simulator_ports_to_rand_selected_tor: Dualtor mux control
+
+Dependencies:
+    - srv6_utils: SRv6 utility functions for SID management and validation
+    - tests.common.helpers.srv6_helper: SRv6 packet crafting and validation
+    - scapy: Packet generation with SRH (Segment Routing Header)
+    - FRR: BGP and SRv6 routing protocol support
+
+Notes:
+    - SRv6 behaviors tested: uN (decapsulation), T.Encaps, T.Insert
+    - SID format: fcbb:bbbb:1::/48 (locator) + function
+    - Validates APPL_DB and ASIC_DB SID entries
+    - Counter validation includes RX packets, TX packets, drop counts
+    - Techsupport should contain "show segment-routing srv6" output
+    - Config reload preserves SRv6 MY_SID and locator configuration
+    - Warm/cold reboot: validates BGP route sync and SRv6 forwarding restoration
+    - Mellanox-specific: platform detection for conditional logic
+    - Dualtor: mux port selection handled via fixture
+=============================================================================
+"""
+
 import pytest
 import time
 import random

@@ -1,3 +1,40 @@
+"""
+=============================================================================
+Module: voq
+File: test_fabric_cli_and_db.py
+=============================================================================
+
+Description:
+    This test validates the fabric link isolation/unisolation functionality
+    on VOQ (Virtual Output Queue) chassis systems. It verifies that fabric
+    CLI commands correctly update both CONFIG_DB and APPL_DB when fabric
+    links are isolated or unisolated on linecard ASICs.
+
+Test Intent:
+    - test_fabric_cli_isolate_linecards: Iterates through fabric links on
+      each linecard ASIC, isolates and unisolates each link, and verifies
+      that the isolateStatus is correctly updated in both CONFIG_DB (by CLI)
+      and APPL_DB (by fabric manager daemon) after each state change.
+
+Topology:
+    t2 (VOQ chassis topology)
+
+Fixtures Used:
+    - duthosts: Multi-DUT fixture for chassis systems
+    - enum_frontend_dut_hostname: Enumerates frontend DUTs (linecards)
+
+Dependencies:
+    - tests.common.helpers.assertions: For pytest assertions
+
+Notes:
+    - Test is specific to T2 VOQ chassis systems with supervisor and linecards
+    - Only tests a subset of fabric links (6) to reduce test execution time
+    - Validates fabric manager daemon correctly syncs state from CONFIG_DB to APPL_DB
+    - Supports multi-ASIC linecards
+    - Tests randomly selected fabric ports to ensure broad coverage
+    - Restores original isolation status after each test iteration
+=============================================================================
+"""
 import pytest
 from tests.common.helpers.assertions import pytest_assert
 import logging

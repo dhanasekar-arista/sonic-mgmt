@@ -1,3 +1,36 @@
+"""
+=============================================================================
+Module: wan/isis
+File: test_isis_intf_passive.py
+=============================================================================
+
+Description:
+    This test validates ISIS passive interface configuration. It verifies
+    that interfaces can be configured as passive (not sending/receiving ISIS
+    PDUs) and that this configuration is correctly applied.
+
+Test Intent:
+    - test_isis_intf_passive: Validates passive interface configuration by
+      setting isis_passive to false and verifying the configuration
+
+Topology:
+    wan-com (WAN common topology)
+
+Fixtures Used:
+    - isis_common_setup_teardown: Sets up ISIS configuration
+    - isis_setup_teardown_no_intf_passive: Function-scoped fixture that
+      disables passive mode and reverts after test
+
+Dependencies:
+    - tests.common.helpers.assertions: For pytest assertions
+    - isis_helpers: For ISIS configuration helpers
+
+Notes:
+    - Passive interfaces advertise prefixes but don't form adjacencies
+    - Config key: isis_passive set to 'false'
+    - Automatically reverts configuration after test
+=============================================================================
+"""
 import pytest
 import logging
 import functools

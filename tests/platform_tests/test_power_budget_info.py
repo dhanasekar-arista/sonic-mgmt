@@ -1,3 +1,41 @@
+"""
+=============================================================================
+Module: platform_tests
+File: test_power_budget_info.py
+=============================================================================
+
+Description:
+    Tests power budget information in STATE_DB for T2 modular chassis supervisor.
+    Validates supplied power from PSUs and consumed power from modules against
+    expected values.
+
+Test Intent:
+    - test_power_redis_db: Verify power budget data in STATE_DB (DB 6) shows correct
+      supplied and consumed power values
+
+Topology:
+    T2 modular chassis topology - supervisor node
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - enum_supervisor_dut_hostname: Selects supervisor DUT
+    - tbinfo: Testbed information
+
+Dependencies:
+    - STATE_DB (database 6) for power budget data
+    - redis-dump for STATE_DB queries
+    - get_skip_mod_list for skipping absent modules
+
+Notes:
+    - Test runs on supervisor node only
+    - Validates supplied power > 0 for each PSU
+    - Validates consumed power > 0 for each present module
+    - Skips absent modules and PSUs from skip_mod_list
+    - Power values extracted from redis-dump JSON output
+    - Field names: "Supplied Power <PSU>" and "Consumed Power <MODULE>"
+    - Checks total supplied and consumed power budgets
+=============================================================================
+"""
 import logging
 import re
 import json

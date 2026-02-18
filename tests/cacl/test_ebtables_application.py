@@ -1,3 +1,43 @@
+"""
+=============================================================================
+Module: cacl
+File: test_ebtables_application.py
+=============================================================================
+
+Description:
+    This test verifies that ebtables (Ethernet bridge tables) rules are
+    correctly applied on the DUT during initialization. It validates Layer 2
+    filtering rules that control bridge traffic, particularly for blocking
+    specific MAC address types and protocol frames.
+
+Test Intent:
+    - test_ebtables_application: Validates that all expected ebtables rules
+      are present in the FORWARD chain, including rules to drop broadcast/
+      multicast traffic, ARP packets, and VLAN-encapsulated ARP frames.
+      Ensures no unexpected rules exist on the device.
+
+Topology:
+    any - This test can run on any topology configuration
+
+Fixtures Used:
+    - duthosts: Multi-DUT fixture providing access to all DUT hosts
+    - enum_rand_one_per_hwsku_hostname: Randomly selects one DUT per hardware SKU
+    - enum_asic_index: Enumerates ASIC indices for multi-ASIC platforms
+
+Dependencies:
+    - pytest: Test framework
+    - tests.common.helpers.assertions: Custom assertion helpers (pytest_assert)
+    - ebtables: Ethernet bridge filtering utility on DUT
+
+Notes:
+    - Test is disabled for loganalyzer to prevent false positives
+    - Expected rules include blocking BGA (Broadcast Group Address), ARP,
+      VLAN-encapsulated ARP, and Multicast destinations
+    - Multi-ASIC platforms are supported through enum_asic_index
+    - Rules are compared as sets to detect both missing and unexpected rules
+=============================================================================
+"""
+
 import pytest
 from tests.common.helpers.assertions import pytest_assert
 

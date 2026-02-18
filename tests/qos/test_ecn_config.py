@@ -1,6 +1,48 @@
 """
-Tests for verifying the configuration on the DUT
-to match the expected WRED probability configuration
+=============================================================================
+Module: qos
+File: test_ecn_config.py
+=============================================================================
+
+Description:
+    This test validates the WRED (Weighted Random Early Detection) ECN marking
+    and drop probability configuration on Cisco devices. It verifies that the
+    actual marking/drop probabilities programmed in hardware match expected
+    values based on SMS/VoQ/Age quantization regions.
+
+Test Intent:
+    - test_verify_ecn_marking_config: Fetches WRED probability configuration
+      from hardware using Cisco NPU commands. For each port with PFC enabled,
+      validates that ECN marking probabilities match expected values for
+      different SMS (Shared Memory Space), VoQ (Virtual Output Queue), and
+      Age quantization regions. Also verifies drop probability is set to
+      maximum (7) only for the last VoQ quantization level.
+
+Topology:
+    any topology
+
+Fixtures Used:
+    - duthosts: List of DUT hosts
+    - rand_one_dut_hostname: Randomly selected DUT hostname
+
+Dependencies:
+    - Cisco dshell_client: Debug shell service in syncd container for NPU access
+    - tests.common platform utilities
+
+Notes:
+    - Only applicable to Cisco devices with NPU debug capabilities
+    - Skips test on HBM-based devices (detected by 'hbm_usage' in output)
+    - Requires dshell_client to be running in syncd container
+    - Automatically starts/restarts dshell_client if disabled
+    - Waits up to 80 seconds for dshell service to become available
+    - Only tests ports with PFC enabled (pfc_enable in PORT_QOS_MAP)
+    - Marking probability levels: 0 (age_idx==0), 1 (voq_idx>=1, age_idx==1),
+      2 (voq_idx>=1, age_idx==2), 3 (voq_idx>=1, age_idx>=3)
+    - Drop probability: 7 for last voq_idx quantization, 0 for all others
+    - Works with both single-ASIC and multi-ASIC configurations
+    - Uses JSON output from 'show platform npu voq cgm_profile' command
+    - Validates wm_prob (WRED marking probability) configuration
+=============================================================================
 """
 
 import logging

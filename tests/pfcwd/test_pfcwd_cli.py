@@ -1,3 +1,46 @@
+"""
+=============================================================================
+Module: pfcwd
+File: test_pfcwd_cli.py
+=============================================================================
+
+Description:
+    This test verifies Priority Flow Control Watchdog (PFCwd) show statistics
+    CLI functionality. It tests PFC storm detection and restoration with
+    various watchdog actions (drop/forward) and validates that PFCwd stats
+    are correctly reported via the CLI interface.
+
+Test Intent:
+    - test_pfcwd_show_stat: Validates PFCwd show statistics CLI command by
+      testing storm detection/restoration with both drop and forward actions.
+      Verifies Tx/Rx packet counters (drop counts for drop action, ok counts
+      for forward action) are properly incremented and reported after PFC
+      storm events.
+
+Topology:
+    t0, t1, lt2, ft2 topologies
+
+Fixtures Used:
+    - setup_pfc_test: Module-scoped fixture providing PFC test parameters
+    - setup_dut_test_params: Provides DUT-specific test parameters
+    - enum_fanout_graph_facts: Fanout device graph information
+    - stop_pfcwd: Function-scoped autouse fixture to stop/start PFCwd
+    - ignore_expected_loganalyzer_exceptions: Ignores KVM-specific log errors
+    - set_pfc_time_cisco_8000: Sets PFC timer for Cisco 8000 platforms
+
+Dependencies:
+    - tests.common.helpers.pfc_storm.PFCStorm: PFC storm generation
+    - tests.common.helpers.pfcwd_helper: PFCwd utility functions
+    - tests.ptf_runner: PTF test execution
+    - tests.common.cisco_data: Cisco device detection
+
+Notes:
+    - Test temporarily shuts down LAG members for portchannel testing
+    - Skips test if no neighbor devices are detected
+    - Cisco devices only test drop action (skip forward action)
+    - Mellanox and Cisco-8000 platforms have modified Rx traffic action
+=============================================================================
+"""
 import datetime
 import logging
 import pytest

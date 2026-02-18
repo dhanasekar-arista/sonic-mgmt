@@ -1,13 +1,44 @@
-###############################################################################
-# This test case demonstrates:
-#   * All the fixtures required for running ixia script (please see the
-#     arguments of the test function)
-#   * How Ixia chassis card/ports are addressed
-#   * How you can configure/control ixia devices, start traffic and collect
-#     statistics.
-#   * This simple sanity test case can be used to check if testbed setup
-#     is correct or not.
-###############################################################################
+"""
+=============================================================================
+Module: ixia
+File: test_ixia_traffic.py
+=============================================================================
+
+Description:
+    This test module serves as a sanity check and demonstration for IXIA
+    traffic generator integration with SONiC testbed. It shows how to configure
+    IXIA devices, create traffic flows, start/stop protocols and traffic, and
+    collect statistics.
+
+Test Intent:
+    - test_testbed: Demonstrates complete IXIA workflow including port
+      configuration, topology setup, IPv4 traffic creation, protocol/traffic
+      start/stop, and flow statistics collection. Serves as sanity check for
+      IXIA testbed setup.
+
+Topology:
+    - tgen: Requires IXIA traffic generator topology
+
+Fixtures Used:
+    - ixia_api_server_session: IXIA API server session
+    - conn_graph_facts: Connection graph for DUT-to-IXIA connectivity
+    - fanout_graph_facts: Fanout topology information
+    - fanouthosts: Fanout switch hosts
+
+Dependencies:
+    - tests.common.ixia.ixia_helpers: IXIA configuration and control functions
+    - tests.common.ixia.common_helpers: VLAN and address utilities
+    - tests.common.ixia.ixia_fixtures: IXIA server connection fixtures
+
+Notes:
+    - This is a demonstration/sanity test for IXIA integration
+    - Shows how to address IXIA chassis cards and ports
+    - Demonstrates complete traffic test lifecycle
+    - Can be used to verify testbed setup is correct
+    - Log analyzer is disabled for this test
+    - Creates simple IPv4 bidirectional traffic between IXIA ports
+=============================================================================
+"""
 
 import time
 import pytest

@@ -1,3 +1,54 @@
+"""
+=============================================================================
+Module: dualtor_mgmt
+File: test_toggle_mux.py
+=============================================================================
+
+Description:
+    Test suite for validating mux cable state toggling on dual-ToR active-standby configurations.
+    This module tests manual and automatic mux mode operations, probe interval adjustments, and
+    state consistency between the mux simulator and DUT after toggling between active and standby
+    states on upper and lower ToRs.
+
+Test Intent:
+    - test_toggle_mux_from_upper_to_lower: Verify manual toggle from upper ToR active to lower ToR active succeeds
+    - test_toggle_mux_from_lower_to_upper: Verify manual toggle from lower ToR active to upper ToR active succeeds
+    - test_toggle_mux_from_upper_to_upper: Verify toggle from upper ToR to upper ToR (no change) succeeds
+    - test_toggle_mux_from_lower_to_lower: Verify toggle from lower ToR to lower ToR (no change) succeeds
+    - test_toggle_mux_from_active_to_auto: Verify toggling from manual active mode back to auto mode succeeds
+    - test_toggle_mux_from_standby_to_auto: Verify toggling from manual standby mode back to auto mode succeeds
+
+Topology:
+    - dualtor: Dual-ToR topology with active-standby cable type only
+
+Fixtures Used:
+    - active_standby_ports: Active-standby port configuration (skips if no ports available)
+    - restore_mux_auto_mode: Restores all muxcable to auto mode after test
+    - reset_link_prober_interval_v4: Resets link prober interval_v4 to original value after module
+    - reduce_and_add_back_link_prober_interval_v4: Reduces interval_v4 to 100ms during test, restores after
+
+Dependencies:
+    - config muxcable mode command for manual state control
+    - show muxcable status command for state verification
+    - MUX_LINKMGR config for link prober interval adjustment
+    - Mux simulator control for state verification
+    - wait_until utility for polling state changes
+
+Notes:
+    - Tests are marked with pytest.mark.topology("dualtor")
+    - Tests skip on non-dualtor testbed or when no active-standby ports available
+    - Mux modes: active (manual active), standby (manual standby), auto (automatic switchover)
+    - Link prober interval_v4 is temporarily reduced to 100ms for faster state convergence
+    - Tests use wait_until with 30-second timeout for mux state stabilization
+    - Mux state verification uses both DUT (show muxcable status) and simulator (check_mux_status)
+    - validate_check_result ensures mux state matches expected values
+    - UPPER_TOR and LOWER_TOR constants identify ToR in dual-ToR pair
+    - Auto mode restores automatic failover based on link health
+    - Tests verify both control plane (config) and operational state (status)
+
+=============================================================================
+"""
+
 import logging
 import json
 import pytest

@@ -1,3 +1,61 @@
+"""
+=============================================================================
+Module: dns.static_dns
+File: test_static_dns.py
+=============================================================================
+
+Description:
+    Comprehensive test suite for SONiC static DNS configuration functionality. This module
+    validates static DNS nameserver configuration, persistence across reboots, interaction
+    with dynamic DNS (DHCP), validation of invalid inputs, and proper handling of both
+    static and dynamic management IP configurations.
+
+Test Intent:
+    - test_static_dns_basic: Verify static DNS nameservers can be added, persist across reboot/reload, and deleted successfully
+    - test_dynamic_dns_not_working_when_static_ip_configured: Verify dynamic DNS (DHCP) does not update nameservers when static mgmt IP is configured
+    - test_static_dns_is_not_changing_when_do_dhcp_renew: Verify static DNS is not overwritten when DHCP renew occurs (dynamic mgmt IP)
+    - test_dynamic_dns_working_when_no_static_ip_and_static_dns: Verify dynamic DNS works when static DNS is deleted and mgmt IP becomes dynamic
+    - test_static_dns_negative: Verify proper error messages for invalid operations (multicast IPs, unconfigured IPs, duplicates, max limit)
+
+Topology:
+    - any: Test works on any topology (t0, t1, t2, m0, mx, etc.)
+
+Fixtures Used:
+    - duthost: DUT host object for executing commands
+    - localhost: Localhost object for reboot operations
+    - backup_and_restore_config_db: Module-level fixture to backup/restore config_db.json
+    - mgmt_interfaces: Management interface IP configuration information
+    - stop_dhclient: Function-level fixture to cleanup dhclient processes after test
+    - static_mgmt_ip_configured: Class-level fixture ensuring static mgmt IP is configured
+    - static_mgmt_ip_not_configured: Class-level fixture ensuring dynamic mgmt IP (DHCP)
+    - static_dns_clean: Function-level fixture to clean up static DNS configuration
+
+Dependencies:
+    - CONFIG_DB DNS_NAMESERVER table for static DNS configuration
+    - /etc/resolv.conf file for DNS resolution
+    - /etc/resolv.conf.bk backup file for dynamic nameservers
+    - systemd resolv-config.service for DNS configuration management
+    - dhclient for DHCP-based dynamic DNS
+    - hostcfgd service for DNS configuration updates
+    - static_dns_util helper module for DNS operations
+
+Notes:
+    - Test is marked with skip_check_dut_health to avoid health checks
+    - Maximum of 3 nameservers allowed per DNS configuration
+    - Supported nameserver types: IPv4 unicast, IPv6 unicast, IPv4 loopback (127.x.x.x)
+    - Unsupported nameserver types: IPv4 multicast, IPv6 multicast
+    - Static DNS takes precedence over dynamic DNS from DHCP
+    - Reboot types: reload, cold, fast, warm, or random selection
+    - Static DNS persists across all reboot types when config is saved
+    - When all static DNS deleted, dynamic DNS from DHCP may restore (if mgmt IP is dynamic)
+    - Static mgmt IP prevents DHCP from updating DNS nameservers
+    - resolv-config.service automatically updates /etc/resolv.conf when CONFIG_DB changes
+    - dhclient uses -pf flag to specify PID file for process management
+    - Test validates both CONFIG_DB and /etc/resolv.conf consistency
+
+=============================================================================
+"""
+
 import pytest
 import logging
 import random

@@ -1,3 +1,61 @@
+"""
+=============================================================================
+Module: acl/custom_acl_table
+File: test_custom_acl_table.py
+=============================================================================
+
+Description:
+    This test module validates the functionality of custom ACL table types in SONiC.
+    It tests the ability to define custom ACL table types with specific match fields
+    and actions, create ACL tables using those custom types, and apply ACL rules that
+    use the custom match criteria. The test verifies packet forwarding behavior and
+    ACL counter increments for rules using custom match fields.
+
+Test Intent:
+    - test_custom_acl: Validates end-to-end functionality of custom ACL tables. Steps include:
+      1) Define custom ACL table type (CUSTOM_TYPE) with match fields and actions
+      2) Create ingress ACL table bound to Vlan1000 using the custom type
+      3) Add ACL rules matching on custom fields (SRC_IP, DST_IP, PROTOCOL, L4 ports, port ranges)
+      4) Send test packets from VLAN port to upstream ports
+      5) Verify packets are forwarded correctly (not dropped)
+      6) Verify ACL counters increment for each matching rule (RULE_2, RULE_4, RULE_5, RULE_6, RULE_7, RULE_8)
+
+Topology:
+    - t0 topology required
+    - DualTOR topologies supported (including dualtor-aa active-active)
+    - Test uses VLAN interface as ingress port
+    - Packets egress via PortChannel members or upstream neighbor ports
+
+Fixtures Used:
+    - setup_custom_acl_table: Module-scoped fixture that defines custom ACL table type
+      and creates ACL table bound to Vlan1000 interface, removes table in teardown
+    - setup_acl_rules: Module-scoped fixture that loads ACL rules from JSON template,
+      verifies successful rule creation via log analysis, removes rules in teardown
+    - remove_dataacl_table: Module-scoped autouse fixture to free TCAM resources by
+      removing DATAACL table, restores it after test completion
+    - setup_counterpoll_interval: Module-scoped fixture that sets ACL counter polling
+      to 1 second for faster verification, restores 10-second default in teardown
+    - toggle_all_simulator_ports_to_rand_selected_tor: DualTOR mux simulator control
+
+Dependencies:
+    - tests.common.plugins.loganalyzer: Log analysis for ACL table/rule creation verification
+    - tests.common.utilities: Topology utilities, IPv6-only detection
+    - tests.common.dualtor: DualTOR mux simulator control
+    - ptf.testutils: PTF packet generation and verification
+    - tests.common.helpers.assertions: Test assertion helpers
+
+Notes:
+    - Custom ACL table type defined via JSON configuration file loaded with sonic-cfggen
+    - Test file: acl/custom_acl_table/custom_acl_table.json defines CUSTOM_TYPE
+    - ACL rules file: acl/custom_acl_table/acl_rules.json contains test rules
+    - Rules test: destination IP/IPv6, protocol, source/destination ports, port ranges
+    - ACL counter polling interval reduced to 1 second for test performance
+    - Test skipped on VS platform as ACL counter verification is not reliable
+    - DualTOR active-active topology sums counters from both DUTs
+    - IPv6-only topologies skip IPv4-specific rules (RULE_2, RULE_5, RULE_7)
+=============================================================================
+"""
+
 import logging
 import json
 import pytest

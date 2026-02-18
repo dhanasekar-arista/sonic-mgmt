@@ -1,3 +1,55 @@
+"""
+=============================================================================
+Module: voq
+File: test_voq_ipfwd.py
+=============================================================================
+
+Description:
+    This comprehensive test suite validates IP forwarding functionality on
+    VOQ chassis systems. It tests both IPv4 and IPv6 forwarding across
+    different paths (intra-linecard, inter-linecard, to/from VMs), validates
+    TTL/hop-limit decrement, MTU handling, and robustness during link flaps.
+
+Test Intent:
+    - pick_ports: Helper function to select appropriate source and destination
+      ports for different forwarding scenarios
+    - check_packet: Helper to verify packet forwarding using PTF tests
+    - test_voq_ipfwd: Main test that validates basic IP forwarding between
+      selected port pairs in both directions
+    - test_voq_ping: Tests ICMP reachability between all frontend nodes using
+      both sonic_ping and eos_ping utilities
+    - test_voq_ipfwd_during_linkflap: Validates that IP forwarding continues
+      to work during and after link flap events
+    - (Additional MTU and TTL tests)
+
+Topology:
+    t2 (VOQ chassis topology)
+
+Fixtures Used:
+    - duthosts: Multi-DUT fixture for chassis systems
+    - all_cfg_facts: Configuration facts for all DUTs and ASICs
+    - nbrhosts: Neighbor host objects
+    - ptfadapter: PTF adapter for packet testing
+    - loganalyzer: Module-scoped log analysis (auto-use)
+    - copy_ptftests_directory: Copies PTF test scripts to PTF host
+
+Dependencies:
+    - tests.ptf_runner: For running PTF test scripts
+    - tests.common.helpers.voq_helpers: For VOQ-specific utilities
+    - tests.common.plugins.loganalyzer: For log analysis
+    - .test_voq_nbr.LinkFlap: For link flap utilities
+
+Notes:
+    - Loganalyzer is disabled for this test module
+    - Sanity check marker disables monit during testing
+    - Default TTL values: 64 for both SONiC and EOS
+    - Maximum MTU tested: 9100 bytes
+    - Tests use PTF runner for packet verification
+    - Supports both IPv4 and IPv6 forwarding paths
+    - Log analyzer runs at module scope for efficiency
+    - Tests validate forwarding on vs platform with special handling
+=============================================================================
+"""
 import logging
 import pytest
 import random

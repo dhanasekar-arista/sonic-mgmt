@@ -1,3 +1,54 @@
+"""
+=============================================================================
+Module: disk
+File: test_disk_exhaustion.py
+=============================================================================
+
+Description:
+    Test suite to validate SONiC system resilience and basic functionality when disk space
+    is exhausted. This module simulates disk full conditions by allocating 95% of available
+    space on the /host partition and verifies that critical operations like SSH connectivity
+    and packet forwarding remain functional during disk exhaustion scenarios.
+
+Test Intent:
+    - test_disk_exhaustion: Verify SONiC maintains SSH connectivity and packet forwarding when disk is nearly full (95% allocated)
+
+Topology:
+    - any: Test works on any topology (t0, t1, t2, m0, mx, backend, etc.)
+
+Fixtures Used:
+    - duthost: DUT host object for executing commands and retrieving facts
+    - ptfadapter: PTF adapter for packet generation and verification
+    - tbinfo: Testbed information including topology type and host interfaces
+    - creds: Credentials dictionary for SSH authentication (sonicadmin_user, sonicadmin_password, ansible_altpasswords)
+
+Dependencies:
+    - PTF framework for packet generation and counting
+    - Paramiko SSH library for SSH connection testing
+    - fallocate command for efficient large file creation
+    - df command for disk space monitoring
+    - nohup for background script execution
+    - Router interface (RIF) counters (optional, platform-dependent)
+    - Minigraph facts for interface and neighbor information
+
+Notes:
+    - Test requires physical device (device_type='physical') as marked by pytestmark
+    - LogAnalyzer is disabled globally for this test due to expected disk full warnings
+    - Test allocates 95% of available space on /host partition using fallocate
+    - Background script automatically releases space after 60 seconds
+    - Test validates SSH connection using multiple password attempts (primary, alt, and ansible_altpasswords)
+    - Packet forwarding test sends 1000 packets and expects at least 90% (900) to be forwarded
+    - Supports both IPv4 and IPv6 topologies
+    - Supports backend topologies with VLAN sub-interfaces
+    - Supports multi-ASIC devices with proper namespace handling
+    - RIF counters are checked if platform supports them (N/A indicates no support)
+    - Test constructs simple IP packets with TTL/HLIM decrement validation
+    - Cleanup ensures disk space is released and Use% returns to normal levels
+    - Final assertion confirms Use% after test is less than 100% and not more than 1.25x original Use%
+
+=============================================================================
+"""
+
 import ipaddress
 import logging
 import re

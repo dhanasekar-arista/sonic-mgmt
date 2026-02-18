@@ -1,3 +1,66 @@
+"""
+=============================================================================
+Module: acl/null_route
+File: test_null_route_helper.py
+=============================================================================
+
+Description:
+    This test module validates the null_route_helper script functionality in SONiC.
+    The null_route_helper script provides a command-line interface to dynamically
+    block or unblock IP addresses using ACL rules, enabling on-demand traffic filtering
+    for security or operational purposes. Tests verify that the helper correctly creates
+    and removes ACL rules, and that traffic is forwarded or dropped as expected.
+
+Test Intent:
+    - test_null_route_helper: Validates the null_route_helper script with comprehensive
+      test scenarios covering:
+      * Default forwarding behavior (no ACL rules)
+      * Blocking IPv4 addresses with and without prefix length
+      * Unblocking IPv4 addresses with prefix length
+      * Double-block/double-unblock operations (idempotency)
+      * Blocking IPv6 addresses with and without prefix length
+      * Unblocking IPv6 addresses with prefix length
+      * Verifying ACL rule creation and activation in ACL tables
+      * Packet forwarding/dropping based on block/unblock state
+
+Topology:
+    - Supports t0, m0, mx, m1 topologies
+    - Test uses VLAN interface for packet egress
+    - Packets ingress from upstream neighbor ports (PortChannels or physical ports)
+
+Fixtures Used:
+    - remove_data_everflow_acl_table: Module-scoped autouse fixture that removes DATAACL
+      and EVERFLOWV6 tables to free TCAM resources, restores them after tests
+    - create_acl_table: Module-scoped fixture that creates two ACL tables
+      (NULL_ROUTE_ACL_TABLE_V4 for L3, NULL_ROUTE_ACL_TABLE_V6 for L3V6) bound to
+      upstream ports/PortChannels, removes tables in teardown
+    - apply_pre_defined_rules: Module-scoped fixture that applies baseline ACL rules
+      from JSON template, clears them after test
+    - setup_ptf: Module-scoped fixture that configures PTF interface with IPv4 and IPv6
+      addresses on VLAN member port for traffic reception
+    - remove_ip_addresses: PTF IP address cleanup fixture
+
+Dependencies:
+    - tests.common.plugins.loganalyzer: Log analysis for ACL table creation verification
+    - tests.common.utilities: Topology utilities, neighbor detection, wait_until polling
+    - tests.common.helpers.assertions: Test assertion helpers
+    - tests.common.fixtures.ptfhost_utils: PTF IP address management
+    - ptf.testutils: PTF packet generation and verification
+    - ipaddress: IP address parsing and version detection
+
+Notes:
+    - null_route_helper commands: "block <table> <ip>" and "unblock <table> <ip>"
+    - Block creates ACL rule with DROP action, unblock removes the rule
+    - PREFIX length optional for block, required for unblock in current implementation
+    - Test skipped if ACL table creation fails due to insufficient TCAM resources
+    - ACL rule verification uses wait_until polling (5 seconds max) for rule activation
+    - IPv4 tests skipped on IPv6-only topologies
+    - Pre-defined rules loaded from acl/null_route/acl.json as production baseline
+    - Test data includes comprehensive scenarios for both IPv4 and IPv6
+    - PTF interfaces configured with incremented VLAN IPs for traffic destination
+=============================================================================
+"""
+
 import ipaddress
 import logging
 import random

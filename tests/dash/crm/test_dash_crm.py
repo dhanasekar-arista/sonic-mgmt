@@ -1,3 +1,61 @@
+"""
+Module: tests.dash.crm
+File: test_dash_crm.py
+Description:
+    DASH CRM (Critical Resource Monitoring) test suite for DPU topology. This module
+    validates CRM functionality for all DASH-specific resources including thresholds,
+    counters, and syslog alerting for resource utilization on DPU devices.
+
+Test Intent:
+    - Validate default CRM configuration for all DASH resources
+    - Test CRM threshold monitoring (percentage and absolute)
+    - Verify CRM counters for VNET, ENI, routing, ACL resources
+    - Test syslog threshold exceeded/clear messages
+    - Validate CRM cleanup and resource restoration
+    - Ensure proper tracking of used/available resources
+    - Test ACL group and ACL rule counters separately
+
+Topology:
+    - dpu: DPU topology for DASH CRM testing
+    - Requires DASH configuration files in dash/crm/files/
+
+Fixtures Used:
+    - duthost: Device Under Test (DPU) host object
+    - localhost: Ansible localhost for file operations
+    - ptfhost: PTF host for gNMI configuration
+    - set_polling_interval: Sets CRM polling interval to CRM_POLLING_INTERVAL
+    - default_crm_facts: Captures baseline CRM state before test
+    - apply_resources_configs: Applies DASH CRM test configurations
+    - cleanup: Restores original CRM thresholds after all tests
+
+Dependencies:
+    - gnmi_utils: gNMI utilities for configuration via protobuf
+    - tests.common.helpers.crm: CRM helper functions and constants
+    - tests.common.plugins.loganalyzer: Log analysis for threshold messages
+    - tests.common.plugins.allure_wrapper: Allure reporting integration
+    - jinja2: Template rendering for configuration
+
+Notes:
+    - CRM polling interval set to CRM_POLLING_INTERVAL (default: 300s for restore)
+    - Test configuration files: set_dash_crm_config.json, del_dash_crm_config.json
+    - DASH resources tested: vnet, eni, eni_ether_address_map, routing (in/out),
+      pa_validation, outbound_ca_to_pa, acl_group, acl_rule
+    - Default thresholds: type=percentage, low=70%, high=85%
+    - Threshold verification includes exceeded and clear messages in syslog
+    - ACL rules tested per ACL group (supports multiple groups)
+    - Percentage validation only for ENI resource (shared logic validation)
+    - IPv6 tests currently skipped ("IPv6 not supported yet")
+    - CLI resource paths use custom mapping (get_dash_cli_crm_res_path)
+    - DASH_THR_VERIFY_CMDS excludes percentage thresholds (removed from THR_VERIFY_CMDS)
+    - Cleanup flag (pytest.crm_res_cleanup_required) controls resource deletion
+
+Git History (last 4 commits):
+    d6bf2ae8e [DASH] New test cases for dash acl tag (#11559)
+    33a641fa8 Update dash crm test to use GNMI for confiugration (#10882)
+    513c9ecb9 [topo]: Rename topology appliance to dpu (#9901)
+    ed2beb1ce [CRM] Implemented DASH CRM test case (#8146)
+"""
+
 import pytest
 import time
 import logging

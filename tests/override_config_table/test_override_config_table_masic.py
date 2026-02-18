@@ -1,3 +1,46 @@
+"""
+=============================================================================
+Module: override_config_table
+File: test_override_config_table_masic.py
+=============================================================================
+
+Description:
+    This test suite validates the Golden Config feature for multi-asic SONiC systems.
+    It verifies that golden config correctly overrides CONFIG_DB tables during
+    minigraph reload for both host-level and ASIC-level configurations. Multi-asic
+    systems have separate config_db files for each ASIC (config_db0.json, config_db1.json, etc.)
+    in addition to the main config_db.json.
+
+Test Intent:
+    - test_load_minigraph_with_golden_empty_input: Verify empty golden config preserves host and ASIC configs during minigraph reload
+    - test_load_minigraph_with_golden_config: Verify golden config overrides tables on both host and all ASICs during minigraph reload
+
+Topology:
+    t2, t1 - Requires T1 or T2 topology (multi-asic chassis systems)
+
+Fixtures Used:
+    - setup_env: Module-level fixture that backs up all ASIC configs, reloads minigraph, restores after test
+    - check_image_version: Skips test for SONiC images older than 202111
+    - duthosts: All DUT hosts
+    - enum_rand_one_per_hwsku_frontend_hostname: Randomly selected frontend DUT per hwsku
+    - tbinfo: Testbed information
+
+Dependencies:
+    - tests.common.utilities: Config backup/restore, minigraph reload utilities
+    - tests.common.config_reload: Config reload functionality for multi-asic
+
+Notes:
+    - Multi-asic systems have per-ASIC config files: config_db0.json, config_db1.json, etc.
+    - Golden config file location: /etc/sonic/golden_config_db.json (host-level only)
+    - Feature requires SONiC 202205 or newer
+    - Test backs up config_db.json for host and all ASIC config_db files
+    - PFCWD default state is disabled for m0/mx topologies during test
+    - Non-user config tables are excluded from verification
+    - Both host and ASIC0 (and other ASICs) configs are validated separately
+    - After test, all host and ASIC configurations are restored
+    - Empty golden config should preserve both host and ASIC configurations unchanged
+=============================================================================
+"""
 import logging
 import pytest
 

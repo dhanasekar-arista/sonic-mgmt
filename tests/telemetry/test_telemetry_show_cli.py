@@ -1,3 +1,66 @@
+"""
+=============================================================================
+Module: telemetry
+File: test_telemetry_show_cli.py
+=============================================================================
+
+Description:
+    This test file validates gNMI integration with SONiC CLI SHOW commands,
+    allowing network operators to retrieve show command output via gNMI protocol.
+    It tests that various SHOW commands (reboot-cause, interfaces, bgp, etc.) can
+    be accessed through gNMI GET operations and that non-GET operations are properly
+    rejected for read-only SHOW targets.
+
+Test Intent:
+    - test_telemetry_show_non_get: Validates that SHOW target only supports GET
+      method by attempting a SUBSCRIBE operation on reboot-cause path and verifying
+      it fails with appropriate error, ensuring SHOW commands are read-only via gNMI.
+    - test_telemetry_show_get: Tests gNMI GET operations for all SHOW command paths
+      defined in cli_paths.json by executing required setup functions, querying
+      each show command via gNMI GET, and verifying output format and content using
+      validation functions from cli_helpers, ensuring comprehensive SHOW command
+      coverage via gNMI.
+
+Topology:
+    any (works with any topology type)
+
+Fixtures Used:
+    - duthosts: Provides access to all DUT hosts
+    - localhost: Local host object for operations
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hwsku
+    - ptfhost: PTF host for running gNMI client
+    - setup_streaming_telemetry: Configures streaming telemetry (parametrized False)
+    - gnxi_path: Path to gNMI client tools on PTF
+    - request: Pytest request object for dynamic fixture loading
+    - skip_non_container_test: Skips test if not running in container environment
+
+Dependencies:
+    - pytest: Test framework
+    - json: For parsing CLI paths configuration
+    - tests.common.helpers.assertions: For test assertions
+    - cli_helpers: Custom helper module with setup and verify functions for show commands
+    - telemetry_utils: gNMI CLI generation utilities
+
+Notes:
+    - gNMI target: SHOW (read-only CLI commands)
+    - Supported method: GET only (SUBSCRIBE not supported)
+    - CLI paths configuration file: cli_paths.json
+    - Each path in cli_paths.json includes:
+      - setup: setup function name (if required)
+      - setup_fixtures: list of fixtures for setup
+      - setup_args: arguments for setup function
+      - verify: verification function name
+      - verify_args: arguments for verification
+    - Example SHOW paths tested:
+      - reboot-cause: System reboot reason
+      - interfaces: Interface status and counters
+      - bgp: BGP protocol information
+      - platform: Platform/hardware details
+    - Setup functions prepare DUT state before query
+    - Verify functions validate gNMI response format and content
+    - Tests ensure CLI output is properly formatted for gNMI transport
+=============================================================================
+"""
 import logging
 import json
 import os

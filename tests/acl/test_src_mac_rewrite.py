@@ -1,8 +1,51 @@
 """
-Tests ACL to modify inner source MAC in VXLAN packets in SONiC.
+=============================================================================
+Module: acl
+File: test_src_mac_rewrite.py
+=============================================================================
 
-This test suite validates the INNER_SRC_MAC_REWRITE_ACTION functionality
-for ACL rules that can rewrite the inner source MAC address of VXLAN-encapsulated packets.
+Description:
+    This test module validates the INNER_SRC_MAC_REWRITE_ACTION functionality for ACL
+    rules in SONiC. It tests the ability to rewrite the inner source MAC address of
+    VXLAN-encapsulated packets based on ACL rules matching inner source IP and VNI.
+    The tests verify that ACL rules can modify VXLAN inner packet headers for traffic
+    engineering and policy enforcement in VXLAN overlay networks.
+
+Test Intent:
+    - test_single_ip_acl_rule: Validates ACL rule with single IP (/32) matching for
+      inner source MAC rewriting. Tests that specific IP addresses can be targeted
+      for MAC rewriting and that MAC modifications can be dynamically updated.
+    - test_range_ip_acl_rule: Validates ACL rule with IP range (/24) matching for
+      inner source MAC rewriting. Tests that ACL rules can target IP subnets and
+      rewrite MAC addresses for multiple IPs within the range.
+
+Topology:
+    - t0 topology required
+    - Physical devices only (not virtual switch)
+    - Cisco-8000 ASIC required (only platform supporting INNER_SRC_MAC_REWRITE_ACTION)
+
+Fixtures Used:
+    - setUp: Module-scoped fixture that configures VXLAN/VNET infrastructure including
+      tunnel creation, VNET configuration, route setup, and port selection
+    - tearDown: Module-scoped autouse fixture that cleans up ACL tables, VXLAN/VNET
+      configuration, and restores original config via backup
+    - get_function_completeness_level: Provides test completeness level from pytest config
+
+Dependencies:
+    - tests.common.vxlan_ecmp_utils: VXLAN configuration utilities
+    - tests.common.config_reload: Configuration reload functionality
+    - tests.common.helpers.assertions: Test assertion helpers
+    - ptf.testutils: PTF packet test utilities
+    - scapy.all: Packet crafting and parsing (Ether, IP, UDP)
+
+Notes:
+    - Test only runs on Cisco-8000 ASICs which support the INNER_SRC_MAC_REWRITE_ACTION
+    - Custom ACL table type must be defined with INNER_SRC_IP and TUNNEL_VNI matches
+    - ACL rules are applied in egress direction on PortChannel interfaces
+    - Configuration backup is created before tests and restored in teardown
+    - Tests verify both ACL counter increments and actual packet MAC rewriting
+    - VXLAN UDP port 4789, VNI 10000, and specific VTEP IPs are used for testing
+=============================================================================
 """
 
 import os

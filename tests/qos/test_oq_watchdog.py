@@ -1,21 +1,53 @@
-"""SAI thrift-based tests for the OQ watchdog feature in SONiC.
+"""
+=============================================================================
+Module: qos
+File: test_oq_watchdog.py
+=============================================================================
 
-This set of test cases verifies OQ watchdog behavior. These are dataplane
-tests that depend on the SAI thrift library in order to pause ports and read
-drop counters.
+Description:
+    SAI thrift-based tests for the OQ (Output Queue) watchdog feature in
+    SONiC. Validates that the OQ watchdog mechanism properly detects and
+    responds to queue stalls/hangs by triggering recovery actions.
 
-Parameters:
-    --ptf_portmap <filename> (str): file name of port index to DUT interface alias map. Default is None.
-        In case a filename is not provided, a file containing a port indices to aliases map will be generated.
+Test Intent:
+    - testOqWatchdog: Verifies OQ watchdog functionality by intentionally
+      blocking queues and confirming watchdog triggers as expected. Blocks
+      VoQ7 by setting credit_pir to 0, fills Q7 leakout with ping traffic,
+      blocks OQ0 by setting transmit_pir to 0, sends traffic on Q0, and
+      validates that OQ watchdog triggers within ~5 seconds. Then unblocks
+      queues and runs TrafficSanityTest to verify system recovery.
 
-    --qos_swap_syncd (bool): Used to install the RPC syncd image before running the tests. Default is True.
+Topology:
+    any topology
 
-    --qos_dst_ports (list) Indices of available DUT test ports to serve as destination ports. Note: This is not port
-        index on DUT, rather an index into filtered (excludes lag member ports) DUT ports. Plan is to randomize port
-        selection. Default is [0, 1, 3].
+Fixtures Used:
+    - check_skip_oq_watchdog_test: Class-scoped autouse fixture that skips
+      test if OQ watchdog is not enabled on the DUT
+    - ignore_log_oq_watchdog: Function-scoped fixture that adds ignore regex
+      patterns for expected HARDWARE_WATCHDOG and soft_reset log messages
+    - disable_voq_watchdog_function_scope: Disables VoQ watchdog during test
+    - dutTestParams: DUT host test parameters
+    - dutConfig: DUT configuration including interfaces, test port IDs/IPs
+    - dutQosConfig: DUT QoS configuration map
+    - get_src_dst_asic_and_duts: Source and destination ASIC/DUT information
 
-    --qos_src_ports (list) Indices of available DUT test ports to serve as source port. Similar note as in
-        qos_dst_ports applies. Default is [2].
+Dependencies:
+    - tests.common.fixtures.duthost_utils: DUT QoS maps and DSCP utilities
+    - tests.common.fixtures.ptfhost_utils: PTF test directory and MAC utilities
+    - tests.qos.qos_sai_base.QosSaiBase: Base class for QoS SAI tests
+    - SAI thrift library: For queue manipulation and counter reading
+
+Notes:
+    - Requires RPC syncd image (--qos_swap_syncd=True by default)
+    - Uses PTF test cases: sai_qos_tests.OqWatchdogTest and TrafficSanityTest
+    - Sends 100 packets per test iteration (PKTS_NUM = 100)
+    - Packet size: 1350 bytes, DSCP: 8, Queue: 0
+    - Blocks VoQ7 first to prevent dequeue/enqueue
+    - Uses ping with 50 packets at interval 0 to fill Q7 leakout
+    - Multi-ASIC support via namespace-specific ping commands
+    - Always unblocks queues in finally block to ensure cleanup
+    - Validates system recovery with TrafficSanityTest after unblock
+=============================================================================
 """
 
 import logging

@@ -1,3 +1,75 @@
+"""
+Module: tests.dhcp_relay.test_dhcp_pkt_recv
+File: test_dhcp_pkt_recv.py
+
+Description:
+    DHCPv6 packet reception validation test suite. This module verifies that the DUT can correctly
+    receive DHCPv6 multicast packets destined to the All_DHCP_Relay_Agents_and_Servers multicast
+    address (ff02::1:2) even when ACL tables are configured. Tests validate that the DHCP relay
+    feature's packet reception path is not disrupted by L3V6 ACL rules.
+
+Test Intent:
+    - Verify DUT receives DHCPv6 multicast packets on VLAN interfaces
+    - Validate DHCPv6 packet reception with empty ACL table bound to interfaces
+    - Test DHCPv6 packet reception with multicast accept ACL rule configured
+    - Verify ACL configuration does not block legitimate DHCPv6 multicast traffic
+    - Validate packet capture and transaction ID matching for DHCPv6 Solicit packets
+    - Test DHCP relay feature is enabled before running reception tests
+
+Topology:
+    - t0: Standard leaf-spine topology with T0 switches
+    - m0: Management topology
+    - mx: Management extended topology
+    - m1: Management M1 topology
+    All topologies where DHCP relay feature is enabled
+
+Fixtures Used:
+    - check_dhcp_relay_feature_state: Validates dhcp_relay feature is enabled
+    - setup_teardown: Parses PTF indices and DUT interface mappings
+    - setup_teardown_acl: Creates/removes ACL tables and rules for testing
+    - rand_selected_dut: Randomly selected DUT for test execution
+    - toggle_all_simulator_ports_to_rand_selected_tor: Toggles mux ports (dual-ToR)
+    - setup_standby_ports_on_rand_unselected_tor: Sets up standby ports (dual-ToR)
+    - ptfadapter: PTF adapter for packet transmission
+    - tbinfo: Testbed information including topology and disabled interfaces
+
+Dependencies:
+    - PTF framework for packet generation and capture
+    - tcpdump/scapy for packet capture and validation
+    - dhcp_relay feature must be enabled
+    - Link-local IPv6 addresses on VLAN interfaces
+    - ACL loader for L3V6 table and rule configuration
+    - DHCPv6 multicast group ff02::1:2 support
+
+Notes:
+    - DHCPv6 multicast MAC: 33:33:00:01:00:02
+    - DHCPv6 multicast IP: ff02::1:2 (All_DHCP_Relay_Agents_and_Servers)
+    - DHCPv6 client port: 546, server port: 547
+    - ACL table name: DHCPV6_PKT_RECV_TEST
+    - ACL stage: ingress
+    - ACL table type: L3V6
+    - ACL rule file: dhcp_relay/acl/dhcpv6_pkt_recv_multicast_accept.json
+    - Test skips if dhcp_relay feature is not enabled
+    - Two test classes:
+      1. TestDhcpv6WithEmptyAclTable: Empty L3V6 ACL table (default deny all)
+      2. TestDhcpv6WithMulticastAccpectAcl: Explicit multicast accept rule
+    - Both test classes verify DHCPv6 packets are still received despite ACL
+    - Transaction ID (trid) used to validate correct packet reception
+    - Disabled host interfaces are excluded from testing
+    - PTF index parsing supports formats: <port>, <dut>.<port>, <dut>.<port>@<ptf>
+
+Git History (last 10 commits):
+    c7d26dbee add config validation module pre and post
+    ca9f91a1d [topo] Clear m2 m3 topo
+    d537254a4 [M1/M2/M3] Add pytest mark for M1/M2/M3 topo
+    846f067b8 Enhance test dhcp_relay/test_dhcp_pkt_recv.py for dualtor
+    dab77c420 Remove TACACS fixture from none TACACS test cases
+    02cab8382 Add t0 and m0 mark to tests/dhcp_relay/test_dhcp_pkt_recv.py
+    07f328770 Enable TACACS on test cases
+    eed1d0229 [test_dhcp_pkt_recv] Exclude disabled interfaces in test case
+    03c4e1b91 [dhcp_relay] Validate DHCPv6 multicast packets can be trapped to CPU
+"""
+
 import json
 import logging
 import ptf.packet as scapy

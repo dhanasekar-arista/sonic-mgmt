@@ -1,4 +1,54 @@
-"""Test cases to support the Everflow Mirroring feature in SONiC."""
+"""
+=============================================================================
+Module: everflow
+File: test_everflow_per_interface.py
+=============================================================================
+
+Description:
+    This module tests per-interface Everflow ACL rules where mirroring is
+    applied only to specific ingress interfaces. It validates that packets
+    entering through candidate ports are mirrored while packets from other
+    ports are not, and ensures mirrored packets have correct format.
+
+Test Intent:
+    - test_everflow_per_interface: Verifies packets ingressing from ACL-bound
+      interfaces (candidate ports) are mirrored to monitoring ports, while
+      packets from unbound interfaces (unselected ports) are not mirrored
+    - test_everflow_packet_format: Validates mirrored packets do not contain
+      VLAN tags, MPLS labels, or VXLAN encapsulation headers that could
+      interfere with packet analysis
+
+Topology:
+    Supports any topology type (t0, t1, t2, mx, m0, m1, etc.)
+
+Fixtures Used:
+    - apply_mirror_session: Creates and applies ERSPAN mirror session to DUT
+    - setup_mirror_session_dest_ip_route: Configures BGP routing for mirror
+      session destination IP with proper static route redistribution
+    - ip_ver: Parametrizes test for both IPv4 and IPv6 traffic
+    - apply_acl_rule: Applies ACL rules matching specific input interfaces
+    - setup_info: Provides topology information and port configurations
+    - erspan_ip_ver: Parametrizes IPv4 vs IPv6 ERSPAN encapsulation
+    - toggle_all_simulator_ports_to_rand_selected_tor: Controls mux state for
+      dualtor topologies
+
+Dependencies:
+    - everflow_test_utilities: Core utilities including BaseEverflowTest,
+      route management, and ACL configuration helpers
+    - tests.common.helpers.assertions: pytest_require for test requirements
+    - ptf.testutils: Packet send/verify utilities
+    - scapy layers: For packet format validation (Ether, Dot1Q, MPLS, VXLAN)
+
+Notes:
+    - Candidate ports are selected based on topology type (Server/T0/MX/M0)
+    - IPv6 tests restrict mirroring to TCP packets to prevent ICMPv6 overhead
+    - Test skips if EVERFLOW/EVERFLOWV6 table doesn't exist on DUT
+    - Requires minimum of 1 candidate port and 1 unselected port
+    - IPv6 mirror session skipped on Arista 7260CX3-64 and 7060-CX32S platforms
+    - Packet format test validates no unexpected encapsulation in mirrored packets
+    - Multi-ASIC platforms require additional TTL decrement handling
+=============================================================================
+"""
 import logging
 import time
 import pytest

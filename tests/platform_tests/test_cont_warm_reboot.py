@@ -1,3 +1,50 @@
+"""
+=============================================================================
+Module: platform_tests
+File: test_cont_warm_reboot.py
+=============================================================================
+
+Description:
+    Tests continuous warm reboot functionality over multiple iterations, optionally
+    with image upgrades between reboots. Validates system stability, reboot cause,
+    services, interfaces, neighbors, and absence of core dumps across iterations.
+
+Test Intent:
+    - test_continuous_warm_reboot: Execute multiple warm reboot cycles and validate
+      system health after each iteration, including optional image upgrades
+
+Topology:
+    T0 topology
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hardware SKU
+    - localhost: Localhost connection
+    - ptfhost: PTF host fixture
+    - conn_graph_facts: Connection graph for neighbor validation
+    - copy_ptftests_directory: PTF tests directory setup
+    - change_mac_addresses: MAC address configuration
+
+Dependencies:
+    - AdvancedReboot fixture for reboot operations
+    - check_services, check_interfaces_and_transceivers, check_neighbors validators
+    - verify_no_coredumps for core dump detection
+    - get_reboot_cause for reboot cause validation
+    - CSV reporting for test results
+
+Notes:
+    - CLI options: --continuous_reboot_count, --continuous_reboot_delay, --image_location, --image_list
+    - Test executes warm reboots repeatedly with optional image install between cycles
+    - Validates reboot cause matches expected warm reboot after each iteration
+    - Checks services, interfaces, transceivers, neighbors healthy
+    - Verifies no core dumps generated
+    - Generates CSV report with per-iteration results
+    - Image upgrade support for testing across SONiC versions
+    - Uptime verification ensures device fully booted
+    - Loganalyzer disabled (expected error logs during reboot)
+    - MAX_WAIT_TIME_FOR_INTERFACES: 30s, MAX_WAIT_TIME_FOR_REBOOT_CAUSE: 120s
+=============================================================================
+"""
 import os
 import shutil
 import csv

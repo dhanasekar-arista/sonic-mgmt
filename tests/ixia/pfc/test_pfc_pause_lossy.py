@@ -1,3 +1,47 @@
+"""
+=============================================================================
+Module: ixia/pfc
+File: test_pfc_pause_lossy.py
+=============================================================================
+
+Description:
+    This comprehensive test module validates that PFC pause frames do not
+    impact lossy priorities. It ensures lossy traffic continues to flow
+    during PFC events and verifies configuration persistence across reboots.
+
+Test Intent:
+    - test_pfc_pause_single_lossy_prio: Verifies PFC pause does not affect
+      a single lossy priority, ensuring lossy traffic flows normally
+    - test_pfc_pause_multi_lossy_prio: Tests that PFC pause does not impact
+      multiple lossy priorities simultaneously
+    - test_pfc_pause_reboot: Validates lossy priority behavior persists
+      across various reboot types (config reload, cold, fast, warm)
+
+Topology:
+    - tgen: Requires IXIA traffic generator topology
+
+Fixtures Used:
+    - ixia_api: IXIA session for traffic generation
+    - ixia_testbed_config: Testbed and port configuration
+    - conn_graph_facts: DUT-to-IXIA connection topology
+    - fanout_graph_facts: Fanout switch information
+    - enum_dut_lossy_prio: Enumerated lossy priority for testing
+    - lossy_prio_list: List of all lossy priorities
+    - all_prio_list: List of all priorities
+    - prio_dscp_map: Priority to DSCP mapping
+
+Dependencies:
+    - files.helper: PFC test execution and warm reboot skip logic
+    - tests.common.reboot: Reboot utilities for different reboot types
+
+Notes:
+    - Lossy traffic should not be paused by PFC
+    - May experience packet loss under congestion (expected behavior)
+    - Reboot test saves configuration before reboot
+    - Warm reboot may be skipped on some platforms
+    - Validates critical services restart after reboot
+=============================================================================
+"""
 import logging
 import pytest
 

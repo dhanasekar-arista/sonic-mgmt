@@ -1,3 +1,44 @@
+"""
+=============================================================================
+Module: gnmi
+File: test_gnoi_killprocess.py
+=============================================================================
+
+Description:
+    Tests gNOI KillProcess API for stopping and restarting SONiC services.
+    Validates process termination, restart, and error handling for invalid
+    process names.
+
+Test Intent:
+    - test_gnoi_killprocess_then_restart: Parametrized test validating:
+      - Valid processes (snmp, dhcp_relay, radv, restapi, lldp, sshd, swss,
+        pmon, rsyslog, telemetry) can be killed and restarted
+      - Invalid processes (gnmi, nonexistent, empty) return proper error messages
+      - Processes restart automatically after kill signal
+      - Critical processes recover successfully
+
+Topology:
+    Supports any topology
+
+Fixtures Used:
+    - duthosts: DUT host objects
+    - rand_one_dut_hostname: Randomly selected DUT
+    - localhost: Localhost for gNOI client operations
+
+Dependencies:
+    - .helper: gnoi_request for gNOI operations
+    - tests.common.helpers.assertions: pytest_assert
+    - tests.common.helpers.dut_utils: is_container_running
+    - tests.common.platform.processes_utils: wait_critical_processes
+
+Notes:
+    - Uses SIGHUP (signal 1) for process termination
+    - DBus service management used for process control
+    - Tests skip if target process not running
+    - Validates both success and error cases
+=============================================================================
+"""
+
 import logging
 
 import pytest

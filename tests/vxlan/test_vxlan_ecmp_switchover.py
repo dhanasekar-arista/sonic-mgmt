@@ -1,8 +1,50 @@
+"""
+=============================================================================
+Module: vxlan
+File: test_vxlan_ecmp_switchover.py
+=============================================================================
+
+Description:
+    This test suite validates VXLAN ECMP nexthop group switchover functionality.
+    It tests scenarios where ECMP nexthop groups change membership and verifies
+    that traffic correctly switches to new endpoints when existing ones fail
+    or are removed.
+
+Test Intent:
+    - test_vxlan_ecmp_switchover: Validates ECMP group switchover by removing
+      endpoints from one group and adding them to another, verifying traffic
+      correctly switches to the new nexthop group
+
+Topology:
+    t1, t1-64-lag, t1-56-lag, t1-lag
+
+Fixtures Used:
+    - encap_type: Parametrized fixture for encapsulation type (v4_in_v4, v6_in_v4)
+    - setUp: Module-scoped fixture for VXLAN configuration
+    - copy_ptftests_directory: Copies PTF test scripts to PTF host
+    - _ignore_route_sync_errlogs: Auto-use fixture to ignore expected errors
+    - duthosts: Multi-DUT fixture
+    - rand_one_dut_hostname: Random DUT selection
+    - ptfhost: PTF host object
+    - minigraph_facts: Minigraph information
+    - tbinfo: Testbed information
+
+Dependencies:
+    - tests.ptf_runner: For running PTF dataplane tests
+    - tests.common.vxlan_ecmp_utils: For VXLAN ECMP utilities
+    - tests.common.fixtures.ptfhost_utils: For PTF utilities
+
+Notes:
+    - Supported encap types: v4_in_v4, v6_in_v4
+    - Destination prefix: 150
+    - Nexthop prefix: 100
+    - Tests ECMP group member changes and traffic switchover
+    - Ignores expected route sync and VNET error logs
+    - Validates packet forwarding after nexthop group modification
+    - PTF tests verify traffic reaches correct new endpoints
+=============================================================================
+"""
 #! /usr/bin/env python3
-'''
-    These tests check the Vxlam ecmp nexthop group switch over functionality. Further details are
-    provided with each test.
-'''
 
 import time
 import logging

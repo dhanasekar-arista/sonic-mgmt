@@ -1,3 +1,51 @@
+"""
+=============================================================================
+Module: Dual ToR Standby ToR Upstream Mux Toggle Test
+File: test_standby_tor_upstream_mux_toggle.py
+=============================================================================
+
+Description:
+    This test validates upstream traffic (server to T1) behavior during mux state
+    transitions between standby and active on a dual ToR device. It verifies that
+    ACL rules properly drop traffic on standby ports and allow traffic on active
+    ports, while ensuring no CRM resource leaks occur during repeated toggles.
+
+Test Intent:
+    - test_standby_tor_upstream_mux_toggle: Validates complete mux toggle cycle:
+      1. Sets mux to standby and verifies upstream traffic is dropped by ACL
+      2. Toggles mux to active and verifies traffic is forwarded to uplinks
+      3. Toggles back to standby and verifies traffic is dropped again
+      4. Compares CRM facts before and after to detect resource leaks
+
+Topology:
+    t0 - Requires t0 topology with mocked dual ToR configuration
+
+Fixtures Used:
+    - rand_selected_interface: Randomly selected mux interface for testing
+    - toggle_all_simulator_ports: Controls mux simulator port states
+    - set_crm_polling_interval: Sets CRM polling interval for resource tracking
+    - run_garp_service: Runs GARP service on PTF
+    - run_icmp_responder: Runs ICMP responder on PTF
+    - test_cleanup: Performs config reload at module end for cleanup
+
+Dependencies:
+    - tests.common.dualtor.dual_tor_mock: Dual ToR mocking utilities (set_mux_state)
+    - tests.common.dualtor.dual_tor_utils: Dual ToR utility functions (verify_upstream_traffic)
+    - tests.common.utilities: Utility functions (compare_crm_facts)
+    - tests.common.config_reload: Config reload utilities
+
+Notes:
+    - Test uses 100 packets per traffic verification
+    - Waits 10 seconds after each mux toggle for state convergence
+    - Additional 5-second wait before second toggle
+    - CRM leak detection skipped on virtual switch (vs) platforms
+    - verify_upstream_traffic checks if packets reach T1 uplinks
+    - When drop=True, verifies ACL counters increment
+    - When drop=False, verifies packets forwarded and ACL counters don't change
+    - Config reload performed at module teardown to reset device state
+    - Test validates drop counters for standby port ACL rules
+=============================================================================
+"""
 import pytest
 import logging
 import json

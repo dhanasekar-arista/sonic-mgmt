@@ -1,8 +1,45 @@
 """
-Tests Password Hardening Feature:
-- test all posibles policies configuration.
-- test 'show password policies' command.
-- test end to end by adding new user and set passwords according passw policies configured in the different tests.
+=============================================================================
+Module: passw_hardening
+File: test_passw_hardening.py
+=============================================================================
+
+Description:
+    This test suite validates the Password Hardening feature in SONiC, which enforces
+    password policies for user accounts including complexity requirements, expiration,
+    history, and aging. Tests verify all possible policy configurations and end-to-end
+    functionality by creating users and setting passwords according to configured policies.
+
+Test Intent:
+    - Multiple tests verify different password policy combinations (complexity, length, expiration, history)
+    - Verify 'show password policies' command displays current policy configuration
+    - Verify password expiration and warning mechanisms work correctly
+    - Verify password history prevents reuse of recent passwords
+    - Verify password aging policies are enforced for new and existing users
+
+Topology:
+    any - Can run on any topology
+
+Fixtures Used:
+    - duthost: Device under test host object
+    - Various policy-specific fixtures for setting up password hardening policies
+
+Dependencies:
+    - passw_hardening_utils: Helper functions for user configuration and policy management
+    - Linux PAM (Pluggable Authentication Modules) for password enforcement
+    - /etc/login.defs for password aging configuration
+    - chage command for password expiration management
+
+Notes:
+    - Password policies are enforced via Linux PAM modules (pam_pwquality, pam_unix)
+    - PASS_MAX_DAYS and PASS_WARN_AGE configure password expiration in /etc/login.defs
+    - chage command is used to manage and verify per-user password aging
+    - Password history prevents reuse of N previous passwords
+    - Complexity requirements include uppercase, lowercase, digits, special characters
+    - Tests create temporary users to verify policy enforcement
+    - SUCCESS_CODE = 0 indicates successful password change
+    - AGE_DICT maps aging parameters to configuration files and commands
+=============================================================================
 """
 
 import logging

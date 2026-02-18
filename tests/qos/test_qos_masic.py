@@ -1,3 +1,45 @@
+"""
+=============================================================================
+Module: qos
+File: test_qos_masic.py
+=============================================================================
+
+Description:
+    QoS tests for multi-ASIC architectures. Validates QoS behavior across
+    frontend and backend ASICs, including DSCP to queue mapping, buffer
+    behavior, and traffic flow between ASICs on T1 multi-ASIC platforms.
+
+Test Intent:
+    - Test DSCP to queue mapping across frontend-backend ASIC connections
+    - Validate QoS buffer configuration on multi-ASIC devices
+    - Verify traffic prioritization between frontend and backend ASICs
+    - Test lossy and lossless queue behavior on internal ASIC links
+
+Topology:
+    t1 topology (multi-ASIC)
+
+Fixtures Used:
+    - Various multi-ASIC specific fixtures for frontend/backend ASIC selection
+    - PTF test execution fixtures for SAI-based dataplane testing
+
+Dependencies:
+    - tests.common.utilities.wait_until: Polling utility for state verification
+    - tests.common.helpers.assertions: Assertion utilities
+    - SAI tests in saitests/py3 directory
+    - PTF remote platform for packet testing
+
+Notes:
+    - Only runs on T1 multi-ASIC topologies
+    - QosSaiBaseMasic base class provides helper methods
+    - runPtfTest() executes SAI tests with 600s timeout
+    - build_port_ips() constructs port index to IP mapping per ASIC
+    - get_backend_ip_ifs() finds backend interfaces on frontend ASIC
+    - Uses BGP neighbor info to identify backend ASIC connections
+    - Supports both Ethernet interfaces and PortChannels
+    - PTF tests run in /root/env-python3 virtual environment
+    - Logs stored in /tmp/{testCase}.log
+=============================================================================
+"""
 from tests.common.helpers.assertions import pytest_assert
 import json
 import logging

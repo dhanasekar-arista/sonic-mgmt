@@ -1,3 +1,49 @@
+"""
+=============================================================================
+Module: ntp
+File: test_ntp.py
+=============================================================================
+
+Description:
+    This test suite validates Network Time Protocol (NTP) functionality in SONiC,
+    including support for multiple NTP daemons (ntp, ntpsec, chrony). Tests verify
+    basic NTP synchronization and the "long jump" feature which allows or prevents
+    large time adjustments. The suite supports both IPv4 and IPv6 NTP server
+    configurations and handles management IPv6-only setups.
+
+Test Intent:
+    - test_ntp: Verify basic NTP synchronization works correctly with the configured NTP daemon
+    - test_ntp_long_jump_enabled: Verify NTP can perform large time adjustments when long jump is enabled
+    - test_ntp_long_jump_disabled: Verify NTP behavior when long jump is disabled (gradual sync vs rejection)
+
+Topology:
+    any - Can run on any topology (uses vs device type)
+
+Fixtures Used:
+    - setup_ntp: Module-level fixture that configures PTF as NTP server for DUT, supports IPv4/IPv6
+    - setup_long_jump_config: Function-level fixture that backs up long jump config, sets DUT time forward, restores after test
+    - ntp_daemon_in_use: Determines which NTP daemon is running (ntp, ntpsec, or chrony)
+    - ptf_use_ipv6: Parametrized fixture to test both IPv4 and IPv6 NTP configurations
+    - ptfhost: PTF host used as NTP server
+    - duthosts: All DUT hosts in the testbed
+    - rand_one_dut_hostname: Randomly selected DUT hostname for testing
+
+Dependencies:
+    - tests.common.utilities: wait_until for polling operations
+    - tests.common.helpers.ntp_helper: NTP-specific helper functions and daemon detection
+    - tests.common.helpers.assertions: Assertion helpers
+
+Notes:
+    - Long jump enables large time adjustments (>1000s), disabled long jump uses gradual slewing
+    - NTP and NTPsec don't fully support disabling long jump (will eventually sync even with -x flag)
+    - Chrony properly supports disabling long jump via makestep configuration
+    - PTF host is configured as the NTP server for synchronization tests
+    - TIME_FORWARD constant (3600s) is used to set DUT time back for long jump tests
+    - Tests handle both IPv4-only and IPv6-only management configurations
+    - For chrony: makestep config controls long jump behavior
+    - For ntp/ntpsec: NTPD_OPTS with -g (enable) or -x (disable) controls behavior
+=============================================================================
+"""
 from tests.common.utilities import wait_until
 from tests.common.helpers.assertions import pytest_assert
 from tests.common.helpers.ntp_helper import check_ntp_status, run_ntp, setup_ntp_context, NtpDaemon, ntp_daemon_in_use  # noqa: F401, E501

@@ -1,6 +1,49 @@
-'''
-Test local port mirroring on SONiC
-'''
+"""
+=============================================================================
+Module: span
+File: test_port_mirroring.py
+=============================================================================
+
+Description:
+    This test module validates local port mirroring (SPAN) functionality on
+    SONiC switches. It tests ingress, egress, and bidirectional mirroring
+    sessions, verifying that traffic is correctly copied to monitor ports
+    for traffic analysis and troubleshooting purposes.
+
+Test Intent:
+    - test_mirroring_rx: Validates ingress (RX) direction port mirroring by
+      sending packets to DUT and verifying they are mirrored to monitor port
+    - test_mirroring_tx: Tests egress (TX) direction port mirroring by sending
+      packets from DUT and confirming mirror copies reach monitor port
+    - test_mirroring_both: Verifies bidirectional mirroring (both RX and TX)
+      correctly mirrors traffic in both directions to monitor port
+
+Topology:
+    - Supported: t0 topology
+    - Requires source ports and dedicated monitor/destination port
+    - PTF used for packet injection and verification
+
+Fixtures Used:
+    - ptfadapter: PTF adapter for packet transmission and reception
+    - setup_session: Configures SPAN session with source and destination ports
+    - change_mac_addresses: PTF host MAC address configuration
+
+Dependencies:
+    - span_helpers: Helper functions for sending and verifying mirrored packets
+    - tests.common.fixtures.ptfhost_utils: PTF host utilities
+
+Notes:
+    - SPAN session configured with source and monitor ports via fixture
+    - Test uses ICMP packets for mirroring verification
+    - Ingress test: packets sent TO DUT (source1 -> destination)
+    - Egress test: packets sent FROM DUT (source2 -> destination)
+    - Bidirectional test: validates both ingress and egress mirroring
+    - Monitor port receives copies of original packets
+    - Mirrored packets retain original headers and content
+    - Tests verify packet arrival on monitor port within timeout
+    - Session cleanup handled by fixture teardown
+=============================================================================
+"""
 
 import pytest
 

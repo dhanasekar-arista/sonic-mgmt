@@ -1,3 +1,47 @@
+"""
+=============================================================================
+Module: platform_tests
+File: test_service_warm_restart.py
+=============================================================================
+
+Description:
+    Tests warm restart functionality for individual SONiC services. Validates that
+    services can be warm-restarted without causing traffic loss or system instability.
+
+Test Intent:
+    - test_warm_restart_service: Verify warm restart for built-in services
+      (teamd, swss, bgp, etc.) maintains system stability
+
+Topology:
+    T0 topology
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - localhost: Localhost connection
+    - ptfhost: PTF host fixture
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hardware SKU
+    - get_advanced_reboot: Advanced reboot fixture for warm restart
+    - verify_dut_health: Health check after warm restart
+    - copy_ptftests_directory: PTF tests directory setup
+    - advanceboot_loganalyzer: Log analysis for advanced reboot
+    - check_image_version: Module fixture skipping old releases
+
+Dependencies:
+    - SPM (SONiC Package Manager) for service listing
+    - warm restart configuration
+    - get_advanced_reboot for warm restart operations
+    - verify_dut_health for health validation
+
+Notes:
+    - Test skips releases older than 202205
+    - Built-in services from 'spm list' with status 'Built-In'
+    - get_ignored_services excludes services from CLI option
+    - get_running_services lists currently running Docker containers
+    - Validates service warm restarts without traffic loss
+    - Loganalyzer disabled (expected logs during service restart)
+    - Test uses get_advanced_reboot fixture for controlled restart
+=============================================================================
+"""
 import pytest
 import logging
 

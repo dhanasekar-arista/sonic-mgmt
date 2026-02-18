@@ -1,8 +1,58 @@
 """
-    Tests the sFlow feature in SONiC.
+=============================================================================
+Module: sflow
+File: test_sflow.py
+=============================================================================
 
-    Parameters:
-        --enable_sflow_feature: Enable sFlow feature on DUT. Default is disabled
+Description:
+    This test module validates the sFlow (sampled flow) feature on SONiC switches.
+    sFlow provides network monitoring capability by sampling packets and sending
+    flow data to collectors. Tests verify sFlow configuration, sample generation,
+    collector reception, and feature persistence through various reboot scenarios.
+    The module requires the sFlow feature to be enabled via --enable_sflow_feature.
+
+Test Intent:
+    - test_sflow_enable_disable: Validates sFlow can be enabled and disabled globally
+    - test_sflow_collector_add_remove: Tests adding and removing sFlow collectors
+    - test_sflow_interface_sample_rate: Verifies interface-level sample rate configuration
+    - test_sflow_sampling: Sends traffic and validates sFlow samples are received by collectors
+    - test_sflow_config_reload: Tests sFlow configuration persistence through config reload
+    - test_sflow_warm_reboot: Validates sFlow functionality survives warm reboot
+    - test_sflow_cold_reboot: Ensures sFlow configuration persists through cold reboot
+    - test_sflow_fast_reboot: Tests sFlow behavior during fast reboot operations
+
+Topology:
+    - Supported: t0, m0, mx
+    - Requires at least 3 VLAN member ports for collector and traffic generation
+    - Uses upstream ports for sFlow sample generation
+
+Fixtures Used:
+    - setup: Module-scoped fixture that configures test environment, sets up collectors
+      on PTF, configures DUT interfaces, and performs cleanup via config reload
+    - duthosts: All DUT hosts in testbed
+    - rand_one_dut_hostname: Randomly selected DUT
+    - ptfhost: PTF host for collector simulation and traffic generation
+    - tbinfo: Testbed information
+    - config_sflow_feature: Feature enablement configuration
+
+Dependencies:
+    - tests.ptf_runner: PTF test execution for sFlow sample verification
+    - tests.common.reboot: Various reboot operations (warm, cold, fast)
+    - tests.common.config_reload: Configuration reload utilities
+    - PTF sFlow test scripts: Validate sample reception and format
+
+Notes:
+    - Test skipped if sFlow feature is not enabled on DUT
+    - Default sample rate: 512 packets
+    - Uses two collectors on IP addresses 20.1.1.2 and 30.1.1.2
+    - Collectors listen on UDP ports 6343 and 6344
+    - ARP responder configured on PTF for collector reachability
+    - sFlow samples include interface index and port index for validation
+    - Port map exported to PTF for sample correlation
+    - Tests verify sFlow agent IP (management or loopback)
+    - Config reload used for cleanup to restore minigraph state
+    - Sample verification uses PTF with custom sFlow parsing logic
+=============================================================================
 """
 
 import ast

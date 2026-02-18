@@ -1,4 +1,64 @@
-"""Test cases to support the Everflow Mirroring feature in SONiC."""
+"""
+=============================================================================
+Module: everflow
+File: test_everflow_testbed.py
+=============================================================================
+
+Description:
+    This module contains comprehensive test cases for the Everflow ERSPAN
+    (Encapsulated Remote SPAN) mirroring feature in SONiC. It validates
+    various mirroring scenarios including IPv4 traffic mirroring, routing
+    behaviors, ECMP next-hop handling, mirror session configuration with
+    policers, and both ingress and egress ACL mirroring stages.
+
+Test Intent:
+    - test_everflow_multi_binding_acl: Verifies multi-binding ACL scenarios
+      where ACLs are bound to multiple interfaces on dualtor topology
+    - test_everflow_basic_forwarding: Tests basic mirroring with resolved
+      routes, unresolved routes, LPM matching, and dynamic route changes
+    - test_everflow_neighbor_mac_change: Ensures mirror session adapts when
+      neighbor MAC address is updated
+    - test_everflow_remove_unused_ecmp_next_hop: Validates session stability
+      when removing ECMP next hops that are not actively used
+    - test_everflow_remove_used_ecmp_next_hop: Confirms traffic switches to
+      alternate ECMP path when active next hop is removed
+    - test_everflow_dscp_with_policer: Tests rate-limiting of mirrored
+      traffic using MIRROR_DSCP table with single rate three color policer
+    - test_everflow_frwd_with_bkg_trf: Verifies mirroring with concurrent
+      background traffic including IP-in-IP and standard packets
+    - test_everflow_fwd_recircle_port_queue_check: Validates mirrored packets
+      are sent via configured queue on recirculation port
+
+Topology:
+    Supports t0, t1, t2, lt2, ft2, m0, m1 topologies with both single-ASIC
+    and multi-ASIC configurations, including dualtor testbeds
+
+Fixtures Used:
+    - partial_ptf_runner: Executes PTF test cases for Everflow scenarios
+    - dest_port_type: Parametrizes test direction (upstream/downstream)
+    - add_dest_routes: Sets up routing for egress ACL tests
+    - restore_bgp: Restores BGP configuration for multi-binding ACL tests
+    - restore_setup_info: Updates router MAC for multi-binding ACL tests
+    - upstream_links_for_unselected_dut: Provides upstream links for dualtor
+    - setup_info: Provides topology and port configuration information
+    - setup_mirror_session: Configures ERSPAN mirror session
+    - erspan_ip_ver: Parametrizes IPv4 vs IPv6 ERSPAN encapsulation
+
+Dependencies:
+    - everflow_test_utilities: Core Everflow testing utilities and helpers
+    - ptf_runner: PTF test execution framework
+    - tests.common.fixtures.ptfhost_utils: PTF host utilities
+    - tests.common.dualtor: Dual ToR mux simulator control
+
+Notes:
+    - Tests validate both ingress and egress ACL stages with ingress/egress
+      mirroring combinations via four test classes
+    - Mirror policer tests skip on unsupported ASICs (th3-th5, j2c+, jr2)
+    - Multi-binding ACL tests are specific to dualtor topologies
+    - DSCP policer tests use tolerance of 10-11% for rate verification
+    - Background traffic tests prevent packet drops during mirroring
+=============================================================================
+"""
 import logging
 import os
 import random

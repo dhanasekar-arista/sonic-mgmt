@@ -1,3 +1,37 @@
+"""
+=============================================================================
+Module: generic_config_updater
+File: test_monitor_config.py
+=============================================================================
+
+Description:
+    Tests monitor configuration using Generic Config Updater including ACL tables,
+    mirror sessions, and policers for Everflow DSCP monitoring. Validates complex
+    configuration dependencies and rollback scenarios.
+
+Test Intent:
+    - test_monitor_config_add_init: Adds initial monitor configuration
+    - test_monitor_config_add_remove: Adds then removes monitor config
+    - test_monitor_config_incremental_update: Updates monitor config incrementally
+
+Topology:
+    Supports any topology
+
+Fixtures Used:
+    - get_valid_acl_ports: Gets valid ACL ports (PortChannels and standalone)
+    - setup_env: Creates checkpoints for test and initial state
+
+Dependencies:
+    - tests.common.gu_utils: GCU utilities including checkpoint/rollback
+
+Notes:
+    - Uses EVERFLOW_DSCP ACL table with RULE_1
+    - Mirror session: mirror_session_dscp with policer_dscp
+    - Validates complex config with ACL, mirror, and policer dependencies
+    - Arista 7060x6 platforms don't support policer in mirror sessions
+    - Creates two checkpoints: initial and test-specific
+=============================================================================
+"""
 import logging
 import pytest
 import time

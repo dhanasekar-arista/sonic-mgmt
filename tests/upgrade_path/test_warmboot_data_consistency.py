@@ -1,3 +1,63 @@
+"""
+=============================================================================
+Module: upgrade_path
+File: test_warmboot_data_consistency.py
+=============================================================================
+
+Description:
+    This test file validates data consistency between warm boot and cold boot
+    scenarios during SONiC software upgrades by comparing Redis database snapshots.
+    It identifies and reports any unexpected differences in system state, configuration,
+    or operational data between warm and cold reboot paths to ensure warm boot
+    maintains proper state preservation.
+
+Test Intent:
+    - test_warmboot_data_consistency: Validates warm boot data consistency by
+      installing base image and booting to clean state, installing target image,
+      performing warm reboot and capturing Redis database snapshots (APPL_DB,
+      STATE_DB, CONFIG_DB, etc.), performing cold reboot and capturing similar
+      snapshots, comparing database states between warm and cold boot scenarios,
+      pruning expected/acceptable differences based on predefined whitelist,
+      reporting any unexpected differences, and backing up logs for analysis.
+
+Topology:
+    t0 (standard T0 topology)
+
+Fixtures Used:
+    - localhost: Local host for running commands and file operations
+    - duthosts: All DUT hosts in testbed
+    - rand_one_dut_hostname: Randomly selected DUT for testing
+    - tbinfo: Testbed information containing topology and configuration
+    - request: Pytest request object for accessing test parameters
+    - verify_dut_health: Validates DUT health after each operation
+    - restore_image: Restores original image after test completion
+
+Dependencies:
+    - pytest: Test framework
+    - json: For handling snapshot data
+    - tests.common.helpers.snapshot_warm_vs_cold_boot_helpers: Snapshot utilities
+    - tests.common.snapshot_comparison.warm_vs_cold: Diff pruning and comparison
+    - tests.upgrade_path.utilities: Upgrade-specific utilities
+    - tests.common.db_comparison: Redis database snapshot functionality
+    - tests.common.reboot: Reboot operations
+    - tests.common.helpers.upgrade_helpers: Image installation utilities
+
+Notes:
+    - Test is marked to skip sanity check, disable log analyzer, disable memory check
+    - Requires exactly one base image and one target image (A->B upgrade)
+    - Database types compared: APPL_DB, STATE_DB, CONFIG_DB, ASIC_DB, COUNTERS_DB
+    - Snapshot stages: AFTER_WARMBOOT, AFTER_COLDBOOT
+    - Pre-snapshot checks verify system stability before taking snapshots
+    - Expected differences are pruned using predefined whitelist
+    - Unexpected differences indicate potential warm boot issues
+    - Logs backed up to: logs/{dut_hostname}/warmboot_data_consistency/
+    - Upgrade summary written with version information
+    - Test helps identify state preservation issues in warm boot
+    - Critical for validating hitless upgrade functionality
+    - Differences logged with detailed field-level comparison
+    - Uses SonicRedisDBSnapshotter for consistent snapshot capture
+=============================================================================
+"""
 import json
 import os
 import pytest

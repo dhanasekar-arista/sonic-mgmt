@@ -1,3 +1,71 @@
+"""
+Module: tests.dhcp_relay.test_dhcp_relay_stress
+File: test_dhcp_relay_stress.py
+
+Description:
+    Stress test suite for DHCPv4 relay service resilience and performance. This module validates that
+    the DHCP relay service can handle extreme load conditions including service restarts under stress,
+    high packet rates, and sustained traffic bursts. Tests ensure the relay agent remains functional
+    and processes packets correctly even when subjected to thousands of concurrent DHCP requests.
+
+Test Intent:
+    - Verify DHCP relay service can restart successfully while under packet load
+    - Validate socket buffers are properly cleared after stress conditions
+    - Test DHCP relay functionality after repeated restart cycles under stress
+    - Verify relay agent can handle maximum packet load without failure
+    - Validate packet forwarding accuracy under stress (90-110% tolerance)
+    - Test relay agent with continuous high-rate packet streams
+    - Verify no packet accumulation in socket buffers after stress
+    - Validate DHCP relay recovers full functionality after stress test
+
+Topology:
+    - t0: Standard leaf-spine topology with T0 switches
+    - m0: Management topology
+    Tests run on virtual switches (device_type='vs')
+
+Fixtures Used:
+    - dut_dhcp_relay_data: DHCP relay configuration data for each VLAN interface
+    - validate_dut_routes_exist: Validates routes to DHCP servers
+    - testing_config: Determines single/dual-ToR mode and provides active DUT
+    - setup_standby_ports_on_rand_unselected_tor: Sets up standby ports on unselected ToR
+    - toggle_all_simulator_ports_to_rand_selected_tor_m: Toggles mux ports to selected ToR
+    - clean_processes_after_stress_test: Cleans up PTF stress test processes after test
+    - request: Pytest request fixture for CLI option access
+
+Dependencies:
+    - PTF framework for packet generation
+    - dhcp_relay_stress_test.DHCPContinuousStressTest PTF test suite
+    - dhcp_relay_stress_test.DHCPStress*Test PTF test suites
+    - dhcp_relay_test.DHCPTest PTF test suite for validation
+    - tcpdump for packet capture and validation
+    - dhcp_relay systemd service with restart capability
+
+Notes:
+    - Test parameterized by dhcp_type: discover, offer, request, ack
+    - Default stress parameters:
+      - stress_restart_round: 10 (number of restart cycles)
+      - stress_restart_duration: 90 seconds per cycle
+      - stress_restart_pps: 100 packets per second
+      - packets_send_duration: 120 seconds for stress test
+      - client_packets_per_sec: 10000 for maximum load test
+    - CLI options: --stress_restart_round, --stress_restart_duration, --stress_restart_pps
+    - Socket buffer validation ensures all buffers reach 0 after stress
+    - Packet count validation: expected vs actual within 90-110% range
+    - DHCP relay service has 3-restart limit per 20 minutes (reset via systemctl reset-failed)
+    - Stress test runs in async mode on PTF host
+    - Transaction ID (xid) used to correlate packets in stress tests
+    - Test requires only first VLAN (pytest_require ensures len >= 1)
+
+Git History (last 10 commits):
+    01e4991d5 [dhcp_relay] change ptfutils to tcpdump for better result
+    d45558017 Add Xid in DHCP stress test
+    fdea41626 [dhcp_relay] Verify per-interface counter under stress test
+    939f61664 add dualtor fixture for test_dhcp_relay_stress
+    357c09a39 Set default kvm_support to False in ptf_runner
+    9faa47bd4 dhcp storm stress test
+    ae3d4dd0a [dhcp_relay] Add stress test for restarting dhcp_relay
+"""
+
 import pytest
 import time
 import ptf.packet as scapy

@@ -1,3 +1,63 @@
+"""
+=============================================================================
+Module: tacacs
+File: test_ro_disk.py
+=============================================================================
+
+Description:
+    This test file validates TACACS+ functionality when the disk becomes read-only
+    (RO) due to filesystem errors or issues. It simulates disk RO conditions and
+    verifies that TACACS authentication continues to work, the system can detect
+    and remount the disk as read-write, and normal operation resumes after recovery
+    including successful reboot.
+
+Test Intent:
+    - test_ro_disk: Validates TACACS resilience during disk RO conditions by
+      (1) simulating disk going read-only via sysrq trigger, (2) verifying TACACS
+      SSH authentication still works for RO user even with RO disk, (3) confirming
+      system detects RO condition and automatically remounts disk as read-write,
+      (4) verifying TACACS authentication continues to work after remount,
+      (5) performing PDU reboot or software reboot to test recovery, (6) validating
+      all critical processes restart correctly and interfaces come up after reboot,
+      and (7) confirming TACACS authentication still works post-reboot.
+
+Topology:
+    any (works with any topology type)
+
+Fixtures Used:
+    - localhost: Local host object for SSH operations
+    - ptfhost: PTF host for TACACS server
+    - duthosts: Provides access to all DUT hosts
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hwsku
+    - tacacs_creds: Provides TACACS credentials including RO user
+    - check_tacacs: Validates TACACS service is running and configured
+    - pdu_controller: PDU controller for hardware reboot (if available)
+
+Dependencies:
+    - pytest: Test framework
+    - ansible: For handling connection failures
+    - tests.common.utilities: Utility functions including wait_until, pdu_reboot
+    - tests.common.reboot: For reboot operations
+    - tests.common.helpers.tacacs.tacacs_helper: TACACS helper functions
+    - tests.common.platform: Interface and process checking utilities
+
+Notes:
+    - Test is marked to disable log analyzer
+    - Requires SONiC version 202106 or newer (skips 201811-202012)
+    - Simulates RO disk via 'echo u > /proc/sysrq-trigger'
+    - Mount directory: /run/mount
+    - Log directory: /run/mount/log
+    - Wait timeout for RO detection: 30 seconds
+    - Wait for remount completion: 10 seconds
+    - Post-reboot health check wait: 20 seconds
+    - Reboot retries: 3 attempts
+    - Tests both PDU reboot and software reboot methods
+    - Verifies critical processes and interface status after recovery
+    - SSH retry logic handles temporary connection issues during recovery
+    - Collects logs to logs/tacacs directory for analysis
+    - Tests validate authentication works: before RO, during RO, after remount, after reboot
+=============================================================================
+"""
 import pytest
 import logging
 import os

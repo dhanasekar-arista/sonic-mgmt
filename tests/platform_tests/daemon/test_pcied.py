@@ -1,11 +1,49 @@
 """
-Check daemon status inside PMON container. Each daemon status is checked under the conditions below in this script:
-* Daemon Running Status
-* Daemon Stop status
-* Daemon Restart status
+=============================================================================
+Module: platform_tests
+File: test_pcied.py
+=============================================================================
 
-This script is to cover the test case in the SONiC platform daemon and service test plan:
-https://github.com/sonic-net/sonic-mgmt/blob/master/docs/testplan/PMON-Services-Daemons-test-plan.md
+Description:
+    Tests for pcied (PCIe device monitor daemon) in the PMON container. Validates
+    daemon lifecycle management, PCIe device health monitoring, and STATE_DB
+    population with device status.
+
+Test Intent:
+    - test_pcied_running_status: Verify pcied is running and PCIe devices PASSED
+    - test_pcied_stop_and_start_status: Validate manual stop/start operations
+    - test_pcied_stop_and_restart_status: Test stop followed by restart
+    - test_kill_pcied_sig_term: Verify pcied restarts after SIGTERM
+    - test_kill_pcied_sig_kill: Validate pcied restarts after SIGKILL
+
+Topology:
+    Any topology
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - rand_one_dut_hostname: Selects one random DUT
+    - setup: Module-scoped autofixture validating pcied enabled status
+    - teardown_module: Module-scoped autofixture for cleanup
+
+Dependencies:
+    - pcied supervisor task in pmon container
+    - STATE_DB for PCIE_DEVICES status table
+    - check_pmon_daemon_enable_status helper
+    - check_critical_processes validator
+    - compose_dict_from_cli parser
+
+Notes:
+    - Test skips if pcied not enabled on platform
+    - 60 second delay in setup for pcied readiness
+    - Expected statuses: RUNNING, STOPPED, EXITED
+    - Signal constants: SIG_TERM (-15), SIG_KILL (-9)
+    - Daemon should auto-restart after kill signals
+    - Expected PCIe device status: PASSED
+    - pcied monitors PCIe device health and link status
+    - Loganalyzer disabled (expected error logs during daemon restarts)
+    - Sanity check skipped for this test suite
+    - Test plan: https://github.com/sonic-net/sonic-mgmt/blob/master/docs/testplan/PMON-Services-Daemons-test-plan.md
+=============================================================================
 """
 import logging
 import time

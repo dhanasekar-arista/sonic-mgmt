@@ -1,3 +1,53 @@
+"""
+=============================================================================
+Module: vxlan
+File: test_scale_ecmp.py
+=============================================================================
+
+Description:
+    This test validates VXLAN ECMP (Equal-Cost Multi-Path) functionality at
+    scale on Cisco-8000 ASICs. It tests VNET route programming with multiple
+    endpoints and verifies traffic distribution across ECMP paths using VXLAN
+    encapsulation.
+
+Test Intent:
+    - test_vxlan_single_endpoint: Validates VXLAN encapsulation with a single
+      tunnel endpoint
+    - test_vxlan_ecmp_dynamic_change: Tests dynamic ECMP endpoint updates,
+      verifying traffic redistributes correctly when endpoints change
+    - test_vxlan_ecmp_fixed_change: Validates ECMP behavior with fixed endpoint
+      configuration changes
+
+Topology:
+    t0 (physical devices only, Cisco-8000 ASIC)
+
+Fixtures Used:
+    - copy_ptftests_directory: Copies PTF test scripts to PTF host
+    - duthost: DUT host object
+    - ptfhost: PTF host object
+    - tbinfo: Testbed information
+    - cfg_facts: Configuration facts
+    - config_facts: Additional config facts
+
+Dependencies:
+    - tests.common.config_reload: For config reload operations
+    - tests.ptf_runner: For running PTF dataplane tests
+    - tests.common.vxlan_ecmp_utils: ECMP utility functions
+    - tests.common.helpers.assertions: For pytest assertions
+
+Notes:
+    - Loganalyzer is disabled for this test module
+    - Physical device only (vs platform not supported)
+    - Cisco-8000 ASIC specific test
+    - Uses Vnet1 as VNET name and tunnel_v4 as tunnel
+    - VNI 10000 used for VXLAN encapsulation
+    - Tests with prefix 150.0.3.1/32
+    - Initial endpoints: 100.0.1.10, 100.0.2.10
+    - Changed endpoints: 100.0.3.10, 100.0.4.10
+    - Packet multiplier: 10 for traffic testing
+    - Restores config via minigraph reload after test
+=============================================================================
+"""
 import json
 import time
 import sys

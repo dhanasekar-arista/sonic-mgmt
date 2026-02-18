@@ -1,3 +1,53 @@
+"""
+=============================================================================
+Module: vxlan
+File: test_vxlan_crm.py
+=============================================================================
+
+Description:
+    This test validates CRM (Critical Resource Monitoring) resource usage
+    for VXLAN ECMP configurations. It verifies that nexthop groups, nexthops,
+    and nexthop group members are correctly tracked in CRM and don't exceed
+    available hardware resources.
+
+Test Intent:
+    - test_vxlan_crm: Validates CRM resource tracking for VXLAN ECMP by:
+        * Setting up multiple VNET routes with ECMP nexthops
+        * Monitoring CRM counters for nexthop groups and members
+        * Verifying resource usage matches expected values
+        * Ensuring resources are released after cleanup
+
+Topology:
+    t1
+
+Fixtures Used:
+    - argument_setup: Module-scoped fixture that configures CRM test parameters
+      from command-line arguments
+    - setup_neighbors: Module-scoped fixture that sets up BGP neighbors for testing
+    - setUp: Inherited from test_vxlan_ecmp for VXLAN configuration
+    - encap_type: Inherited from test_vxlan_ecmp (parametrized encapsulation type)
+    - copy_ptftests_directory: Copies PTF test scripts to PTF host
+    - _ignore_route_sync_errlogs: Auto-use fixture to ignore expected errors
+
+Dependencies:
+    - tests.common.vxlan_ecmp_utils: For VXLAN ECMP utilities
+    - tests.vxlan.test_vxlan_ecmp: Inherits Test_VxLAN class and fixtures
+    - tests.common.helpers.assertions: For pytest assertions
+    - tests.common.fixtures.ptfhost_utils: For PTF utilities
+
+Notes:
+    - Inherits from Test_VxLAN class in test_vxlan_ecmp
+    - Uses command-line arguments for CRM configuration:
+        * crm_num_nexthops: Total number of endpoints
+        * crm_num_nexthop_group_members: Total nexthop group members
+        * crm_num_nexthop_groups: Number of nexthop groups
+    - Validates ecmp_nhs_per_destination > 1 to create ECMP groups
+    - Monitors CRM via "crm show resources" commands
+    - Ignores expected route sync errors in KVM environments
+    - Tests resource allocation and deallocation
+    - Verifies IPv4 and IPv6 CRM resource tracking
+=============================================================================
+"""
 import logging
 import pytest
 import ipaddress

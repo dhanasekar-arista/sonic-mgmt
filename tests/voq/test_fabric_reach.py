@@ -1,3 +1,43 @@
+"""
+=============================================================================
+Module: voq
+File: test_fabric_reach.py
+=============================================================================
+
+Description:
+    This test validates fabric reachability on VOQ chassis systems by
+    comparing the output of "show fabric reachability" CLI command against
+    reference data files for each linecard and supervisor combination. It
+    ensures all fabric links are correctly discovered and reported.
+
+Test Intent:
+    - test_fabric_reach_linecards: Compares the "show fabric reachability"
+      CLI output with pre-defined reference data for each linecard, verifying
+      that all expected fabric links are present and correctly mapped to
+      remote modules and ports.
+
+Topology:
+    t2 (VOQ chassis topology)
+
+Fixtures Used:
+    - duthosts: Multi-DUT fixture for chassis systems
+    - enum_frontend_dut_hostname: Enumerates frontend DUTs (linecards)
+    - refData: Loads reference YAML data for linecard-fabric combinations
+    - supData: Loads reference YAML data for supervisor nodes
+
+Dependencies:
+    - tests.common.helpers.assertions: For pytest assertions
+    - yaml: For parsing reference data files
+
+Notes:
+    - Requires reference data files in voq/fabric_data/ directory
+    - Reference files named as: <LC_SKU>_<FABRIC_SKU>_LC<slot>.yaml
+    - Test validates fabric links on both linecards and supervisors
+    - Builds expected data structure for supervisor nodes dynamically
+    - Skips if reference data files are not available for the specific hardware SKU
+    - Multi-ASIC linecard support included
+=============================================================================
+"""
 import pytest
 from tests.common.helpers.assertions import pytest_assert
 import logging

@@ -1,3 +1,57 @@
+"""
+=============================================================================
+Module: vxlan
+File: test_vxlan_vnet_bgp_subintf.py
+=============================================================================
+
+Description:
+    This test validates VXLAN VNET functionality with BGP subinterfaces on
+    Cisco-8000 ASICs. It tests VXLAN encapsulation/decapsulation with inner
+    source MAC address rewriting using ACL rules for traffic between workload
+    (WL) interfaces and T1 neighbors.
+
+Test Intent:
+    - test_vxlan_vnet_bgp_subintf: Validates VXLAN encapsulation and decapsulation
+      with BGP subinterfaces by:
+        * Creating VNET with VXLAN tunnel
+        * Configuring ACL for inner source MAC rewriting
+        * Testing WL to T1 encapsulation with MAC rewrite
+        * Testing T1 to WL decapsulation
+        * Verifying packet forwarding in both directions
+
+Topology:
+    t0 (physical devices only, Cisco-8000 ASIC)
+
+Fixtures Used:
+    - duthost: DUT host object
+    - ptfadapter: PTF adapter for packet operations
+    - tbinfo: Testbed information
+    - minigraph_facts: Minigraph information
+
+Dependencies:
+    - tests.common.helpers.assertions: For pytest assertions
+    - tests.common.config_reload: For config reload operations
+    - tests.common.vxlan_ecmp_utils: For VXLAN ECMP utilities
+    - ptf.testutils: For packet generation and verification
+    - ptf.packet: For packet construction
+    - ptf.mask: For packet masking
+
+Notes:
+    - Physical device only (vs platform not supported)
+    - Cisco-8000 ASIC specific test
+    - VXLAN port: 4789
+    - Tunnel endpoint: 100.0.1.10
+    - VNET name: Vnet1
+    - Inner source MAC: 00:11:22:33:44:55
+    - Inner source IP: 2.2.2.2
+    - VNI: 10000
+    - ACL type: INNER_SRC_MAC_REWRITE_TYPE
+    - ACL table: INNER_SRC_MAC_REWRITE_TABLE
+    - Tests inner packet MAC address rewriting
+    - Validates bidirectional VXLAN traffic flow
+    - Restores config via minigraph reload after test
+=============================================================================
+"""
 import logging
 import json
 import os

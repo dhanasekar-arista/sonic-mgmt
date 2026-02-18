@@ -1,3 +1,76 @@
+"""
+=============================================================================
+Module: nat
+File: test_dynamic_nat.py
+=============================================================================
+
+Description:
+    This test suite validates dynamic Network Address Translation (NAT) functionality
+    in SONiC. Dynamic NAT automatically translates private IP addresses to public IP
+    addresses from a configured pool, with automatic port allocation. Tests verify
+    bidirectional traffic, timeout handling, ACL rules, zone configuration, CRUD
+    operations, and various edge cases for TCP, UDP, and ICMP protocols.
+
+Test Intent:
+    - test_nat_dynamic_basic: Verify basic dynamic NAT translation for TCP/UDP traffic in both directions
+    - test_nat_dynamic_basic_icmp: Verify basic dynamic NAT translation for ICMP traffic
+    - test_nat_dynamic_entry_persist: Verify dynamic NAT entries persist during timeout periods
+    - test_nat_dynamic_entry_persist_icmp: Verify dynamic NAT entries persist for ICMP during timeout
+    - test_nat_dynamic_disable_nat: Verify disabling/re-enabling NAT feature works correctly
+    - test_nat_dynamic_disable_nat_icmp: Verify disabling/re-enabling NAT works for ICMP
+    - test_nat_dynamic_bindings: Verify NAT bindings configuration and port pool management
+    - test_nat_dynamic_bindings_icmp: Verify NAT bindings work correctly for ICMP
+    - test_nat_dynamic_other_protocols: Verify non-TCP/UDP/ICMP protocols (GRE) are forwarded without NAT
+    - test_nat_dynamic_acl_rule_actions: Verify ACL rule actions (do_not_nat vs forward) work correctly
+    - test_nat_dynamic_acl_rule_actions_icmp: Verify ACL rule actions work for ICMP
+    - test_nat_dynamic_acl_modify_rule: Verify modifying ACL rules updates NAT behavior
+    - test_nat_dynamic_acl_modify_rule_icmp: Verify modifying ACL rules works for ICMP
+    - test_nat_dynamic_pool_threshold: Verify behavior when NAT pool reaches threshold/exhaustion
+    - test_nat_dynamic_crud: Verify create/read/update/delete operations for NAT pool configuration
+    - test_nat_dynamic_crud_icmp: Verify CRUD operations work for ICMP NAT configuration
+    - test_nat_dynamic_full_cone: Verify full cone NAT behavior with port preservation
+    - test_nat_dynamic_enable_disable_nat_docker: Verify NAT rules in iptables when NAT docker is stopped/started
+    - test_nat_dynamic_enable_disable_nat_docker_icmp: Verify iptables behavior for ICMP when NAT docker is stopped/started
+    - test_nat_clear_statistics_dynamic: Verify clearing NAT statistics counters works correctly
+    - test_nat_clear_translations_dynamic: Verify clearing dynamic NAT translations works correctly
+    - test_nat_interfaces_flap_dynamic: Verify NAT configuration persists when interfaces flap
+    - test_nat_dynamic_zones: Verify NAT zone configuration and traffic behavior across zones
+    - test_nat_dynamic_zones_icmp: Verify NAT zones work correctly for ICMP traffic
+    - test_nat_dynamic_extremal_ports: Verify NAT works with edge case port numbers (7, 22, 23, 65535)
+    - test_nat_dynamic_single_host: Verify single host can create multiple NAT entries up to pool limit
+    - test_nat_dynamic_binding_remove: Verify removing NAT bindings stops NAT translation
+    - test_nat_dynamic_iptable_snat: Verify iptables SNAT rules are properly programmed for TCP/UDP/ICMP
+    - test_nat_dynamic_outside_interface_delete: Verify NAT behavior when outside interface IP is removed/restored
+    - test_nat_dynamic_nat_pools: Verify NAT pool configuration via JSON and zone setup
+    - test_nat_dynamic_modify_bindings: Verify modifying NAT bindings updates configuration correctly
+
+Topology:
+    t0 - Requires T0 topology with host-tor and leaf-tor connectivity
+
+Fixtures Used:
+    - setup_test_env: Provides interface configuration and network setup information
+    - protocol_type: Parametrized fixture for TCP/UDP protocols
+    - enable_nat_feature: Ensures NAT feature is enabled/disabled properly during test
+    - enable_outer_interfaces: Ensures outer interfaces are properly enabled
+    - ptfhost: PTF host for traffic generation
+    - ptfadapter: PTF adapter for packet injection and verification
+    - duthost: Device under test host object
+    - tbinfo: Testbed information
+
+Dependencies:
+    - nat_helpers: Extensive collection of helper functions for NAT configuration and traffic verification
+    - ptf.testutils: PTF packet testing utilities
+    - tests.common.helpers.assertions: Assertion helpers
+
+Notes:
+    - Dynamic NAT uses port pools to map multiple private IPs to fewer public IPs
+    - Tests cover both NAPT (Network Address Port Translation) and basic NAT
+    - Timeout values are configurable globally for TCP, UDP, and ICMP
+    - NAT zones (0 and 1) are used to distinguish inside vs outside interfaces
+    - iptables rules are verified to ensure kernel-level NAT is properly configured
+    - Pool exhaustion scenarios test behavior when all available ports are consumed
+=============================================================================
+"""
 import re
 import copy
 import time

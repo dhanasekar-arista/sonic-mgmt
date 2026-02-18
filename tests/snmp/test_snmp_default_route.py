@@ -1,3 +1,51 @@
+"""
+=============================================================================
+Module: snmp
+File: test_snmp_default_route.py
+=============================================================================
+
+Description:
+    This test module validates SNMP IP-FORWARD-MIB (ipCidrRouteTable) reporting
+    of default route (0.0.0.0/0) on SONiC switches. It compares SNMP-reported
+    default route nexthops against CLI "show ip route" output, ensuring SNMP
+    correctly exposes default route information excluding management interfaces.
+
+Test Intent:
+    - test_snmp_default_route: Compares default route nexthops from SNMP facts
+      (ipCidrRouteEntry MIB) with "show ip route 0.0.0.0/0" CLI output, validating
+      SNMP reports correct nexthops excluding eth0 and Ethernet-BP interfaces,
+      and verifies route destination, mask, type, and protocol fields
+
+Topology:
+    - Supported: t0, t1, t2, m0, mx, m1, t1-multi-asic, lt2, ft2
+    - Device type: vs (virtual switch)
+    - Skip on backend topologies (no default routes)
+
+Fixtures Used:
+    - duthosts: All DUT hosts in testbed
+    - enum_rand_one_per_hwsku_frontend_hostname: Randomly selected frontend DUT
+    - localhost: Local connection for SNMP queries
+    - creds_all_duts: SNMP credentials
+    - tbinfo: Testbed information for topology validation
+
+Dependencies:
+    - tests.common.helpers.snmp_helpers: SNMP fact gathering
+    - IP-FORWARD-MIB: ipCidrRouteTable (RFC 2096)
+
+Notes:
+    - Default route: 0.0.0.0/0
+    - Nexthops via eth0 or Ethernet-BP excluded from comparison
+    - SNMP field validations:
+      - route_dest: 0.0.0.0
+      - route_mask: 0.0.0.0
+      - route_type: 4 (remote)
+      - route_proto: not 3 (netmgmt)
+    - If no valid nexthops exist, snmp_cidr_route should be absent
+    - Test skipped on backend topologies (t1-backend, etc.)
+    - Multi-ASIC: validates routes across all frontend ASICs
+=============================================================================
+"""
+
 import pytest
 
 from tests.common.helpers.assertions import pytest_require

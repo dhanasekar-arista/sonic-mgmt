@@ -1,3 +1,45 @@
+"""
+=============================================================================
+Module: platform_tests
+File: test_cpu_memory_usage.py
+=============================================================================
+
+Description:
+    Tests CPU and memory usage of critical processes under various counterpoll
+    configurations. Validates resource consumption stays within platform-specific
+    thresholds during normal operation and with counterpollers enabled/disabled.
+
+Test Intent:
+    - test_cpu_memory_usage: Verify critical process CPU and memory usage within thresholds
+
+Topology:
+    Any topology
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hardware SKU
+    - setup_thresholds: Module-scoped fixture setting CPU/memory thresholds per platform
+    - restore_counter_poll: Autofixture restoring counterpoll state after test
+    - counterpoll_type: Fixture providing counterpoll type for testing
+
+Dependencies:
+    - CounterpollHelper for counterpoll management
+    - cpu_memory_helper for counterpoll restoration
+    - Platform-specific threshold configuration
+
+Notes:
+    - CPU threshold: 70% (chassis) or 50% (standard), platform-specific overrides
+    - Memory threshold: 60%, platform-specific overrides (e.g., 75% for arista_7800)
+    - ASAN images have relaxed thresholds
+    - Mellanox platforms: special handling for high CPU processes
+    - Validates orchagent, syncd, bgpd, zebra, and other critical processes
+    - Checks both with counterpollers enabled and disabled
+    - high_cpu_consume_procs tracks processes expected to consume more CPU
+    - Platform-specific exceptions in setup_thresholds fixture
+    - Test skips ASAN images for stricter validations
+    - wait_until helper for asynchronous checks
+=============================================================================
+"""
 import logging
 import pytest
 

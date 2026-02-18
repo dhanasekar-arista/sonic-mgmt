@@ -1,3 +1,39 @@
+"""
+=============================================================================
+Module: wan/isis
+File: test_isis_hello_interval.py
+=============================================================================
+
+Description:
+    This test validates ISIS hello interval configuration. It verifies that
+    hello intervals can be configured to different values and that adjacencies
+    remain stable with custom hello timers.
+
+Test Intent:
+    - test_isis_hello_interval_5: Tests hello interval of 5 seconds
+    - test_isis_hello_interval_10: Tests hello interval of 10 seconds
+    - test_isis_hello_interval_20: Tests hello interval of 20 seconds
+
+Topology:
+    wan-com (WAN common topology)
+
+Fixtures Used:
+    - isis_common_setup_teardown: Sets up ISIS configuration
+    - isis_setup_teardown_int_5/10/20: Function-scoped fixtures that set
+      hello interval and revert after test
+
+Dependencies:
+    - tests.common.utilities: For wait_until polling
+    - tests.common.helpers.assertions: For pytest assertions
+    - isis_helpers: For ISIS configuration helpers
+
+Notes:
+    - Default hello interval: 10 seconds
+    - Test intervals: 5, 10, 20 seconds
+    - Verifies adjacency stability with different timers
+    - Automatically reverts configuration after each test
+=============================================================================
+"""
 import pytest
 import logging
 import functools

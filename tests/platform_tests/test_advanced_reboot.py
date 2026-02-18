@@ -1,3 +1,59 @@
+"""
+=============================================================================
+Module: platform_tests
+File: test_advanced_reboot.py
+=============================================================================
+
+Description:
+    Tests advanced reboot scenarios including warm reboot with failure injection,
+    dual-TOR mux handling, and SAD (Simulated fault Abnormality Detection) cases.
+    Validates system stability under adverse conditions during reboot.
+
+Test Intent:
+    - test_warm_reboot: Validate basic warm reboot functionality
+    - test_fast_reboot: Test fast reboot with traffic validation
+    - test_warm_reboot_multi_sad_cases: Verify warm reboot with multiple SAD case injections
+    - test_warm_reboot_sad_bgp: Test warm reboot with BGP failure injection
+    - test_warm_reboot_sad_inboot: Validate warm reboot with in-boot failure injection
+    - test_warm_reboot_sad_lag_member: Test warm reboot with LAG member down
+    - test_warm_reboot_dualtor: Verify warm reboot on dual-TOR topology
+
+Topology:
+    T0 and T0-SONiC topologies
+
+Fixtures Used:
+    - get_advanced_reboot: Advanced reboot test fixture with failure injection
+    - copy_ptftests_directory: PTF test directory setup
+    - change_mac_addresses: MAC address configuration
+    - backup_and_restore_config_db: Config DB backup/restore
+    - consistency_checker_provider: DB consistency validation
+    - add_fail_step_to_reboot: Failure injection framework
+    - verify_dut_health: Health check after reboot
+    - advanceboot_loganalyzer: Log analysis for advanced reboot
+    - advanceboot_neighbor_restore: Neighbor session restoration
+    - run_icmp_responder: ICMP responder for traffic validation
+    - run_garp_service: Gratuitous ARP service
+    - mux_cable_server_ip: Dual-TOR mux cable IP
+
+Dependencies:
+    - warmboot_sad_cases module for failure scenarios
+    - Dual-TOR mux simulator control
+    - PTF for traffic validation
+    - Consistency checker for DB validation
+
+Notes:
+    - Test skips DUT health check (mark: skip_check_dut_health)
+    - Loganalyzer disabled (expected error logs during failure injection)
+    - SAD cases: BGP, in-boot, LAG member failures
+    - Multi-SAD tests random SAD case combinations
+    - SSD check determines if platform has SSD storage
+    - Dual-TOR mode validates mux cable status during reboot
+    - Single-TOR mode for standard T0 topologies
+    - Traffic validation via PTF during reboot
+    - Consistency checker validates DB state post-reboot
+    - wait_until helper for asynchronous checks
+=============================================================================
+"""
 import pytest
 import logging
 import random

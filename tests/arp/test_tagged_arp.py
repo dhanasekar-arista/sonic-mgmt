@@ -1,3 +1,56 @@
+"""
+=============================================================================
+Module: test_tagged_arp
+File: test_tagged_arp.py
+=============================================================================
+
+Description:
+    This module tests VLAN-tagged ARP packet handling on SONiC switches configured
+    with portchannel-to-VLAN topology. It validates that tagged GARP packets are
+    correctly processed, learned in the ARP table with proper VLAN ID association,
+    and that the DUT's 'show arp' output accurately reflects the interface and VLAN
+    information for learned neighbors.
+
+Test Intent:
+    - test_tagged_arp_pkt: Sends VLAN-tagged GARP packets from PTF ports with various
+      VLAN IDs configured on portchannel interfaces. Verifies that DUT learns all 10
+      dummy MAC/IP pairs per port-VLAN combination, associates them with correct VLAN ID
+      and interface name, and properly handles FDB synchronization. Tests multiple
+      permitted VLAN IDs per port to ensure comprehensive VLAN tagging support.
+
+Topology:
+    t0, m0, mx (ToR and modular topologies, excludes dualtor)
+
+Fixtures Used:
+    - skip_dualtor: Skips test on dualtor topologies (not supported)
+    - cfg_facts: Retrieves DUT running configuration facts
+    - setup_arp: Module-scoped fixture that enables arp_accept on all VLANs, runs test,
+      then disables arp_accept and cleans ARP cache
+    - setup_acl_table: Sets up ACL tables for portchannel-to-VLAN configuration
+    - setup_po2vlan: Configures portchannel members as VLAN members for testing
+    - vlan_intfs_dict: Provides VLAN interface configuration mapping
+    - ports_list: List of available ports for testing
+    - change_mac_addresses: Changes MAC addresses on PTF interfaces
+    - remove_ip_addresses: Removes IP addresses from PTF interfaces
+
+Dependencies:
+    - tests.common.fixtures.ptfhost_utils: PTF MAC/IP configuration utilities
+    - tests.common.fixtures.duthost_utils: VLAN interface and port list utilities
+    - tests.common.helpers.portchannel_to_vlan: PO to VLAN conversion helpers
+    - tests.common.helpers.backend_acl: ACL rule application for VLAN traffic
+    - ptf.testutils: ARP packet construction and transmission
+
+Notes:
+    - Test enables kernel arp_accept parameter to allow learning from GARP packets
+    - Sends 10 GARP packets per port-VLAN combination with unique MAC/IP pairs
+    - Waits up to 180 seconds for all ARP entries to appear in DUT table
+    - FDB table may update slower than ARP table, causing '-' interface initially
+    - Debug dumps included on failure: 'show mac', 'show arp', 'show int counter'
+    - ACL rules required to allow tagged packets through portchannel-to-VLAN setup
+    - Test validates VLAN ID correctness critical for multi-tenant environments
+=============================================================================
+"""
+
 import pytest
 import ptf.testutils as testutils
 

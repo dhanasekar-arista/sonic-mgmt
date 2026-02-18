@@ -1,3 +1,44 @@
+"""
+=============================================================================
+Module: bmp
+File: test_bmp_configdb.py
+=============================================================================
+
+Description:
+    This module tests BMP (BGP Monitoring Protocol) configuration database
+    functionality by validating enable/disable operations for BMP tables.
+    It verifies that configuration changes are properly reflected in the
+    CONFIG_DB and can be queried via show commands.
+
+Test Intent:
+    - test_bmp_configdb: Validates BMP table configuration management by
+      testing enable and disable operations for all three BMP table types
+      (bgp_neighbor_table, bgp_rib_in_table, bgp_rib_out_table). Ensures
+      configuration commands are properly applied and status can be verified
+      through show commands, confirming proper integration between CLI,
+      CONFIG_DB, and BMP feature.
+
+Topology:
+    any - Works with any topology
+
+Fixtures Used:
+    - duthosts: Multi-DUT fixture providing access to all DUTs in the testbed
+    - rand_one_dut_hostname: Randomly selects one DUT hostname from available DUTs
+    - localhost: Provides access to the localhost/test server
+
+Dependencies:
+    - bmp.helper: Helper functions for BMP table enable/disable and show operations
+    - config bmp CLI: SONiC CLI commands for BMP configuration
+    - show bmp CLI: SONiC CLI commands for BMP status display
+
+Notes:
+    - Test performs sequential enable/disable operations on each table type
+    - Validates configuration status by parsing show command output
+    - All BMP tables are enabled by default at test start
+    - Log analyzer is disabled for these tests
+    - Uses assertion to verify expected true/false status for each table
+=============================================================================
+"""
 import logging
 import pytest
 

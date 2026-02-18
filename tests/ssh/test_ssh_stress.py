@@ -1,3 +1,56 @@
+"""
+=============================================================================
+Module: ssh
+File: test_ssh_stress.py
+=============================================================================
+
+Description:
+    This test file performs SSH stress testing on SONiC devices by creating multiple
+    concurrent SSH connections that execute various configuration commands simultaneously.
+    It monitors system resources (CPU and memory) throughout the test to ensure the
+    device can handle high SSH load without performance degradation or resource exhaustion.
+    The test also determines the maximum number of concurrent SSH sessions supported.
+
+Test Intent:
+    - test_ssh_stress: Validates SSH server stability under stress by running two
+      subtests - (1) creates 5 concurrent SSH connections that continuously execute
+      different configuration commands (BGP start/stop, interface shutdown/startup,
+      ACL configure/remove, route add/delete, portchannel add/delete) for 5 minutes
+      while monitoring CPU and memory usage, ensuring commands complete within 3x
+      baseline time and resources remain stable, and (2) determines the maximum
+      number of concurrent SSH connections (up to 20) the device can handle by
+      attempting to open successive SSH sessions and executing commands on each.
+
+Topology:
+    any (works with any topology type)
+
+Fixtures Used:
+    - duthosts: Provides access to all DUT hosts in the testbed
+    - rand_one_dut_hostname: Randomly selects one DUT hostname for testing
+    - setup_teardown: Function-scoped fixture that copies ACL test configuration
+      files to the DUT and cleans up all configuration changes after test completion,
+      ensuring BGP neighbors are started, interfaces are up, and temporary configs
+      are removed
+
+Dependencies:
+    - socket: For handling network timeouts
+    - threading: For creating concurrent SSH sessions and system monitoring
+    - paramiko: For SSH connection management
+    - pytest: Test framework
+    - tests.common.helpers.assertions: For test assertions
+
+Notes:
+    - Tests are marked to disable log analyzer and work with 'vs' device types
+    - The test runs for 5 minutes to collect sufficient system statistics
+    - Command baseline times are calculated by averaging 5 executions
+    - Commands must complete within 3x their baseline time under stress
+    - Memory/CPU increases of >20% must reduce by >10% after test completion
+    - Global variables track peak memory/CPU usage and test completion status
+    - Maximum SSH connections tested up to 20 sessions
+    - Uses hardcoded admin/password credentials for SSH connections
+    - ACL configuration uses templates from acl/templates/acltb_test_rules.j2
+=============================================================================
+"""
 import socket
 import threading
 import paramiko

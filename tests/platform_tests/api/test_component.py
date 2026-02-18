@@ -1,3 +1,51 @@
+"""
+=============================================================================
+Module: platform_tests
+File: test_component.py
+=============================================================================
+
+Description:
+    Validates Platform API functionality for the Component class, testing firmware
+    management and component metadata retrieval. Tests all methods inherited from
+    DeviceBase and ComponentBase for BIOS, CPLD, FPGA, and other firmware components.
+
+Test Intent:
+    - test_get_name: Verify component name retrieval and match with platform.json
+    - test_get_presence: Confirm all components are present on DUT
+    - test_get_model: Validate component model string retrieval
+    - test_get_serial: Verify component serial number retrieval
+    - test_get_status: Test component operational status
+    - test_get_position_in_parent: Validate position value is an integer
+    - test_is_replaceable: Verify replaceable status is boolean
+    - test_get_description: Confirm component description string retrieval
+    - test_get_firmware_version: Validate current firmware version retrieval
+    - test_get_available_firmware_version: Test firmware version from current/next image
+    - test_get_firmware_update_notification: Verify update notification message retrieval
+    - test_install_firmware: Test firmware installation from current/next image
+    - test_update_firmware: Validate firmware update from current/next image
+
+Topology:
+    Any topology - tests run on all platforms with firmware components
+
+Fixtures Used:
+    - platform_api_conn: Platform API service connection
+    - setup: Function-scoped autofixture that validates component count
+    - duthosts: Multi-DUT host fixture
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hardware SKU
+
+Dependencies:
+    - tests.common.helpers.platform_api (chassis, component)
+    - platform.json (component metadata)
+    - SONiC firmware update infrastructure
+
+Notes:
+    - Test skips if no components found on device
+    - Firmware update tests skip on older releases (201811, 201911, 202012) for Nokia
+    - Install/update tests don't actually modify firmware (dry-run validation)
+    - Available firmware version tested against both current and next images
+    - Component count must match platform.json expectations
+=============================================================================
+"""
 import logging
 import pytest
 

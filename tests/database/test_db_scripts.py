@@ -1,5 +1,49 @@
 """
-Test the database scripts
+Module: tests.database
+File: test_db_scripts.py
+
+Description:
+    This module contains test cases for validating database utility scripts in SONiC.
+    It verifies that database maintenance scripts execute correctly within the database
+    container, ensuring proper database cleanup and management operations.
+
+Test Intent:
+    - Verify that the flush_unused_database script executes successfully within the
+      database container without errors
+    - Ensure database maintenance utilities are properly installed and functional
+    - Validate database cleanup operations work correctly across supported SONiC releases
+      (202012 and later)
+
+Topology:
+    - any: Tests can run on any topology (t0, t1, t2, etc.)
+    - Device Type: vs (virtual switch) only
+
+Fixtures Used:
+    - duthosts: Session-scoped fixture providing DutHosts object containing all DUTs
+      in the testbed (defined in tests/conftest.py)
+    - rand_one_dut_hostname: Module-scoped fixture that randomly selects one DUT
+      hostname from the testbed (defined in tests/conftest.py)
+
+Dependencies:
+    - tests.common.utilities.skip_release: Utility to skip test on specific SONiC releases
+    - tests.common.helpers.assertions.pytest_assert: Custom assertion helper for better
+      error messages
+    - Docker: Tests require database container to be running on the DUT
+    - flush_unused_database script: Database maintenance script available in SONiC 202012+
+
+Notes:
+    - This test is restricted to virtual switch (vs) devices only
+    - The flush_unused_database script was introduced in SONiC release 202012
+    - Tests are automatically skipped on SONiC releases 201811 and 201911
+    - The script runs inside the database Docker container using 'docker exec'
+    - Example test execution:
+      ./run_tests.sh -n vms-kvm-t0 -d vlab-01 -c database/test_db_scripts.py \
+                     -f vtestbed.csv -i veos_vtb
+
+Git History:
+    dab77c420 Remove TACACS fixture from none TACACS test cases (#13422)
+    07f328770 Enable TACACS on test cases. (#12433)
+    49dc10085 Add UT for flush_unused_database (#8032)
 """
 import logging
 import pytest

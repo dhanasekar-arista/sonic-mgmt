@@ -1,11 +1,49 @@
 """
-Check daemon status inside PMON container. Each daemon status is checked under the conditions below in this script:
-* Daemon Running Status
-* Daemon Stop status
-* Daemon Restart status
+=============================================================================
+Module: platform_tests
+File: test_syseepromd.py
+=============================================================================
 
-This script is to cover the test case in the SONiC platform daemon and service test plan:
-https://github.com/sonic-net/sonic-mgmt/blob/master/docs/testplan/PMON-Services-Daemons-test-plan.md
+Description:
+    Tests for syseepromd daemon in the PMON container. Validates daemon lifecycle
+    management, STATE_DB population, and recovery from various termination signals.
+    Covers PMON daemon test plan test cases.
+
+Test Intent:
+    - test_syseepromd_running_status: Verify syseepromd is running and STATE_DB populated
+    - test_syseepromd_stop_and_start_status: Validate manual stop/start operations
+    - test_syseepromd_stop_and_restart_status: Test stop followed by restart
+    - test_kill_syseepromd_sig_term: Verify syseepromd restarts after SIGTERM
+    - test_kill_syseepromd_sig_kill: Validate syseepromd restarts after SIGKILL
+
+Topology:
+    Any topology
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - rand_one_dut_hostname: Selects one random DUT
+    - setup: Module-scoped autofixture validating syseepromd enabled status
+    - teardown_module: Module-scoped autofixture for cleanup
+
+Dependencies:
+    - syseepromd supervisor task in pmon container
+    - STATE_DB database (DB 6) for EEPROM_INFO table
+    - check_pmon_daemon_enable_status helper
+    - check_critical_processes validator
+    - compose_dict_from_cli parser
+
+Notes:
+    - Test skips if syseepromd not enabled on platform
+    - Validates STATE_DB EEPROM_INFO table populated when daemon running
+    - Expected statuses: RUNNING, STOPPED, EXITED
+    - Signal constants: SIG_TERM (-15), SIG_KILL (-9)
+    - Daemon should auto-restart after kill signals
+    - Uses supervisorctl for daemon lifecycle control
+    - STATE_DB key: EEPROM_INFO|State
+    - Loganalyzer disabled (expected error logs during daemon restarts)
+    - Sanity check skipped for this test suite
+    - Test plan: https://github.com/sonic-net/sonic-mgmt/blob/master/docs/testplan/PMON-Services-Daemons-test-plan.md
+=============================================================================
 """
 import logging
 import time

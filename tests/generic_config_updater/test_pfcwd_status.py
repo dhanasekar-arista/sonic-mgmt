@@ -1,3 +1,38 @@
+"""
+=============================================================================
+Module: generic_config_updater
+File: test_pfcwd_status.py
+=============================================================================
+
+Description:
+    Tests PFC watchdog status configuration using Generic Config Updater.
+    Validates enabling/disabling PFC watchdog per port and verifies flex
+    counter status in FLEX_COUNTER_DB.
+
+Test Intent:
+    - test_pfcwd_enable_disable: Enables then disables PFC watchdog per port
+    - test_pfcwd_all_port_toggle: Toggles PFC watchdog on all ports
+
+Topology:
+    Supports any topology
+
+Fixtures Used:
+    - ignore_expected_loganalyzer_exceptions: Ignores expected syncd errors on TD2/VS
+    - setup_env: Creates checkpoint and validates orchagent
+    - is_buffer_model_dynamic: Checks buffer model type
+
+Dependencies:
+    - tests.common.helpers.dut_utils: verify_orchagent_running_or_assert
+    - tests.common.gu_utils: GCU utilities, is_valid_platform_and_version
+
+Notes:
+    - Reads FLEX_COUNTER_DB with 20s timeout, 5s interval
+    - Each port has 3 PFC watchdog flex counters
+    - TD2 ASIC ignores SAI queue and bulk stats errors
+    - VS ASIC ignores switch state map errors
+    - Validates PFC_WD_STATUS in FLEX_COUNTER_TABLE
+=============================================================================
+"""
 import json
 import logging
 import pytest

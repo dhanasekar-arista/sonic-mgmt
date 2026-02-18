@@ -1,3 +1,54 @@
+"""
+=============================================================================
+Module: restapi
+File: test_restapi_client_cert_auth.py
+=============================================================================
+
+Description:
+    Tests client certificate authentication for the REST API server in SONiC.
+    Validates exact matching and wildcard matching of client certificate
+    subject names against configured trusted subject names.
+
+Test Intent:
+    - test_client_cert_subject_name_matching: Validates client certificate
+      authentication using various subject name configurations including exact
+      matches, mismatches, and wildcard patterns. Tests scenarios:
+      1. Exact match success (test.client.restapi.sonic)
+      2. Exact match failure (random.client.restapi.sonic)
+      3. Domain mismatch failure (test.client.restapi.com)
+      4. Wildcard match success (*.client.restapi.sonic)
+      5. Wildcard match success (*.restapi.sonic)
+      6. Wildcard match success (*.sonic)
+      7. Wildcard mismatch failure (*.test.client.restapi.sonic)
+
+Topology:
+    t0, t1 topologies
+
+Fixtures Used:
+    - restore_default_trusted_subject_name: Function-scoped fixture that
+      restores original trusted client cert subject name after test completes
+    - construct_url: REST API base URL fixture
+    - duthosts: List of DUT hosts
+    - rand_one_dut_hostname: Randomly selected DUT hostname
+
+Dependencies:
+    - helper.set_trusted_client_cert_subject_name: Updates trusted subject
+      name configuration on DUT
+    - restapi_operations.Restapi: REST API operation wrapper class
+
+Notes:
+    - Disables loganalyzer for these tests
+    - Client certificate subject name: test.client.restapi.sonic
+    - Default trusted subject name: test.client.restapi.sonic
+    - Uses client certificate: restapiclient.crt with key restapiclient.key
+    - Heartbeat endpoint used for auth testing (returns 200 on success, 401 on failure)
+    - Wildcard matching supports single-level wildcards (*)
+    - Wildcard must match complete subdomain components
+    - Invalid wildcard: *.test.client.restapi.sonic (too specific)
+    - Valid wildcards: *.client.restapi.sonic, *.restapi.sonic, *.sonic
+    - Restores default subject name after test to prevent side effects
+=============================================================================
+"""
 import pytest
 import logging
 

@@ -1,3 +1,52 @@
+"""
+=============================================================================
+Module: console
+File: test_console_availability.py
+=============================================================================
+
+Description:
+    This test validates end-to-end console connectivity in virtual switch (VS)
+    environments. It sets up a complete console loopback path using socat to
+    create virtual serial connections, then verifies that console access is
+    functional through the entire chain (DUT -> KVM host -> virtual device ->
+    console line connection).
+
+Test Intent:
+    - test_console_availability: Validates full console connectivity by setting up
+      socat-based virtual serial devices, configuring console lines with specific
+      baud rates, establishing connections via 'connect line' command, and verifying
+      successful console session establishment
+
+Topology:
+    any (specifically designed for virtual switch environments)
+
+Fixtures Used:
+    - duthost: DUT host fixture for executing commands on the device under test
+    - creds: Credentials fixture providing sonicadmin username and password
+    - skip_if_os_not_support: Auto-fixture that skips tests on unsupported OS versions
+      (201803, 201807, 201811, 201911)
+    - skip_if_console_feature_disabled: Auto-fixture that skips tests when console
+      switch feature is disabled
+
+Dependencies:
+    - pexpect: For interactive SSH session control and automation
+    - getpass: For retrieving current user information
+    - tests.common.helpers.assertions: pytest_assert for test validation
+    - socat: External utility for virtual serial port creation (installed during test)
+    - conftest.py: Module-level fixtures for OS version and feature checks
+
+Notes:
+    - Test is marked for device_type "vs" (virtual switch) only
+    - Parametrized to test console lines 1, 2, 3, and 4
+    - Automatically installs socat on both DUT and KVM host if not present
+    - Uses TCP port mapping: 2000+line_number for forwarding to 7000+line_number-1
+    - Console lines are dynamically configured with 9600 baud rate
+    - Test verifies "Successful connection" message and login prompt appearance
+    - Requires KVM host accessible at 172.17.0.1
+    - Cleans up existing socat and picocom processes before test execution
+=============================================================================
+"""
+
 import getpass
 import pexpect
 import pytest

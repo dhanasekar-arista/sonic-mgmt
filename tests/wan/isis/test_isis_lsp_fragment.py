@@ -1,3 +1,29 @@
+"""
+=============================================================================
+Module: wan/isis
+File: test_isis_lsp_fragment.py
+=============================================================================
+
+Description:
+    This test validates ISIS LSP fragmentation configuration and functionality.
+
+Test Intent:
+    - test_isis_lsp_fragment: Tests LSP fragmentation behavior
+
+Topology:
+    wan-com
+
+Fixtures Used:
+    - isis_common_setup_teardown: Sets up ISIS
+    - isis_setup_teardown_lsp_fragment: Configures LSP fragmentation
+
+Dependencies:
+    - isis_helpers: For ISIS configuration
+
+Notes:
+    - LSPs fragmented when data exceeds MTU
+=============================================================================
+"""
 import pytest
 import logging
 import functools

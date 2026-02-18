@@ -1,3 +1,114 @@
+"""
+=============================================================================
+Module: acl
+File: test_acl.py
+=============================================================================
+
+Description:
+    This is the comprehensive ACL test module for SONiC that validates Access Control
+    List functionality across multiple scenarios, topologies, and configurations. It tests
+    ACL rule creation, deletion, modification, packet matching, action enforcement (forward/drop),
+    and persistence across system events like reboots and port toggles. The module supports
+    both IPv4 and IPv6, ingress and egress stages, and various topologies from T0 to T2.
+
+Test Intent:
+    BaseAclTest class (abstract base for all ACL test classes):
+    - Provides common infrastructure for ACL testing including rule setup, teardown, and
+      packet verification across ingress/egress directions
+
+    TestBasicAcl class:
+    - test_ingress_unmatched_blocked: Verifies unmatched ingress packets are blocked by default
+    - test_egress_unmatched_forwarded: Verifies unmatched egress packets are forwarded by default
+    - test_source_ip_match_forwarded: Verifies packets matching source IP ACL rule are forwarded
+    - test_rules_priority_forwarded: Verifies higher priority ACL rules take precedence (forward)
+    - test_rules_priority_dropped: Verifies higher priority ACL rules take precedence (drop)
+    - test_dest_ip_match_forwarded: Verifies packets matching destination IP ACL rule are forwarded
+    - test_dest_ip_match_dropped: Verifies packets matching destination IP ACL rule are dropped
+    - test_source_ip_match_dropped: Verifies packets matching source IP ACL rule are dropped
+    - test_udp_source_ip_match_forwarded: Verifies UDP packets with matching source IP are forwarded
+    - test_udp_source_ip_match_dropped: Verifies UDP packets with matching source IP are dropped
+    - test_icmp_source_ip_match_dropped: Verifies ICMP packets with matching source IP are dropped
+    - test_icmp_source_ip_match_forwarded: Verifies ICMP packets with matching source IP are forwarded
+    - test_l4_dport_match_forwarded: Verifies L4 destination port matching ACL rule forwards packets
+    - test_l4_sport_match_forwarded: Verifies L4 source port matching ACL rule forwards packets
+    - test_l4_dport_range_match_forwarded: Verifies L4 destination port range matching forwards packets
+    - test_l4_sport_range_match_forwarded: Verifies L4 source port range matching forwards packets
+    - test_l4_dport_range_match_dropped: Verifies L4 destination port range matching drops packets
+    - test_l4_sport_range_match_dropped: Verifies L4 source port range matching drops packets
+    - test_ip_proto_match_forwarded: Verifies IP protocol matching ACL rule forwards packets
+    - test_tcp_flags_match_forwarded: Verifies TCP flags matching ACL rule forwards packets
+    - test_l4_dport_match_dropped: Verifies L4 destination port matching ACL rule drops packets
+    - test_l4_sport_match_dropped: Verifies L4 source port matching ACL rule drops packets
+    - test_ip_proto_match_dropped: Verifies IP protocol matching ACL rule drops packets
+    - test_tcp_flags_match_dropped: Verifies TCP flags matching ACL rule drops packets
+    - test_icmp_match_forwarded: Verifies ICMP type/code matching ACL rule forwards packets
+
+    TestIncrementalAcl class (inherits all TestBasicAcl tests):
+    - Tests ACL rule functionality when configuration is applied incrementally in parts
+    - Validates that partial ACL updates work correctly without full config replacement
+
+    TestAclWithReboot class (inherits all TestBasicAcl tests):
+    - Validates ACL configuration persistence across system reboot
+    - Tests that ACL rules are correctly restored and functional after reboot
+
+    TestAclWithPortToggle class (inherits all TestBasicAcl tests):
+    - Validates ACL functionality after port flap events
+    - Tests that ACL rules remain functional after link down/up transitions
+
+    TestMultiBindingAcl class (inherits TestBasicAcl tests, skips some):
+    - Tests multi-binding ACL tables that can be bound to multiple interfaces
+    - Validates ACL functionality with ERSPAN mirror sessions on DualTOR topologies
+
+Topology:
+    - Supports t0, t1, t2, lt2, m0, mx, m1 topologies
+    - DualTOR topologies supported with mux simulator control
+    - Multi-ASIC platforms supported with per-namespace ACL tables
+    - Both upstream and downstream traffic directions tested
+
+Fixtures Used:
+    - remove_dataacl_table: Module-scoped autouse fixture that removes DATAACL table to
+      free TCAM resources, restores via config_reload after tests
+    - setup: Module-scoped fixture providing test parameters including ports, IP addresses,
+      topology info, and configuration for ACL testing
+    - acl_table: Module-scoped fixture that creates ACL table(s) on DUT with appropriate
+      binding points (ports, PortChannels, VLANs) based on topology
+    - acl_rules: Class-scoped autouse fixture that sets up ACL rules using templates,
+      monitors ASIC_DB for rule creation, validates rules, and tears down after tests
+    - populate_vlan_arp_entries: Function to populate ARP/FDB entries for VLAN interfaces
+    - change_mac_addresses: PTF MAC address management fixture
+    - run_garp_service: GARP service for ARP table population
+    - copy_arp_responder_py: Copies ARP responder script to PTF
+    - mock_server_base_ip_addr: DualTOR mock server IP configuration
+    - conn_graph_facts: Connection graph facts for testbed
+    - is_multi_binding_acl_enabled: Checks if multi-binding ACL is enabled
+
+Dependencies:
+    - tests.common.config_reload: Configuration reload utilities
+    - tests.common.reboot: Reboot functionality for persistence testing
+    - tests.common.port_toggle: Port flap functionality
+    - tests.common.plugins.loganalyzer: Log analysis for ACL operations
+    - tests.common.sai_validation.sonic_db: ASIC_DB monitoring for ACL rule creation
+    - tests.common.validation.sai.acl_validation: ASIC_DB ACL entry validation
+    - tests.common.platform: Process and interface utilities
+    - tests.common.dualtor: DualTOR utilities and mux control
+    - ptf.testutils: PTF packet generation and verification
+
+Notes:
+    - ACL rules applied via templates (acltb_test_rules_permit_loopback.j2, acltb_v6_test_rules.j2)
+    - Supports both full update and incremental update of ACL configuration
+    - ASIC_DB monitoring validates ACL rule programming in hardware
+    - ACL counters updated every 30 seconds by default
+    - T2 topology uses multi-namespace configuration with per-ASIC ACL tables
+    - DualTOR tests verify mux state and use appropriate loopback addresses
+    - Tests parametrized for IPv4/IPv6, ingress/egress stages
+    - Configuration saved before reboot tests to ensure persistence
+    - Route convergence delays scaled based on number of BGP routes (10k-75k+)
+    - Special handling for modular chassis platforms (Cisco-8000, Nokia)
+    - Multi-binding ACL requires ERSPAN mirror session configuration
+    - Supports MACSec-enabled testbeds with appropriate port selection
+=============================================================================
+"""
+
 import os
 import time
 import random

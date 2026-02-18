@@ -1,3 +1,51 @@
+"""
+=============================================================================
+Module: qos
+File: test_pfc_counters.py
+=============================================================================
+
+Description:
+    This module validates PFC (Priority Flow Control) counter functionality in
+    SONiC. Tests verify that PFC Rx counters increment when the switch receives
+    PFC pause/unpause frames but do NOT increment for global flow control frames.
+
+Test Intent:
+    - test_pfc_pause_single_priority: Sends 10 PFC pause frames (pause_time=65535)
+      to a single priority queue and verifies PFC Rx counter increments correctly
+    - test_pfc_pause_multi_priority: Sends PFC pause frames to multiple priority
+      queues simultaneously and validates counters for all affected priorities
+    - test_pfc_unpause: Sends PFC unpause frames (pause_time=0) and verifies
+      counters increment for unpause frames
+    - test_global_pause: Sends global (non-PFC) pause frames and validates that
+      PFC Rx counters do NOT increment (only global counters should change)
+
+Topology:
+    any topology
+
+Fixtures Used:
+    - enable_flex_port_counter: Module-scoped autouse fixture that enables flex
+      counter for PORT table if disabled, then restores original state
+    - leaf_fanouts: Leaf fanout switch information for test setup
+    - conn_graph_facts: Testbed topology connectivity information
+    - enum_fanout_graph_facts: Fanout graph facts enumeration
+
+Dependencies:
+    - tests.common.platform.device_utils: Interface name conversion utilities
+    - ansible/roles/test/files/helpers/pfc_gen.py: PFC frame generator script
+      copied to fanout switches
+
+Notes:
+    - Sends 10 packets per test case (PKT_COUNT = 10)
+    - Tests all 8 priority queues (PRIO_COUNT = 8)
+    - Default pause time: 65535 quanta (maximum pause duration)
+    - Unpause uses pause_time = 0
+    - Clears PFC counters before each test run
+    - Copies pfc_gen.py to /root/pfc_gen_cpu.py on fanout switches
+    - Supports EOS, NXOS, and SONiC fanout OS types
+    - Uses SONiC CLI: sonic-pfc-counters for counter validation
+    - Waits for counter updates after sending frames (polling interval)
+=============================================================================
+"""
 from tests.common.fixtures.conn_graph_facts import conn_graph_facts, enum_fanout_graph_facts     # noqa: F401
 from .qos_fixtures import leaf_fanouts      # noqa: F401
 from tests.common.platform.device_utils import eos_to_linux_intf, nxos_to_linux_intf, sonic_to_linux_intf
@@ -5,15 +53,6 @@ import os
 import time
 import pytest
 import logging
-
-"""
-This module implements test cases for PFC counters of SONiC.
-The PFC Rx counter should be increased when the switch receives a priority-based flow control (PFC) pause/unpause frame.
-The PFC Rx counter should NOT be updated when the switch receives a global flow control pause/unpause frame.
-
-In each test case, we send a specific number of pause/unpause frames to a given priority queue of a given port at the
-device under test (DUT). Then we check the SONiC PFC Rx counters.
-"""
 
 pytestmark = [
     pytest.mark.topology('any')

@@ -1,3 +1,39 @@
+"""
+=============================================================================
+Module: wan/isis
+File: test_isis_database.py
+=============================================================================
+
+Description:
+    This test validates ISIS LSDB (Link State Database) synchronization
+    between two DUT devices. It verifies that ISIS databases are properly
+    synchronized and contain identical LSP entries.
+
+Test Intent:
+    - test_isis_database: Validates ISIS database integrity by comparing
+      LSP entries between two connected DUT devices, ensuring databases
+      are synchronized (ignoring local and holdtime fields)
+
+Topology:
+    wan-2dut (WAN topology with 2 DUTs)
+
+Fixtures Used:
+    - isis_common_setup_teardown: Sets up ISIS configuration
+    - duthosts: Multi-DUT fixture
+
+Dependencies:
+    - tests.common.helpers.assertions: For pytest assertions
+    - tests.common.devices.multi_asic: For multi-ASIC support
+    - isis_helpers: For ISIS configuration helpers
+
+Notes:
+    - Compares LSP entries between two DUT ISIS databases
+    - Ignores 'local' and 'holdtime' fields during comparison
+    - Validates LSP count matches between databases
+    - Ensures database synchronization is working correctly
+    - Uses DEFAULT_ISIS_INSTANCE from isis_helpers
+=============================================================================
+"""
 import time
 import pytest
 import logging

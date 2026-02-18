@@ -1,3 +1,55 @@
+"""
+=============================================================================
+Module: reset_factory
+File: test_reset_factory.py
+=============================================================================
+
+Description:
+    This test validates the SONiC reset-factory command functionality with
+    various configuration preservation options. Tests verify proper cleanup
+    of files, users, logs, and docker containers while respecting specified
+    preservation flags.
+
+Test Intent:
+    - test_reset_factory_without_params: Tests default reset-factory behavior
+      which resets configurations to factory defaults and deletes logs/files
+    - test_reset_factory_keep_all_config: Tests keep-all-config option which
+      preserves all configurations after reset while deleting logs/files
+    - test_reset_factory_only_config: Tests only-config option which resets
+      configurations to factory defaults but preserves logs and files
+    - test_reset_factory_keep_basic: Tests keep-basic option which preserves
+      basic configurations only and deletes logs/files
+
+Topology:
+    any topology
+
+Fixtures Used:
+    - duthosts: List of DUT hosts for testing
+    - localhost: Localhost connection for SSH port monitoring
+
+Dependencies:
+    - tests.common.reboot.perform_reboot: Threaded reboot execution
+    - paramiko: SSH client for remote connections
+    - retry: Retry decorator for docker start time checks
+
+Notes:
+    - Creates test files in directories: /etc/sonic, /host/warmboot, /var/dump,
+      /var/log, /host/reboot-cause, /home
+    - Creates test user 'new_test_user' with password 'test_user123'
+    - Without keep-all-config: runs config-setup factory
+    - Without only-config or keep-basic: deletes non-default users, clears
+      bash/vim/python history, removes non-dotfiles from home directories
+    - Without only-config: removes docker containers (except database), restores
+      /etc/sonic, clears /host/warmboot, deletes tech-support files, clears
+      /var/log, removes /host/reboot-cause contents
+    - Database docker should never be restarted during reset-factory
+    - Waits for SSH port 22 to go down and come back up after reboot
+    - Uses ThreadPool for async reboot command execution
+    - Retries docker start time check up to 18 times with 10s delay
+    - Verifies config_db.json exists for keep-all-config option
+    - Cleanup removes all test-created users and files
+=============================================================================
+"""
 import logging
 import pytest
 import paramiko

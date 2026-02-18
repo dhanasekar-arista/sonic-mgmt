@@ -1,3 +1,49 @@
+"""
+=============================================================================
+Module: voq
+File: test_voq_chassis_app_db_consistency.py
+=============================================================================
+
+Description:
+    This test validates the consistency of chassis APP_DB entries for VOQ
+    systems after disruptive events. It creates a temporary portchannel,
+    performs various disruptive operations (DUT reboot, config reload), and
+    verifies that all chassis APP_DB tables remain consistent.
+
+Test Intent:
+    - test_voq_chassis_app_db_consistency: Parametrized test that creates a
+      temporary portchannel and tests three scenarios:
+        * dut_reboot: Verifies chassis APP_DB consistency after DUT reboot
+        * config_reload_with_config_save: Tests consistency after config reload with save
+        * config_reload_no_config_save: Tests consistency after config reload without save
+      Each scenario verifies SYSTEM_LAG_TABLE, SYSTEM_LAG_MEMBER_TABLE,
+      SYSTEM_NEIGH, and SYSTEM_INTERFACE entries.
+
+Topology:
+    t2 (VOQ chassis topology)
+
+Fixtures Used:
+    - duthosts: Multi-DUT fixture for chassis systems
+    - enum_rand_one_per_hwsku_frontend_hostname: Selects random frontend DUT per hwsku
+    - enum_rand_one_asic_index: Selects random ASIC on the selected DUT
+    - tbinfo: Testbed information
+    - localhost: Local host fixture for ansible operations
+
+Dependencies:
+    - tests.common.helpers.sonic_db: For VoqDbCli and redis operations
+    - tests.common.reboot: For DUT reboot operations
+    - tests.common.config_reload: For config reload operations
+    - tests.common.helpers.voq_lag: For VOQ LAG verification utilities
+
+Notes:
+    - Creates temporary PortChannel999 for testing
+    - Verifies both addition and removal of data in chassis APP_DB
+    - Supports both IPv4 and IPv6 neighbor entries
+    - Checks interface status and critical processes after operations
+    - Cleans up temporary configuration regardless of test outcome
+    - Uses CHASSIS_APP_DB on supervisor or frontend node depending on setup
+=============================================================================
+"""
 import time
 from tests.common.helpers.sonic_db import VoqDbCli, redis_get_keys
 import pytest

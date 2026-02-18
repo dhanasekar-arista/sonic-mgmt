@@ -1,3 +1,55 @@
+"""
+=============================================================================
+Module: mvrf
+File: test_mgmtvrf.py
+=============================================================================
+
+Description:
+    This test suite validates the functionality of Management VRF (Virtual Routing and
+    Forwarding) in SONiC. It verifies that when management VRF is enabled, inbound and
+    outbound management traffic is properly isolated and routed through the management
+    VRF. The tests also ensure that critical services continue to function correctly
+    and that the configuration persists across different types of reboots.
+
+Test Intent:
+    - TestMvrfInbound.test_ping: Verify inbound connectivity to the DUT via ping when mgmt VRF is enabled
+    - TestMvrfInbound.test_snmp_fact: Verify SNMP queries work correctly over mgmt VRF
+    - TestMvrfOutbound.test_ping: Verify outbound ping from DUT to PTF host works through mgmt VRF
+    - TestMvrfOutbound.test_curl: Verify HTTP client operations (curl) work through mgmt VRF
+    - TestServices.test_ntp: Verify NTP service synchronization works correctly with mgmt VRF enabled
+    - TestServices.test_service_acl: Verify service ACL configuration changes are applied correctly with mgmt VRF
+    - TestReboot.test_warmboot: Verify mgmt VRF configuration persists and functions after warm reboot
+    - TestReboot.test_reboot: Verify mgmt VRF configuration persists and functions after cold reboot
+    - TestReboot.test_fastboot: Verify mgmt VRF configuration persists and functions after fast reboot
+
+Topology:
+    any - Can run on any topology
+
+Fixtures Used:
+    - setup_mvrf: Module-level fixture that configures mgmt VRF before tests and removes it after
+    - check_ntp_sync: Checks if NTP is synchronized before testing
+    - ntp_teardown: Cleans up NTP configuration after test
+    - setup_http_server: Starts a temporary HTTP server on PTF for curl testing
+    - change_critical_services: Temporarily modifies the list of critical services to monitor
+    - ntp_servers: Retrieves configured NTP servers from config_db
+    - ntp_daemon_in_use: Determines which NTP daemon (ntpd or chrony) is in use
+
+Dependencies:
+    - tests.common.reboot: For performing various types of reboots
+    - tests.common.config_reload: For reloading configuration
+    - tests.common.helpers.ntp_helper: For NTP daemon detection and configuration
+    - tests.common.helpers.snmp_helpers: For SNMP validation
+    - mvrf/temp_http_server.py: Temporary HTTP server script for outbound testing
+    - mvrf/config_service_acls.sh: Script to test service ACL configuration changes
+
+Notes:
+    - The setup_mvrf fixture backs up the original config_db.json before enabling mgmt VRF
+    - All tests execute with mgmt VRF enabled via the module-level setup_mvrf fixture
+    - Commands that need to run in mgmt VRF context use "sudo ip vrf exec mgmt" prefix
+    - Config save is performed before reboot tests to ensure mgmt VRF persists across reboots
+    - The test includes support for both ntpd and chrony NTP daemons
+=============================================================================
+"""
 import pytest
 import time
 import re

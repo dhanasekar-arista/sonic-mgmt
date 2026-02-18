@@ -1,8 +1,41 @@
 """
-Check SFP status using 'show interface transciever'.
+=============================================================================
+Module: platform_tests
+File: test_show_intf_xcvr.py
+=============================================================================
 
-This script covers test case 'Check SFP status and configure SFP' in the SONiC platform test plan:
-https://github.com/sonic-net/SONiC/blob/master/doc/pmon/sonic_platform_test_plan.md
+Description:
+    Tests SFP/transceiver status using 'show interface transceiver' CLI commands.
+    Validates transceiver presence, EEPROM data, and low-power mode status. Covers
+    'Check SFP status and configure SFP' test case from SONiC platform test plan.
+
+Test Intent:
+    - test_check_sfp_presence: Verify transceiver presence via 'show interface transceiver presence'
+    - test_check_sfp_eeprom: Validate EEPROM data via 'show interface transceiver eeprom'
+    - test_check_sfp_lpmode: Test low-power mode status via 'show interface transceiver lpmode'
+
+Topology:
+    Any topology
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - enum_rand_one_per_hwsku_frontend_hostname: Selects one frontend DUT per hardware SKU
+    - enum_frontend_asic_index: Frontend ASIC index
+    - conn_graph_facts: Connection graph for port mapping
+    - xcvr_skip_list: Transceiver skip list
+
+Dependencies:
+    - show interface transceiver CLI commands
+    - parse_eeprom, parse_output, get_dev_conn, validate_transceiver_lpmode helpers
+
+Notes:
+    - Test validates transceiver presence matches expected connected ports
+    - EEPROM validation checks for valid data fields
+    - Low-power mode test validates lpmode status for QSFP/OSFP modules
+    - Skips interfaces in xcvr_skip_list
+    - Loganalyzer disabled (transceivers may generate expected logs)
+    - Test plan: https://github.com/sonic-net/SONiC/blob/master/doc/pmon/sonic_platform_test_plan.md
+=============================================================================
 """
 
 import logging

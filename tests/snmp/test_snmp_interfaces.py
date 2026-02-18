@@ -1,3 +1,43 @@
+"""
+=============================================================================
+Module: snmp
+File: test_snmp_interfaces.py
+=============================================================================
+
+Description:
+    This test module validates SNMP interface statistics on SONiC switches,
+    including interface counters for ports and router interfaces (RIF). Tests
+    verify that SNMP MIB values for errors and discards match internal counter
+    database values, ensuring accurate SNMP monitoring of interface health.
+
+Test Intent:
+    - test_snmp_interfaces: Validates SNMP interface statistics (ifInErrors,
+      ifOutErrors, ifInDiscards, ifOutDiscards) match COUNTER_DB values for
+      both physical ports and router interfaces
+
+Topology:
+    - Supported: any topology
+    - Device type: vs (virtual switch)
+
+Fixtures Used:
+    - duthosts: All DUT hosts in testbed
+    - enum_rand_one_per_hwsku_hostname: Randomly selected DUT
+    - disable_conterpoll: Disables counter polling during test and re-enables after
+
+Dependencies:
+    - tests.common.helpers.snmp_helpers: SNMP query utilities
+    - tests.common.helpers.counterpoll_helper: Counter polling control
+    - tests.common.utilities: RIF counter parsing
+
+Notes:
+    - Tests SAI port and RIF error/discard counters
+    - Counter polling disabled during test for deterministic behavior
+    - Validates SNMP MIB-II interface counters
+    - Counter test threshold: 5000 packets
+    - Verifies PORT and RIF counter mappings
+=============================================================================
+"""
+
 import logging
 import pytest
 from tests.common.helpers.assertions import pytest_assert

@@ -1,3 +1,43 @@
+"""
+=============================================================================
+Module: gnmi
+File: test_mimic_hwproxy_cert_rotation.py
+=============================================================================
+
+Description:
+    Tests gNMI and telemetry certificate rotation mimicking hardware proxy
+    (hwproxy) behavior. Validates services restart correctly after certificate
+    rotation.
+
+Test Intent:
+    - test_mimic_hwproxy_cert_rotation: Tests certificate rotation for gNMI
+      and telemetry services by:
+      1. Checking initial service status
+      2. Rotating certificates
+      3. Validating services restart and function correctly
+      4. Verifying gNMI capabilities after rotation
+
+Topology:
+    Supports any topology
+
+Fixtures Used:
+    - duthosts: DUT host objects
+    - rand_one_dut_hostname: Randomly selected DUT
+    - localhost: Localhost for certificate operations
+    - ptfhost: PTF host for gNMI client
+
+Dependencies:
+    - tests.gnmi.conftest: setup_gnmi_rotated_server
+    - tests.common.helpers.gnmi_utils: GNMIEnvironment, gnmi_capabilities
+    - tests.common.utilities: wait_until, get_image_type
+
+Notes:
+    - Tests both gNMI and telemetry service certificate rotation
+    - Validates service status via supervisorctl
+    - Uses wait_until for service restart validation (300s timeout)
+    - Only tests enabled services (gnmi or telemetry)
+=============================================================================
+"""
 import pytest
 import logging
 

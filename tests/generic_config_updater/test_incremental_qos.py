@@ -1,3 +1,39 @@
+"""
+=============================================================================
+Module: generic_config_updater
+File: test_incremental_qos.py
+=============================================================================
+
+Description:
+    Tests incremental QoS configuration updates using Generic Config Updater.
+    Validates buffer pool, profile, and queue configuration changes are
+    properly applied to ASIC_DB on dynamic buffer platforms.
+
+Test Intent:
+    - test_incremental_qos: Tests incremental updates to QoS configuration
+      including lossless PGs, lossy PGs, management pool, egress mirroring,
+      buffer thresholds, and headroom settings
+
+Topology:
+    Supports t0 topology (Mellanox, Barefoot, Marvell-Teralynx ASICs only)
+
+Fixtures Used:
+    - ensure_dut_readiness: Verifies dynamic buffer mode and creates checkpoint
+
+Dependencies:
+    - tests.common.helpers.dut_utils: verify_orchagent_running_or_assert
+    - tests.common.gu_utils: GCU utilities, platform validation
+    - tests.common.mellanox_data: is_mellanox_device check
+
+Notes:
+    - Lossless PGs: 2, Lossy PGs: 1, Mgmt pool: 256
+    - Egress mirroring: 10, Min lossy threshold: 19
+    - Reads ASIC_DB with 480s timeout, 20s interval
+    - Only runs on dynamic buffer mode platforms
+    - Validates SAI buffer attributes in ASIC_DB
+=============================================================================
+"""
+
 import logging
 import json
 import pytest

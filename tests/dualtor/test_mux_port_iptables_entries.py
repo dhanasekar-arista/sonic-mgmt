@@ -1,3 +1,47 @@
+"""
+=============================================================================
+Module: Dual ToR Mux Port IPTables NAT Rules Test
+File: test_mux_port_iptables_entries.py
+=============================================================================
+
+Description:
+    This test validates that IPTables NAT rules are correctly configured for mux
+    ports in dual ToR topology. It verifies SNAT (Source NAT) rules that translate
+    VLAN interface IPs to Loopback3 IP when forwarding traffic to server SoC
+    (System on Chip) IPs, enabling proper bidirectional communication.
+
+Test Intent:
+    - test_mux_port_iptables_entries: Validates standard single-VLAN IPTables NAT
+      rules are correctly configured for all mux cable ports
+    - test_multivlan_mux_port_iptables_entries: Validates IPTables NAT rules in
+      multi-VLAN configuration (4 VLANs), ensuring proper SNAT rules exist for
+      each VLAN's server IPs
+
+Topology:
+    dualtor - Requires dual ToR topology
+
+Fixtures Used:
+    - setup_multiple_vlans: Configures multi-VLAN topology using four_vlan_a config
+    - upper_tor_host: Upper ToR device host object
+    - lower_tor_host: Lower ToR device host object
+    - toggle_all_simulator_ports_to_upper_tor: Sets mux simulator ports to upper ToR
+
+Dependencies:
+    - tests.common.config_reload: Config reload utilities
+    - tests.common.dualtor.mux_simulator_control: Mux simulator control utilities
+    - tests.common.dualtor.dual_tor_utils: Dual ToR utility functions
+    - ansible_collections.ansible.utils.plugins.filter.ipaddr: IP address filtering
+
+Notes:
+    - Validates both IPv4 and IPv6 NAT rules (iptables and ip6tables)
+    - Expected rules include default policies (ACCEPT) and POSTROUTING SNAT rules
+    - SNAT rule format: "-A POSTROUTING -s <vlan_ip> -d <soc_ip> -j SNAT --to-source <loopback3_ip>"
+    - Multi-VLAN test uses Jinja2 templates to generate custom minigraph.xml
+    - Multi-VLAN test performs config reload before and after testing
+    - Debian Trixie has additional DOCKER chain rules for ip6tables
+    - Test uses config_facts to extract VLAN, loopback, and mux cable configurations
+=============================================================================
+"""
 import ipaddress
 import logging
 import pytest

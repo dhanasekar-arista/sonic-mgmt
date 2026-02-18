@@ -1,3 +1,41 @@
+"""
+=============================================================================
+Module: generic_config_updater
+File: test_multiasic_addcluster.py
+=============================================================================
+
+Description:
+    Tests adding new T1 cluster configuration to multi-ASIC T2 devices using
+    Generic Config Updater. Validates BGP neighbor configuration, device metadata,
+    and minigraph refactoring for cluster additions.
+
+Test Intent:
+    - test_multiasic_addcluster: Tests adding a new T1 cluster (ARISTA01T1) by:
+      1. Refactoring minigraph.xml to add new cluster
+      2. Generating config patch from minigraph changes
+      3. Applying patch via GCU
+      4. Validating BGP neighbor establishment
+
+Topology:
+    Requires t2 topology (multi-ASIC)
+
+Fixtures Used:
+    - setup_env: Creates checkpoint for rollback
+
+Dependencies:
+    - tests.common.gu_utils: GCU utilities for patch operations
+    - tests.generic_config_updater.util.generate_patch: Patch generation
+    - .util.process_minigraph: MinigraphRefactor for XML processing
+
+Notes:
+    - Uses minigraph.xml at /etc/sonic/minigraph.xml
+    - Backs up original minigraph to minigraph.xml.backup
+    - Target cluster: ARISTA01T1
+    - Template file: templates/addcluster.json
+    - Works on asic0 namespace
+=============================================================================
+"""
+
 """Test adding a T1 neighbor cluster to multi-ASIC SONiC via Generic Config Updater (GCU).
 
 This module tests the ability to add/configure a downstream T1 neighbor cluster on a

@@ -1,3 +1,23 @@
+"""
+=============================================================================
+Module: wan/isis
+File: test_isis_lsp_lifetime.py
+=============================================================================
+
+Description:
+    Validates ISIS LSP lifetime configuration.
+
+Test Intent:
+    - test_isis_lsp_lifetime_max: Tests max LSP lifetime (2000s)
+    - test_isis_lsp_lifetime_min: Tests min LSP lifetime (1500s)
+
+Topology:
+    wan-com
+
+Notes:
+    - LSP lifetime determines how long LSPs remain valid
+=============================================================================
+"""
 import pytest
 import logging
 import functools

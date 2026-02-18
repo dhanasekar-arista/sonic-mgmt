@@ -1,3 +1,67 @@
+"""
+=============================================================================
+Module: fib
+File: test_fib.py
+=============================================================================
+
+Description:
+    This module contains comprehensive FIB (Forwarding Information Base) tests
+    for SONiC switches. It validates IP routing, ECMP hashing, load balancing,
+    default route handling, and resilience to topology changes across IPv4/IPv6.
+
+Test Intent:
+    - test_fib: Validates basic IP forwarding for all FIB routes using PTF
+    - test_fib_hash: Tests ECMP hash distribution across multiple keys (src-ip,
+      dst-ip, src-port, dst-port, ingress-port, ip-proto) for IPv4 and IPv6
+    - test_fib_hash_default_route: Validates ECMP hashing for default route
+    - test_fib_ecmp_member_flap: Tests ECMP resilience when member links flap
+    - test_fib_ip_in_ip_hash: Validates hash distribution for IP-in-IP packets
+    - test_fib_ipv6_in_ipv4_hash: Tests hash for IPv6-in-IPv4 encapsulation
+    - test_fib_ipv4_in_ipv6_hash: Tests hash for IPv4-in-IPv6 encapsulation
+
+Topology:
+    Supports any topology (t0, t1, t2, m0, mx, dualtor, etc.)
+
+Fixtures Used:
+    - change_mac_addresses: Modifies PTF interface MAC addresses
+    - remove_ip_addresses: Cleans up PTF interface IP addresses
+    - copy_ptftests_directory: Copies PTF tests to PTF host
+    - set_ptf_port_mapping_mode: Configures PTF port mapping
+    - ptf_test_port_map_active_active: PTF port map for active-active
+    - ptf_test_port_map: Standard PTF port map
+    - mux_server_url: Mux simulator URL for dualtor
+    - toggle_all_simulator_ports_to_rand_selected_tor_m: Mux control
+    - toggle_all_simulator_ports_to_random_side: Random mux side selection
+    - config_active_active_dualtor_active_standby: Dualtor configuration
+    - validate_active_active_dualtor_setup: Dualtor validation
+    - active_active_ports: Active-active port list
+    - single_fib_for_duts: FIB information for DUTs
+    - get_fib_info: Retrieves FIB information
+    - get_t2_fib_info: Retrieves T2 FIB information
+    - gen_fib_info_file: Generates FIB info file for PTF
+
+Dependencies:
+    - tests.ptf_runner: PTF test execution framework
+    - tests.common.fixtures.ptfhost_utils: PTF utilities
+    - tests.common.dualtor: Dualtor-specific utilities
+    - tests.common.fixtures.fib_utils: FIB utilities
+    - tests.common.utilities: General utilities
+    - tests.common.helpers.assertions: Assertion utilities
+
+Notes:
+    - Hash keys: src-ip, dst-ip, src-port, dst-port, ingress-port, ip-proto
+    - Optional hash keys (src-mac, dst-mac, vlan-id) not enabled by default
+    - Ingress-port negative test validates non-hash behavior
+    - IPv4 ranges: src 8.0.0.0-8.255.255.255, dst 9.0.0.0-9.255.255.255
+    - IPv6 ranges: src 20D0:A800::/64, dst 20D0:A800:0:01::/64
+    - PTF queue length: 20000 packets
+    - Default mux server port: 8080
+    - ECMP member flap test validates hash redistribution
+    - IP-in-IP tests validate inner/outer header hashing
+    - Tests skip ip-proto on topologies with service ports (FT2)
+    - Default route tests only run when multiple nexthops exist
+=============================================================================
+"""
 import re
 import time
 import logging

@@ -1,22 +1,64 @@
 """
-    Tests the COPP feature in SONiC.
+Module:  tests/copp/test_copp.py
+File:    test_copp.py
 
-    Notes:
-        These test cases require that a special RPC syncd image is installed on the
-        DUT. You can either pre-install this image and run the test normally, or
-        specify the `--swap-syncd` flag from the command line to have the test fetch
-        the RPC image and install it before the test runs.
+Description:
+    Tests the Control Plane Policing (COPP) feature in SONiC. COPP protects the
+    switch CPU from being overwhelmed by rate-limiting control plane traffic to
+    predetermined levels. This test suite validates that COPP policers correctly
+    enforce rate limits for various protocol types.
 
-        These test cases limit the PPS of all trap groups to 600. This is done to ensure
-        that the PTF can send traffic fast enough to trigger the policer. In order to validate
-        higher rate limits, a physical traffic generator is needed, which is beyond the scope
-        of these test cases.
+Test Intent:
+    - Verify COPP policers enforce rate limits for protocol traffic (ARP, DHCP, LACP, LLDP, UDLD, BGP, SSH, SNMP, IP2ME)
+    - Validate COPP policer behavior with different packet sizes
+    - Test neighbor miss (subnet hit) packet rate limiting
+    - Verify trap installation and removal capabilities
+    - Validate trap configuration persistence across reboots
+    - Confirm COPP configuration CLI output matches hardware status and config DB
 
-    Parameters:
-        --copp_swap_syncd: Used to install the RPC syncd image before running the tests. Default
-            is disabled.
-        --send_rate_limit: Used to set custom server send rate-limit pps. Default is 2000 pps
+Topology:
+    - Supported: t0, t1, t2, m0, mx, m1, lt2, ft2
+    - Tests use BGP peer ports for traffic generation via PTF
+    - Multi-ASIC topologies supported with namespace-specific testing
 
+Fixtures Used:
+    - copp_testbed: Sets up testbed with PTF configuration, policer limits, syncd setup
+    - dut_type: Retrieves device type from config DB metadata
+    - backup_restore_config_db: Backs up and restores config DB for trap tests
+    - check_image_version: Skips tests on unsupported releases (201911)
+    - ip_versions: Parameterized fixture for IPv4/IPv6 testing
+    - packet_type: Parameterized fixture for neighbor miss packet types
+    - packet_size: Parameterized fixture for MTU testing (64, 1514, 4096 bytes)
+    - is_backend_topology: Checks if running on backend topology
+    - ignore_expected_loganalyzer_exceptions: Ignores expected log errors during testing
+    - copy_ptftests_directory: Module-level fixture for PTF test files
+    - change_mac_addresses: Module-level fixture for PTF MAC setup
+
+Dependencies:
+    - PTF host with copp_tests.py test cases
+    - RPC syncd image (optional, can be swapped with --copp_swap_syncd)
+    - tests.copp.copp_utils module for COPP utility functions
+    - Requires BGP neighbors for port selection
+    - Multi-ASIC proxy setup for multi-ASIC platforms
+
+Notes:
+    - These test cases require that a special RPC syncd image is installed on the
+      DUT. You can either pre-install this image and run the test normally, or
+      specify the --copp_swap_syncd flag from the command line to have the test fetch
+      the RPC image and install it before the test runs.
+    - These test cases limit the PPS of all trap groups to 600 (625 for Marvell platforms).
+      This is done to ensure that the PTF can send traffic fast enough to trigger the
+      policer. In order to validate higher rate limits, a physical traffic generator is
+      needed, which is beyond the scope of these test cases.
+    - TOR-only protocols (DHCP, DHCP6) are handled specially for T1 topologies
+    - BGP is shutdown on upstream neighbors during tests to route traffic via management port
+    - UDLD tests are skipped on Arista-7060x6 fanout running SONiC without forward support
+    - Neighbor miss trap support varies by platform and is checked dynamically
+
+Command-line Parameters:
+    --copp_swap_syncd: Install the RPC syncd image before running tests (default: False)
+    --send_rate_limit: Set custom server send rate-limit in pps (default: 2000)
+    --copp_reboot_type: Reboot type for persistence tests: cold, fast, warm, soft (default: cold)
 """
 
 import ipaddr

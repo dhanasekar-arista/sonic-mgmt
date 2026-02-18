@@ -1,8 +1,47 @@
 """
-Check platform status after service is restarted
+=============================================================================
+Module: platform_tests
+File: test_sequential_restart.py
+=============================================================================
 
-This script is to cover the test case 'Sequential syncd/swss restart' in the SONiC platform test plan:
-https://github.com/sonic-net/SONiC/blob/master/doc/pmon/sonic_platform_test_plan.md
+Description:
+    Tests platform stability after sequential service restarts. Validates that
+    restarting syncd, swss, and other critical services doesn't cause interface,
+    transceiver, or service failures. Covers 'Sequential syncd/swss restart' test
+    case from SONiC platform test plan.
+
+Test Intent:
+    - test_sequential_syncd_swss_restart: Verify platform health after sequential syncd/swss restarts
+    - test_service_restart_<service>: Validate individual service restart recovery
+
+Topology:
+    Any topology
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - rand_one_dut_hostname: Selects one random DUT
+    - conn_graph_facts: Connection graph for interface validation
+    - xcvr_skip_list: Transceiver skip list
+    - heal_testbed: Function-scoped autofixture for testbed recovery
+
+Dependencies:
+    - check_critical_processes for process health validation
+    - check_transceiver_basic for transceiver validation
+    - check_interface_information for interface validation
+    - wait_critical_processes for service startup
+    - get_port_map for port mapping
+
+Notes:
+    - Test validates critical processes healthy after restart
+    - Checks all interfaces operational post-restart
+    - Verifies transceivers detected on connected ports
+    - heal_testbed fixture restarts rsyslog if processes failed
+    - rsyslog restart addresses issue where rsyslog goes down after BGP convergence
+    - is_service_hiting_start_limit checks for start-limit-hit condition
+    - wait_until helper for asynchronous checks
+    - Loganalyzer disabled (expected error logs during service restarts)
+    - Test plan: https://github.com/sonic-net/SONiC/blob/master/doc/pmon/sonic_platform_test_plan.md
+=============================================================================
 """
 import logging
 

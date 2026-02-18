@@ -1,3 +1,22 @@
+"""
+=============================================================================
+Module: wan/isis
+File: test_isis_spf_ietf_interval.py
+=============================================================================
+
+Description:
+    Validates ISIS SPF IETF interval configuration (exponential backoff).
+
+Test Intent:
+    - test_isis_spf_ietf_interval: Tests IETF SPF timing with backoff
+
+Topology:
+    wan-com
+
+Notes:
+    - IETF SPF uses exponential backoff for stability
+=============================================================================
+"""
 import re
 import math
 import time

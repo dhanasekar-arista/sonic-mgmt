@@ -1,3 +1,36 @@
+"""
+=============================================================================
+Module: wan/lacp
+File: test_wan_lag_min_link.py
+=============================================================================
+
+Description:
+    Validates LAG minimum link configuration in WAN topologies. Tests that
+    LAG becomes operationally down when active members fall below min-links.
+
+Test Intent:
+    - test_lag_min_link: Validates min-links configuration by bringing down
+      members and verifying LAG status changes appropriately
+
+Topology:
+    wan-4link (vs devices)
+
+Fixtures Used:
+    - get_target_pcs: Module-scoped fixture providing target PortChannels
+    - duthosts: Multi-DUT fixture
+    - ptfadapter: PTF adapter for packet testing
+
+Dependencies:
+    - tests.common.config_reload: For config reload
+    - tests.common.utilities: For wait_until polling
+    - ptf: For packet testing
+
+Notes:
+    - Tests min-links threshold behavior
+    - Validates LAG operational state transitions
+    - Uses threading for concurrent testing
+=============================================================================
+"""
 import time
 import pytest
 import random

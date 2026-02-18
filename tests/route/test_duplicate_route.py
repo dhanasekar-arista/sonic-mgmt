@@ -1,3 +1,54 @@
+"""
+=============================================================================
+Module: route
+File: test_duplicate_route.py
+=============================================================================
+
+Description:
+    This test module validates proper handling of duplicate route additions on
+    SONiC switches. It verifies that attempting to add routes with prefixes that
+    overlap with existing interface IPs results in appropriate error handling
+    without causing orchagent crashes or unexpected behavior. Tests cover both
+    Loopback and VLAN interface overlaps for IPv4 and IPv6.
+
+Test Intent:
+    - test_duplicate_route_add: Attempts to add static routes whose prefixes
+      overlap with existing interface IPs (Loopback or VLAN), verifies that the
+      operation fails gracefully with expected error messages in syslog, and
+      confirms orchagent remains running without crashes
+
+Topology:
+    - Supported: t0, m0, any
+    - Device type: vs (virtual switch)
+    - Tests on single-ASIC and multi-ASIC devices
+
+Fixtures Used:
+    - duthosts: All DUT hosts in the testbed
+    - enum_rand_one_per_hwsku_frontend_hostname: Randomly selected frontend DUT
+    - enum_rand_one_frontend_asic_index: Selected ASIC instance
+    - tbinfo: Testbed information fixture
+    - is_backend_topology: Backend topology detection
+    - interface_types: Parametrized fixture for Loopback and VLAN interfaces
+    - verify_expected_loganalyzer_logs: Auto-use fixture that expects and ignores
+      duplicate route creation errors
+
+Dependencies:
+    - tests.route.utils: Interface/neighbor generation, route file creation
+    - tests.common.helpers.dut_utils: Orchagent status verification
+    - netaddr.IPNetwork: IP network manipulation for finding overlapping routes
+
+Notes:
+    - Test deliberately triggers error conditions to validate error handling
+    - Expected log patterns: "Failed to create route", "object already exists"
+    - Orchagent must remain running after duplicate route attempt
+    - Test picks random IP from interface subnet as duplicate route prefix
+    - Uses 50 temporary neighbor entries for route nexthops
+    - Route file generated via swssconfig for configuration
+    - 15-second delay after route addition for log propagation
+    - Cleanup removes temporary interfaces and neighbors via config reload on failure
+=============================================================================
+"""
+
 import pytest
 import json
 import random

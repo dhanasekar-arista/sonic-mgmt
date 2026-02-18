@@ -1,3 +1,51 @@
+"""
+=============================================================================
+Module: route
+File: test_route_bgp_ecmp.py
+=============================================================================
+
+Description:
+    This test module validates BGP ECMP (Equal-Cost Multi-Path) route behavior
+    on SONiC switches. It uses ExaBGP running on PTF to announce the same route
+    from multiple BGP peers with identical AS paths, verifying that the switch
+    installs multiple active nexthops for load balancing. The test also validates
+    proper route withdrawal and cleanup.
+
+Test Intent:
+    - test_route_bgp_ecmp: Announces a test route (20.0.0.1/32) from two ExaBGP
+      instances with the same AS path, verifies that the route is installed with
+      at least 2 active nexthops for ECMP load balancing, then withdraws the
+      route and confirms it is removed from the routing table
+
+Topology:
+    - Supported: t0 topology
+    - Requires ExaBGP instances running on PTF host (ports 5000 and 5001)
+    - Uses BGP peering between DUT and PTF
+
+Fixtures Used:
+    - duthosts: All DUT hosts in the testbed
+    - tbinfo: Testbed information including PTF IP and topology configuration
+    - enum_rand_one_per_hwsku_frontend_hostname: Randomly selected frontend DUT
+    - loganalyzer: Log analysis fixture (ignores expected "missed_FRR_routes" errors)
+    - setup_and_teardown: Module-scoped setup/teardown fixture for test environment
+
+Dependencies:
+    - requests: HTTP communication with ExaBGP REST API on PTF
+    - json: Parsing FRR route output from vtysh command
+    - ExaBGP: BGP daemon on PTF for route injection
+
+Notes:
+    - ExaBGP base port is 5000 (two instances on 5000 and 5001)
+    - Test route: 20.0.0.1/32 with AS path 65000 65001 65002
+    - Default nexthop: 10.10.246.254 (configurable via topology properties)
+    - Routes are announced via HTTP POST to ExaBGP REST API
+    - Route verification uses vtysh "show ip route" with JSON output
+    - Test validates internalNextHopActiveNum >= 2 for ECMP
+    - Cleanup ensures routes are withdrawn even if test fails
+    - 5-second delay after announce/withdraw for route propagation
+=============================================================================
+"""
+
 import requests
 import json
 import logging

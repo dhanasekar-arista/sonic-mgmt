@@ -1,5 +1,62 @@
 """
-Tests Acl Vlan Outer ID match in SONiC.
+=============================================================================
+Module: acl
+File: test_acl_outer_vlan.py
+=============================================================================
+
+Description:
+    This test module validates ACL rules that match on outer VLAN ID in SONiC. It tests
+    both ingress and egress ACL stages for packets with VLAN tags, including single VLAN
+    and QinQ (double-tagged) scenarios. The tests verify that ACL rules can correctly
+    identify and act upon packets based on their outer VLAN tag in various interface
+    configurations (tagged, untagged, and combined VLAN membership).
+
+Test Intent:
+    TestAclVlanOuter_Ingress class:
+    - test_tagged_forwarded: Verifies packet is forwarded by ingress ACL rule matching outer VLAN on tagged interface
+    - test_tagged_dropped: Verifies packet is dropped by ingress ACL rule matching outer VLAN on tagged interface
+    - test_untagged_forwarded: Verifies packet is forwarded by ingress ACL rule matching outer VLAN on untagged interface
+    - test_untagged_dropped: Verifies packet is dropped by ingress ACL rule matching outer VLAN on untagged interface
+    - test_combined_tagged_forwarded: Verifies forwarding on interface in multiple VLANs (tagged mode)
+    - test_combined_tagged_dropped: Verifies dropping on interface in multiple VLANs (tagged mode)
+    - test_combined_untagged_forwarded: Verifies forwarding on interface in multiple VLANs (untagged mode)
+    - test_combined_untagged_dropped: Verifies dropping on interface in multiple VLANs (untagged mode)
+
+    TestAclVlanOuter_Egress class (same tests as ingress but for egress stage):
+    - All test methods validate egress ACL matching on outer VLAN ID with same scenarios
+
+Topology:
+    - t0 topology required
+    - Requires testbed with SONiC leaf-fanout running image >= 202205
+    - Minimum 4 VLAN member ports required for comprehensive testing
+    - Creates PortChannel1 with LAG bonding on PTF side
+
+Fixtures Used:
+    - vlan_setup_info: Module-scoped fixture providing VLAN configuration including
+      test VLANs 100 and 200 with tagged/untagged port assignments
+    - vlan_setup_teardown: Module-scoped autouse fixture that creates VLANs, PortChannels,
+      and configures PTF LAG, then restores config via config_reload
+    - remove_dataacl_table: Module-scoped autouse fixture to free TCAM resources
+    - ip_version: Module-scoped parametrized fixture for IPv4/IPv6 testing
+    - skip_sonic_leaf_fanout: Module-scoped autouse fixture to skip on incompatible fanout
+    - change_mac_addresses: PTF MAC address management fixture
+
+Dependencies:
+    - tests.common.config_reload: Configuration reload utilities
+    - tests.common.utilities: Topology and neighbor utilities
+    - tests.common.plugins.loganalyzer: Log analysis for ACL operations
+    - ptf.testutils: PTF packet generation and verification
+    - tests.common.helpers.assertions: Test assertion helpers
+
+Notes:
+    - Test creates temporary VLAN 100 and 200, removing ports from default VLAN
+    - QinQ packets used for ingress testing to validate double-tag scenarios
+    - Egress tests require ARP responder setup on PTF for proper packet forwarding
+    - ACL counters verified to ensure rules are hit correctly
+    - Test is skipped on SONiC leaf-fanout platforms older than 202205 or non-supported ASICs
+    - IPv6 egress testing skipped as arp_responder doesn't support IPv6 yet
+    - Broadcom platforms don't support egress ACLs currently
+=============================================================================
 """
 
 import os

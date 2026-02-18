@@ -1,7 +1,49 @@
 """
-Test SNMP memory MIB in SONiC.
-Parameters:
-    --percentage: Set optional percentege of difference for test
+=============================================================================
+Module: snmp
+File: test_snmp_memory.py
+=============================================================================
+
+Description:
+    This test module validates SNMP memory MIB reporting on SONiC switches by
+    comparing SNMP-reported memory statistics (total, available, used) against
+    system memory data from /proc/meminfo, accounting for acceptable percentage
+    differences based on total memory size.
+
+Test Intent:
+    - test_snmp_memory: Validates SNMP memory MIB values match system memory data
+      within acceptable percentage thresholds, verifying total memory, used memory,
+      and available memory reporting accuracy
+
+Topology:
+    - Supported: any topology
+    - Works across all device types
+
+Fixtures Used:
+    - duthosts: All DUT hosts in testbed
+    - enum_rand_one_per_hwsku_hostname: Randomly selected DUT
+    - localhost: Local connection for SNMP queries
+    - creds_all_duts: SNMP credentials
+    - get_parameter: Auto-use module fixture for --percentage CLI option
+    - load_memory: Optional fixture for memory load testing
+
+Dependencies:
+    - tests.common.helpers.snmp_helpers: SNMP fact gathering
+    - /proc/meminfo: System memory statistics
+
+Notes:
+    - CLI parameter: --percentage (optional custom threshold)
+    - Default percentage thresholds (if not specified):
+      - >4GB RAM: 4% difference allowed
+      - >3GB RAM: 8% difference allowed
+      - >2GB RAM: 10% difference allowed
+      - <=2GB RAM: 12% difference allowed
+    - Smaller memory systems allow higher percentage differences
+    - SNMP memory values compared: total, used, available
+    - System data source: /proc/meminfo (MemTotal, MemAvailable, MemFree, Buffers, Cached)
+    - Percentage calculation: abs(snmp - system) * 100 / snmp
+    - Memory units: kilobytes (KB)
+=============================================================================
 """
 
 import pytest

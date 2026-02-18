@@ -1,9 +1,54 @@
 """
-1. On a dual ToR testbed, confirm that the tunnel packet handler service is running
-in the SWSS container on active Tor (supervisorctl status tunnel_packet_handler)
-2. Send a continuous stream of IPinIP packets similar to those sent from the standby
-ToR to the active ToR
-3. Check SWSS container memory consumption
+=============================================================================
+Module: Dual ToR Tunnel Packet Handler Memory Leak Test
+File: test_tunnel_memory_leak.py
+=============================================================================
+
+Description:
+    This test validates that tunnel_packet_handler service in SWSS container does
+    not have memory leaks when processing IPinIP decapsulation traffic. It sends
+    continuous tunnel traffic from standby ToR to active ToR, triggers neighbor
+    learning via tunnel_packet_handler, and monitors memory consumption to detect
+    any leaks.
+
+Test Intent:
+    - test_tunnel_memory_leak: Validates tunnel_packet_handler memory stability:
+      1. Verifies tunnel_packet_handler is running on active ToR
+      2. Removes all server neighbor entries to trigger packet handler
+      3. Sends 1000 IPinIP packets per server from standby ToR
+      4. Monitors tunnel_packet_handler memory usage before and after
+      5. Verifies memory usage stays within 5% threshold (no leaks)
+
+Topology:
+    dualtor - Requires dual ToR topology with physical servers
+
+Fixtures Used:
+    - toggle_all_simulator_ports_to_upper_tor: Sets mux simulator to upper ToR (active)
+    - upper_tor_host: Upper ToR device (active)
+    - lower_tor_host: Lower ToR device (standby)
+    - ptfhost: PTF host for ARP/ICMP services
+    - ptfadapter: PTF adapter for sending packets
+    - conn_graph_facts: Connection graph facts
+    - vmhost: VM host for server traffic monitoring
+    - run_arp_responder: Runs ARP responder on PTF
+
+Dependencies:
+    - tests.common.dualtor.dual_tor_utils: Dual ToR utility functions
+    - tests.common.dualtor.server_traffic_utils: Server traffic monitoring
+    - tests.common.helpers.dut_utils: DUT utility functions (get_program_info)
+
+Notes:
+    - Test temporarily stops garp_service to prevent auto neighbor recovery
+    - Starts arp_responder and icmp_responder for server-side packet reception
+    - Memory threshold buffer: 5% (allows small natural fluctuations)
+    - Sends 1000 packets per server to maximize tunnel_packet_handler triggers
+    - Memory measured using VmRSS from /proc/<pid>/status
+    - Memory check retries with 5-second intervals up to 15 seconds
+    - Logs memory usage after each server iteration for debugging
+    - Test skipped on KVM (virtual switch) as ServerTrafficMonitor not supported
+    - tunnel_packet_handler adds neighbor entries for destination IPs with zero MAC
+    - Validates neighbor entry exists after packet processing
+=============================================================================
 """
 import pytest
 import logging

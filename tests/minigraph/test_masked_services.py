@@ -1,3 +1,49 @@
+"""
+=============================================================================
+Module: minigraph
+File: test_masked_services.py
+=============================================================================
+
+Description:
+    This test validates that load_minigraph (config reload from minigraph)
+    succeeds even when optional services like telemetry or GNMI are masked
+    (disabled). This ensures minigraph loading doesn't fail due to non-critical
+    service unavailability.
+
+Test Intent:
+    - test_masked_services: Tests configuration reload from minigraph when
+      telemetry or GNMI service is masked. Identifies which service (telemetry
+      or GNMI) is available, masks the service to make it inactive, performs
+      config reload from minigraph source, and verifies the operation succeeds.
+      Service is restored in finally block. This validates that minigraph
+      loading is resilient to masked non-critical services.
+
+Topology:
+    any topology
+
+Fixtures Used:
+    - duthosts: Provides list of DUT hosts for testing
+    - rand_one_dut_hostname: Randomly selects one DUT hostname for testing
+
+Dependencies:
+    - tests.common.helpers.assertions: For pytest assertions
+    - tests.common.utilities: For wait_until polling functionality
+    - tests.common.config_reload: For configuration reload operations
+
+Notes:
+    - Disables loganalyzer for this test
+    - Tests either telemetry or GNMI service (whichever is available)
+    - Checks for docker images: sonic-telemetry or sonic-gnmi
+    - Verifies service is running before starting test
+    - Masks service with: systemctl mask, disable, and stop
+    - Waits up to 30 seconds to confirm service is inactive
+    - Performs config reload with minigraph as config source
+    - Unmasks service in finally block to ensure restoration
+    - Waits up to 100 seconds for service to fully start after restoration
+    - Performs final config reload from config_db with safe reload
+    - Test fails if neither telemetry nor GNMI image/service is found
+=============================================================================
+"""
 import logging
 import pytest
 from tests.common.helpers.assertions import pytest_assert

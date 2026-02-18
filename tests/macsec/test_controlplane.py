@@ -1,3 +1,68 @@
+"""
+=============================================================================
+Module: macsec
+File: test_controlplane.py
+=============================================================================
+
+Description:
+    This test validates MACsec (Media Access Control Security) control plane
+    functionality on SONiC devices. It verifies MKA (MACsec Key Agreement)
+    session establishment, APPL_DB state, WPA supplicant processes, rekey
+    operations, and profile replacement scenarios for encrypted links.
+
+Test Intent:
+    - test_wpa_supplicant_processes: Validates that WPA supplicant processes
+      are running on both DUT and neighbor devices for all MACsec-controlled
+      links. Ensures MACsec authentication infrastructure is operational.
+    - test_appl_db: Verifies MACsec configuration in APPL_DB matches expected
+      policy, cipher suite, and SCI settings for all controlled links.
+    - test_mka_session: Validates MKA session establishment between DUT and
+      neighbors. Checks SCI (Secure Channel Identifier), cipher suite, policy,
+      and send_sci configuration match on both ends. Skips detailed MKA checks
+      on physical switches (non-KVM).
+    - test_rekey_by_period: Tests automatic MACsec key rotation based on rekey
+      period. Verifies SA (Security Association) tables change after rekey
+      while maintaining traffic continuity (less than 1% packet loss during
+      rekey). Skips if rekey_period is 0.
+    - test_profile_replace: Validates dynamic MACsec profile replacement.
+      Ensures new MKA session is established with new profile within 60 seconds
+      and SA tables are updated. Reverts to original profile after test.
+
+Topology:
+    t0, t2, t0-sonic topologies with MACsec support required
+
+Fixtures Used:
+    - duthost: DUT host object for test execution
+    - ctrl_links: Dictionary of MACsec-controlled links on the DUT
+    - upstream_links: Upstream link information for traffic testing
+    - downstream_links: Downstream link information
+    - policy: MACsec policy configuration
+    - cipher_suite: MACsec cipher suite (e.g., GCM-AES-128, GCM-AES-256)
+    - send_sci: Whether to send SCI in MACsec frames
+    - wait_mka_establish: Waits for MKA session establishment before tests
+    - rekey_period: Period for automatic key rotation
+    - profile_name: MACsec profile name
+    - primary_cak, primary_ckn: CAK and CKN for MKA
+    - default_priority: MACsec profile priority
+    - tbinfo: Testbed information
+
+Dependencies:
+    - tests.common.utilities: For wait_until polling functionality
+    - tests.common.devices.eos: For EOS device support
+    - tests.common.macsec.macsec_helper: MACsec validation and data retrieval
+    - tests.common.macsec.macsec_config_helper: MACsec configuration management
+    - tests.common.macsec.macsec_platform_helper: Platform-specific helpers
+
+Notes:
+    - Requires MACsec-capable hardware and topology
+    - test_mka_session skips detailed checks on physical switches (non-KVM)
+    - test_rekey_by_period uses ping to verify less than 1% packet loss
+    - test_profile_replace disables loganalyzer and reverts configuration
+    - Waits up to 300 seconds for WPA supplicant, APPL_DB, and MKA session
+    - Profile replacement test waits 60 seconds for new MKA session
+    - Supports both SONiC and EOS neighbors
+=============================================================================
+"""
 from time import sleep
 import pytest
 import logging

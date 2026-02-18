@@ -1,3 +1,51 @@
+"""
+=============================================================================
+Module: platform_tests
+File: test_power_off_reboot.py
+=============================================================================
+
+Description:
+    Tests power-off reboot scenarios by using PDU to power cycle PSUs. Validates
+    system recovery after complete power loss, including configurable delays between
+    power-off and power-on to test various timing scenarios.
+
+Test Intent:
+    - test_power_off_reboot: Validate DUT recovers after PDU-controlled power cycle
+      with configurable power_off_delay
+
+Topology:
+    Any topology - requires PDU controller
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - enum_supervisor_dut_hostname: Selects supervisor DUT
+    - localhost: Localhost connection
+    - pdu_controller: PDU controller for power cycling
+    - conn_graph_facts: Connection graph for interface validation
+    - xcvr_skip_list: Transceiver skip list
+    - set_max_time_for_interfaces: Module fixture setting max interface wait time
+    - teardown_module: Module fixture for cleanup
+
+Dependencies:
+    - PDU controller for power cycling
+    - get_grouped_pdus_by_psu for PSU-PDU mapping
+    - check_interfaces_and_services validator
+    - wait_critical_processes for service validation
+    - reboot_and_check helper
+
+Notes:
+    - Test requires PDU controller connected to device PSUs
+    - INTERFACE_WAIT_TIME: 300s (may be overridden by plt_reboot_ctrl)
+    - power_off_delay: configurable delay between power-off and power-on
+    - Reboot type: REBOOT_TYPE_POWEROFF (or SUPERVISOR_HEARTBEAT_LOSS for some platforms)
+    - Validates all PSUs powered back on
+    - Checks critical processes healthy post-reboot
+    - Verifies interfaces and services operational
+    - Teardown ensures system returned to healthy state
+    - Loganalyzer disabled (expected error logs during power cycle)
+    - PDU wait times between operations ensure stable power state
+=============================================================================
+"""
 import logging
 import pytest
 

@@ -1,3 +1,66 @@
+"""
+=============================================================================
+Module: telemetry
+File: test_telemetry_cert_rotation.py
+=============================================================================
+
+Description:
+    This test file validates TLS/SSL certificate rotation functionality for the
+    gNMI telemetry service in SONiC. It tests that the telemetry server can handle
+    certificate lifecycle operations including starting without certificates,
+    certificate deletion, certificate addition, and certificate rotation while
+    maintaining service availability and secure connections.
+
+Test Intent:
+    - test_telemetry_not_exit: Validates that telemetry server continues running
+      when certificates are missing by stopping telemetry, removing certs,
+      restarting the service, verifying it starts successfully without certs,
+      and confirming it becomes functional after certs are restored.
+    - test_telemetry_post_cert_del: Tests certificate deletion impact by making
+      a successful gNMI request with valid certs, deleting the certificates,
+      attempting a second request that should fail due to missing certs, and
+      verifying proper error handling.
+    - test_telemetry_post_cert_add: Validates certificate addition by starting
+      with no certificates (request fails), rotating/adding new certificates,
+      and confirming subsequent gNMI requests succeed with the new certs.
+    - test_telemetry_cert_rotate: Tests certificate rotation by making a successful
+      request with existing certs, performing certificate rotation with new certs,
+      and verifying requests continue to work with the rotated certificates,
+      ensuring zero-downtime certificate updates.
+
+Topology:
+    any, t1-multi-asic (works with multiple topology types)
+
+Fixtures Used:
+    - duthosts: Provides access to all DUT hosts
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hwsku
+    - ptfhost: PTF host for running gNMI client
+    - gnxi_path: Path to gNMI client tools on PTF
+    - setup_streaming_telemetry: Configures streaming telemetry (parametrized False)
+    - localhost: Local host object for operations
+
+Dependencies:
+    - pytest: Test framework
+    - tests.common.helpers.assertions: For test assertions
+    - tests.common.utilities: Provides wait_until and wait_tcp_connection
+    - tests.common.helpers.gnmi_utils: gNMI environment utilities
+    - telemetry_utils: Certificate rotation and gNMI CLI utilities
+
+Notes:
+    - Certificate directory: /etc/sonic/telemetry/
+    - Certificates: ca_crt, server_crt, server_key
+    - Archive location for backup: /tmp/telemetry_certs.tar.gz
+    - Wait timeout for service start: 100 seconds with 10-second intervals
+    - Wait timeout for port listening: 120 seconds
+    - gNMI method tested: get
+    - Subscription mode: POLL (2)
+    - Tests use COUNTERS_DB path: COUNTERS/Ethernet0
+    - Certificate rotation uses cert-gen.sh script
+    - Tests verify both service availability and request success/failure
+    - Proper error handling verified when certs are missing
+    - Service restart includes systemctl reset-failed for clean state
+=============================================================================
+"""
 import logging
 import pytest
 
@@ -17,17 +80,6 @@ logger = logging.getLogger(__name__)
 
 METHOD_GET = "get"
 SUBMODE_POLL = 2
-
-"""
-
-Testing cert rotation by telemetry
-
-1. Test that telemetry will stay up without certs
-2. Test that when we serve one successful request, delete certs, second request will not work
-3. Test that when we have no certs, first request will fail, rotate certs, second request will work
-4. Test that when we have certs, request will succeed, rotate certs, second request will also succeed
-
-"""
 
 
 @pytest.mark.parametrize('setup_streaming_telemetry', [False], indirect=True)

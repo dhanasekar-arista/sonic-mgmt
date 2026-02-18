@@ -1,11 +1,50 @@
 """
-Check daemon status inside PMON container. Each daemon status is checked under the conditions below in this script:
-* Daemon Running Status
-* Daemon Stop status
-* Daemon Restart status
+=============================================================================
+Module: platform_tests
+File: test_psud.py
+=============================================================================
 
-This script is to cover the test case in the SONiC platform daemon and service test plan:
-https://github.com/sonic-net/sonic-mgmt/blob/master/docs/testplan/PMON-Services-Daemons-test-plan.md
+Description:
+    Tests for psud (PSU daemon) in the PMON container on supervisor nodes. Validates
+    daemon lifecycle management, STATE_DB PSU status population, and recovery from
+    termination signals. Monitors PSU presence and health.
+
+Test Intent:
+    - test_psud_running_status: Verify psud is running and STATE_DB PSU entries populated
+    - test_psud_stop_and_start_status: Validate manual stop/start operations
+    - test_psud_stop_and_restart_status: Test stop followed by restart
+    - test_kill_psud_sig_term: Verify psud restarts after SIGTERM
+    - test_kill_psud_sig_kill: Validate psud restarts after SIGKILL
+
+Topology:
+    Any topology - runs on supervisor nodes
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - enum_supervisor_dut_hostname: Selects supervisor DUT
+    - setup: Module-scoped autofixture validating psud enabled status
+    - teardown_module: Module-scoped autofixture for cleanup
+
+Dependencies:
+    - psud supervisor task in pmon container
+    - STATE_DB database (DB 6) for PSU status table
+    - check_pmon_daemon_enable_status helper
+    - check_critical_processes validator
+    - compose_dict_from_cli parser
+
+Notes:
+    - Test only runs on supervisor nodes
+    - Test skips if psud not enabled on platform
+    - Expected statuses: RUNNING, STOPPED, EXITED
+    - Signal constants: SIG_TERM (-15), SIG_KILL (-9)
+    - Daemon should auto-restart after kill signals
+    - Validates STATE_DB PSU entries when daemon running
+    - Uses supervisorctl for daemon lifecycle control
+    - psud monitors PSU presence, status, voltage, current, power
+    - Loganalyzer disabled (expected error logs during daemon restarts)
+    - Sanity check skipped for this test suite
+    - Test plan: https://github.com/sonic-net/sonic-mgmt/blob/master/docs/testplan/PMON-Services-Daemons-test-plan.md
+=============================================================================
 """
 import logging
 import time

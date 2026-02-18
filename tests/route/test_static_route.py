@@ -1,3 +1,68 @@
+"""
+=============================================================================
+Module: route
+File: test_static_route.py
+=============================================================================
+
+Description:
+    This test module validates static route configuration and traffic forwarding
+    on SONiC switches. It covers both IPv4 and IPv6 static routes, single and
+    multi-path ECMP scenarios, and verifies route persistence through warmboot
+    and config reload operations. The tests ensure proper route installation,
+    BGP advertisement, and traffic forwarding across various topology types.
+
+Test Intent:
+    - test_static_route: Verifies basic static route configuration with a single
+      nexthop, validates traffic forwarding, and checks BGP route redistribution
+    - test_static_route_ecmp: Tests static route with multiple nexthops (ECMP),
+      validates load balancing, and verifies persistence through config reload
+    - test_static_route_ipv6: Validates IPv6 static route configuration, traffic
+      forwarding, and BGP advertisement
+    - test_static_route_ecmp_ipv6: Tests IPv6 static route with ECMP nexthops
+      and verifies persistence through config reload
+    - test_static_route_warmboot: Ensures static routes persist through warmboot
+      and traffic forwarding resumes correctly after warmboot completion
+    - test_static_route_ecmp_warmboot: Validates ECMP static routes survive
+      warmboot with all nexthop paths intact
+    - test_static_route_ipv6_warmboot: Tests IPv6 static route persistence
+      through warmboot operations
+    - test_static_route_config_reload_with_traffic: Comprehensive validation of
+      static route persistence through config reload with traffic verification
+
+Topology:
+    - Supported: t0, m0, mx
+    - Device type: vs (virtual switch)
+    - Supports dualtor configurations with mux cable handling
+    - Uses VLAN interfaces for nexthop configuration
+
+Fixtures Used:
+    - rand_selected_dut: Randomly selected DUT for testing
+    - rand_unselected_dut: Unselected DUT in dualtor scenarios
+    - ptfadapter: PTF adapter for packet testing
+    - ptfhost: PTF host for interface configuration
+    - tbinfo: Testbed information fixture
+    - setup_standby_ports_on_rand_unselected_tor: Sets up standby ports on unselected tor
+    - toggle_all_simulator_ports_to_rand_selected_tor_m: Configures mux simulator for dualtor
+    - is_route_flow_counter_supported: Flow counter support detection fixture
+
+Dependencies:
+    - ptf.testutils, ptf.mask, ptf.packet: Packet generation and verification
+    - tests.common.dualtor: Dualtor topology utilities and mux control
+    - tests.common.flow_counter: Route flow counter validation
+    - tests.common.helpers.dut_ports: VLAN interface discovery
+    - tests.common.reboot: Warmboot execution utilities
+
+Notes:
+    - Tests use ARP responder on PTF for IPv4 nexthop resolution
+    - IPv6 uses direct interface address configuration on PTF
+    - Static routes are configured via CONFIG_DB for persistence
+    - BGP route redistribution is verified to upstream neighbors
+    - Dualtor tests ensure mux state consistency before traffic validation
+    - Flow counters are validated when supported by the platform
+    - Config reload tests account for extended BGP convergence times on some platforms
+=============================================================================
+"""
+
 import pytest
 import json
 import ipaddress

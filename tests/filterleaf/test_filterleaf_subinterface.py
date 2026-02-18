@@ -1,3 +1,42 @@
+"""
+=============================================================================
+Module: filterleaf
+File: test_filterleaf_subinterface.py
+=============================================================================
+
+Description:
+    This module tests subinterface functionality on filterleaf topology switches
+    in SONiC. It validates that subinterfaces are properly configured with correct
+    VLAN tagging, IP addresses, and MTU settings as defined in the minigraph.
+
+Test Intent:
+    - test_subintf_status: Verifies subinterface operational status is up
+    - test_subintf_vlan: Validates correct VLAN ID configuration on subinterfaces
+    - test_subintf_address: Confirms IPv4/IPv6 address assignment on subinterfaces
+    - test_subintf_speed: Verifies speed configuration matches parent interface
+    - test_subintf_mtu: Validates MTU configuration matches parent interface
+    - test_subintf_bgp_session: Ensures BGP sessions over subinterfaces are established
+
+Topology:
+    Requires t1-filterleaf-lag topology
+
+Fixtures Used:
+    - check_bgp_neighbor: Validates BGP neighbor establishment in VRF
+    - subintf_expected_config: Provides expected subinterface configuration
+
+Dependencies:
+    - tests.common.utilities: wait_until for polling
+    - tests.common.helpers.assertions: pytest_assert for validations
+    - tests.common.constants: VLAN_SUB_INTERFACE_SEPARATOR constant
+
+Notes:
+    - Tests run on frontend DUTs with specific ASIC instances
+    - Subinterfaces identified by dot notation (e.g., Ethernet0.10)
+    - BGP sessions validated in Vrf_Q10DDOS VRF
+    - Configuration extracted from show interface status and interface facts
+    - Tests validate both IPv4 and IPv6 address assignments
+=============================================================================
+"""
 import pytest
 import ipaddress
 

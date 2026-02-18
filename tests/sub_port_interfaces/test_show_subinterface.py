@@ -1,3 +1,52 @@
+"""
+=============================================================================
+Module: sub_port_interfaces
+File: test_show_subinterface.py
+=============================================================================
+
+Description:
+    This test file validates the display and management of sub-interface status
+    on SONiC devices. It verifies that sub-interfaces (802.1Q VLAN tagged interfaces)
+    are correctly created, properly displayed in show commands with accurate attributes,
+    and cleanly removed from the system. The test ensures CLI commands accurately
+    reflect sub-interface configuration state.
+
+Test Intent:
+    - test_subinterface_status: Validates complete sub-interface lifecycle by
+      verifying (1) sub-interfaces appear in "show subinterfaces status" with
+      correct admin state (up), VLAN ID, speed (inherited from parent), MTU
+      (inherited from parent), and type (802.1q-encapsulation), (2) sub-interfaces
+      appear in "show ip interface" with correct IPv4 addresses assigned, (3)
+      sub-interfaces are properly removed from both show commands after deletion
+      from the VLAN_SUB_INTERFACE table via redis-cli.
+
+Topology:
+    t0, t1 (standard topologies with VLAN members)
+
+Fixtures Used:
+    - duthost: DUT host object for executing commands and parsing output
+    - apply_config_on_the_dut: Class-scoped fixture that creates sub-interfaces
+      on the DUT and handles cleanup after tests
+    - subintf_expected_config: Function-scoped fixture that returns expected
+      configuration dictionary for created sub-interfaces including speed, MTU,
+      VLAN ID, and IP addresses derived from parent interfaces
+
+Dependencies:
+    - json: For parsing Redis dump output
+    - pytest: Test framework
+    - tests.common.constants: Provides VLAN_SUB_INTERFACE_SEPARATOR constant
+    - tests.common.helpers.assertions: For test assertions
+    - tests.common.utilities: Provides wait_until helper for polling operations
+
+Notes:
+    - Sub-interfaces use 802.1Q VLAN encapsulation format
+    - Speed and MTU are inherited from the parent physical interface
+    - The test uses a 20-second timeout with 5-second polling intervals
+    - Sub-interface removal is done directly via Redis (VLAN_SUB_INTERFACE table)
+    - Validates both creation and deletion to ensure clean state transitions
+    - Uses wait_until for eventual consistency of configuration changes
+=============================================================================
+"""
 import json
 import pytest
 

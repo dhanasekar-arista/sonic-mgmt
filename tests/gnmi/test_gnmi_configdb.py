@@ -1,3 +1,45 @@
+"""
+=============================================================================
+Module: gnmi
+File: test_gnmi_configdb.py
+=============================================================================
+
+Description:
+    Tests gNMI operations on CONFIG_DB in SONiC. Validates get, set, subscribe
+    (polling, streaming sample, on-change) operations for PORT configuration
+    including speed, MTU, admin status, and description fields.
+
+Test Intent:
+    - test_gnmi_configdb_*: Tests various CONFIG_DB operations:
+      - get: Retrieve PORT configuration fields
+      - set_update: Update PORT fields (description, speed, MTU, admin_status)
+      - set_delete: Delete PORT configuration fields
+      - subscribe_poll: Subscribe with polling mode
+      - subscribe_sample: Subscribe with streaming sample mode
+      - subscribe_onchange: Subscribe with on-change mode
+    - test_gnmi_configdb_acl: Tests ACL configuration operations
+    - test_gnmi_configdb_incremental_update_delete: Tests incremental updates
+
+Topology:
+    Supports any topology
+
+Fixtures Used:
+    - duthosts: DUT host objects
+    - rand_one_dut_hostname: Randomly selected DUT
+    - ptfhost: PTF host for gNMI client operations
+
+Dependencies:
+    - .helper: gnmi_set, gnmi_get, gnmi_subscribe_* functions
+    - tests.common.helpers.gnmi_utils: add_gnmi_client_common_name
+    - tests.common.helpers.assertions: pytest_assert
+
+Notes:
+    - Log analyzer disabled for these tests
+    - Tests use first available Ethernet interface with admin up status
+    - Validates speed, MTU, admin_status, description fields
+    - Subscribe tests validate real-time updates
+=============================================================================
+"""
 import json
 import logging
 import multiprocessing

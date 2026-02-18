@@ -1,3 +1,47 @@
+"""
+=============================================================================
+Module: fips
+File: test_fips.py
+=============================================================================
+
+Description:
+    This module tests FIPS (Federal Information Processing Standards) 140-2
+    compliance in SONiC. It validates that FIPS mode is properly enabled at
+    the kernel level and that all required FIPS-compliant packages are installed.
+
+Test Intent:
+    - test_fips: Validates FIPS enablement by checking:
+      1. FIPS feature is enabled via sonic-installer get-fips
+      2. Kernel command line contains sonic_fips=1 parameter
+      3. All required FIPS-compliant packages are installed:
+         - libk5crypto3 (Kerberos crypto library)
+         - libssl-dev, libssl3 (OpenSSL libraries)
+         - openssh-client, openssh-server, openssh-sftp-server
+         - openssl (OpenSSL tools)
+         - ssh (SSH client)
+
+Topology:
+    Supports any topology
+
+Fixtures Used:
+    - duthosts: Provides DUT host objects
+    - enum_rand_one_per_hwsku_hostname: Randomly selects one DUT per hardware SKU
+
+Dependencies:
+    - tests.common.helpers.assertions: pytest_assert for validations
+    - logging: For test logging
+    - re: Regular expressions for package validation
+
+Notes:
+    - Test skips if FIPS is not enabled on image level
+    - Sanity check is skipped for this test
+    - Log analyzer is disabled for this test
+    - All packages must have 'fips' in their version string
+    - Kernel parameter sonic_fips=1 must be present in /proc/cmdline
+    - Test validates both FIPS enablement and package installation
+    - Uses sonic-installer get-fips command to check FIPS status
+=============================================================================
+"""
 import logging
 import re
 

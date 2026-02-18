@@ -1,5 +1,41 @@
 """
-Test bgp no-export community in SONiC.
+=============================================================================
+Module: bgp
+File: test_bgp_bounce.py
+=============================================================================
+
+Description:
+    Tests BGP no-export community attribute functionality in SONiC. Verifies
+    that routes tagged with no-export community are properly handled and not
+    propagated beyond immediate peers as per RFC 1997.
+
+Test Intent:
+    - test_bgp_bounce: Validates BGP no-export community behavior by applying
+      plain BGP config (without no-export) and verifying routes don't have
+      the attribute, then applying no-export config and confirming routes
+      are tagged correctly on ToR VMs
+
+Topology:
+    t1
+
+Fixtures Used:
+    - deploy_plain_bgp_config: Deploys standard BGP configuration
+    - deploy_no_export_bgp_config: Deploys BGP config with no-export community
+    - backup_bgp_config: Backs up and restores default BGP configuration
+    - nbrhosts: Neighbor hosts (ToR VMs)
+    - tbinfo: Testbed information
+
+Dependencies:
+    - bgp_helpers: BGP configuration and validation utilities
+    - tests.common.helpers.assertions.pytest_assert
+    - tests.common.utilities.is_ipv6_only_topology
+
+Notes:
+    - Tests no-export community for both IPv4 and IPv6
+    - Randomly selects a ToR VM for validation
+    - Waits BGP_ANNOUNCE_TIME for route propagation
+    - Restores default BGP configuration after test completion
+=============================================================================
 """
 
 import random

@@ -1,4 +1,57 @@
-"""Test neighbor lifecycle on VoQ chassis."""
+"""
+=============================================================================
+Module: voq
+File: test_voq_nbr.py
+=============================================================================
+
+Description:
+    This comprehensive test suite validates neighbor (ARP/NDP) lifecycle
+    operations on VOQ chassis systems. It tests neighbor learning, aging,
+    MAC address changes, gratuitous ARP handling, link flaps, and neighbor
+    synchronization across the chassis APP_DB.
+
+Test Intent:
+    - check_bgp_restored: Helper to verify BGP neighbors are established
+    - LinkFlap class: Utility class for managing link flap operations
+    - test_voq_nbr_global_learn: Validates neighbor learning on all DUTs and
+      propagation to chassis APP_DB
+    - test_voq_nbr_advertised: Tests that neighbors are advertised via BGP
+      and appear in routing tables on neighbor VMs
+    - test_voq_nbr_pkts: Verifies that packets can be sent to learned neighbors
+    - test_voq_grat_arp: Tests gratuitous ARP handling and neighbor updates
+    - test_voq_nbr_mac_change: Validates neighbor MAC address change detection
+      and update
+    - test_voq_nbr_link_flap: Tests neighbor table behavior during link flaps
+    - (Additional neighbor lifecycle tests)
+
+Topology:
+    t2 (VOQ chassis topology)
+
+Fixtures Used:
+    - duthosts: Multi-DUT fixture for chassis systems
+    - all_cfg_facts: Configuration facts for all DUTs and ASICs
+    - nbrhosts: Neighbor host objects
+    - nbr_macs: Neighbor MAC addresses
+    - ptfadapter: PTF adapter for packet operations
+    - ignore_expected_loganalyzer_exceptions: Ignores expected neighbor errors
+      (auto-use)
+    - copy_ptftests_directory: Copies PTF test scripts
+
+Dependencies:
+    - tests.ptf_runner: For running PTF test scripts
+    - tests.common.helpers.voq_helpers: For VOQ neighbor verification utilities
+    - tests.common.helpers.parallel: For parallel execution
+    - tests.common.devices.eos: For EOS host interactions
+
+Notes:
+    - Test uses MAC address 00:01:94:00:00:01 for MAC change tests
+    - Ignores expected nbrmgrd errors for gratuitous ARP tests
+    - Validates neighbors in kernel, ASIC_DB, and chassis APP_DB
+    - Tests both IPv4 (ARP) and IPv6 (NDP) neighbors
+    - Link flap tests verify neighbor recovery after disruption
+    - Parallel execution used for efficiency across multiple DUTs
+=============================================================================
+"""
 import logging
 import pytest
 import time

@@ -1,3 +1,56 @@
+"""
+=============================================================================
+Module: ip
+File: test_mgmt_ipv6_only.py
+=============================================================================
+
+Description:
+    This test module validates the IPv6-only management network functionality in
+    SONiC. It tests that all management services (SSH, TACACS, NTP, syslog,
+    telemetry, SNMP, gNMI) work correctly when only IPv6 addresses are configured
+    on the management interface.
+
+Test Intent:
+    - test_bgp_facts: Verifies BGP neighbor facts can be retrieved when DUT has
+      IPv6-only management interface
+    - test_ntp: Tests NTP synchronization works over IPv6 management network
+    - test_snmp: Validates SNMP queries function correctly with IPv6 management
+    - test_syslog: Ensures syslog messages are properly sent over IPv6
+    - test_tacacs: Verifies TACACS authentication works with IPv6 management
+    - test_telemetry: Tests streaming telemetry functions with IPv6 management
+    - test_disable_ipv4: Validates management services continue working after
+      IPv4 is disabled on eth0
+    - test_image_download: Tests that image downloads work over IPv6 management
+
+Topology:
+    - any: Works with any topology, runs on virtual switch devices only
+
+Fixtures Used:
+    - duthosts_ipv6_mgmt_only: Fixture that configures DUTs with IPv6-only
+      management addresses
+    - tacacs_creds: TACACS credentials for authentication testing
+    - ptf_use_ipv6: Parametrized to force PTF to use IPv6
+    - ntp_daemon_in_use: Detects which NTP daemon is running
+    - setup_ntp_context: Sets up NTP configuration for testing
+    - setup_streaming_telemetry_context: Configures telemetry for testing
+
+Dependencies:
+    - tests.common.helpers.tacacs: TACACS helper for IPv6 authentication testing
+    - tests.common.helpers.ntp_helper: NTP functionality validation
+    - tests.common.helpers.telemetry_helper: Telemetry streaming setup
+    - tests.common.helpers.gnmi_utils: gNMI environment for testing
+    - tests.common.helpers.syslog_helpers: Syslog validation utilities
+
+Notes:
+    - Test only runs on virtual switch (vs) device types
+    - Log analyzer is disabled for this test suite
+    - Runs on per-hwsku basis for efficiency
+    - Tests handle both chrony and ntpd NTP daemons
+    - Validates services in parallel using thread pools
+    - DualTOR mux port setup is skipped
+    - Ignores y-cable errors in logs (expected on some dualtor configs)
+=============================================================================
+"""
 import logging
 
 import pytest

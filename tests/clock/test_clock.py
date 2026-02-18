@@ -1,3 +1,64 @@
+"""
+=============================================================================
+Module: clock
+File: test_clock.py
+=============================================================================
+
+Description:
+    This module contains comprehensive tests for SONiC clock configuration
+    and management functionality. It validates the show and config clock
+    commands, including timezone management, date/time setting, and proper
+    parsing of clock outputs in various formats (12-hour/24-hour, different
+    timezone placements).
+
+Test Intent:
+    - test_show_clock: Verifies that 'show clock' command produces valid and
+      parseable output in multiple datetime formats (12-hour with AM/PM, 24-hour,
+      timezone before/after year).
+    - test_config_clock_timezone: Validates that timezone can be correctly
+      configured using valid timezone names and properly rejects invalid timezone
+      values. Verifies consistency between 'show clock' and 'timedatectl' outputs.
+    - test_config_clock_date: Tests the 'config clock date' command to set system
+      date and time, ensures proper validation of input formats, and confirms that
+      invalid inputs are rejected without changing the current datetime.
+
+Topology:
+    any - Tests can run on any topology (t0, t1, t2, etc.)
+
+Fixtures Used:
+    - init_timezone: Sets timezone to Asia/Jerusalem before test and restores
+      original timezone after test completion to ensure test isolation.
+    - restore_time: Ensures system time is restored after tests that modify it
+      by syncing with NTP server and restoring original NTP configuration.
+    - ntp_server: Provides NTP server IP from command line argument or DUT
+      configuration, skips test if unavailable.
+    - tbinfo: Provides testbed information (standard fixture).
+
+Dependencies:
+    - tests.common.errors.RunAnsibleModuleFail: Exception handling for Ansible
+      command failures
+    - tests.common.plugins.allure_wrapper: Test reporting and step documentation
+    - tests.common.utilities.wait_until: Polling utility for async operations
+
+Notes:
+    - Tests are marked with skip_sanity, disable_loganalyzer, and
+      skip_check_dut_health to avoid interference with clock changes
+    - Time margin for modular chassis (16s) is larger than standard (6s) to
+      accommodate multi-supervisor synchronization delays
+    - Supports multiple datetime formats including 12-hour (AM/PM) and 24-hour
+      with different timezone and year positions
+    - System date range is constrained between 1970-01-01 and 2106-02-06
+    - NTP server reachability is validated before tests that modify time
+
+Git History:
+    c32bc2864 Fix test_config_clock_timezone flaky issue
+    867e01b28 decrease max system date const in sonic clock test
+    58e7105c6 Fix a bug that ntpdate cannot reset the date back
+    9067a7455 Fix time zone changed issue after test_clock
+    23167d79b Enable skipped test due to extra param requirement
+=============================================================================
+"""
+
 import logging
 import random
 import string

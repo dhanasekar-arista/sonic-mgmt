@@ -1,3 +1,43 @@
+"""
+=============================================================================
+Module: pc
+File: test_lag_member.py
+=============================================================================
+
+Description:
+    This test suite validates Link Aggregation Group (LAG/PortChannel) member
+    operations in SONiC. Tests verify adding/removing LAG members, traffic
+    distribution across members, and LAG functionality with various member
+    configurations. Creates LAG between DUT and PTF, tests connectivity, and
+    validates LACP operation.
+
+Test Intent:
+    - Test LAG member addition and removal
+    - Verify traffic distribution across LAG members
+    - Validate LAG connectivity and LACP negotiation
+    - Test LAG with varying number of members
+
+Topology:
+    t0 - Requires T0 topology
+
+Fixtures Used:
+    - duthost: Device under test
+    - ptfhost: PTF host for traffic generation
+    - copy_acstests_directory, copy_ptftests_directory, copy_arp_responder_py: Copy test files to PTF
+
+Dependencies:
+    - tests.ptf_runner: Runs PTF test scripts
+    - tests.common.config_reload: Config reload functionality
+
+Notes:
+    - Creates PortChannel1 (DUT_LAG_NAME) on DUT and bond1 (PTF_LAG_NAME) on PTF
+    - Ports behind LAG: ports that are members of the LAG
+    - Ports not behind LAG: ports used to test LAG connectivity
+    - Tests move VLAN members to/from LAG
+    - Fast restore available via fast_dut_restore() to speed up debugging
+    - IS_DEBUG flag disables config_reload in teardown for faster iteration
+=============================================================================
+"""
 import pytest
 
 import time

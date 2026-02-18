@@ -1,3 +1,47 @@
+"""
+=============================================================================
+Module: snmp
+File: test_snmp_pfc_counters.py
+=============================================================================
+
+Description:
+    This test module validates Priority Flow Control (PFC) counter reporting
+    via SNMP on SONiC switches. It verifies that all Ethernet interfaces expose
+    required PFC counters through SNMP including per-priority statistics for
+    PFC requests and indications.
+
+Test Intent:
+    - test_snmp_pfc_counters: Validates all Ethernet interfaces (excluding
+      management ports) expose required PFC SNMP counters - cpfcIfRequests,
+      cpfcIfIndications, requestsPerPriority, and indicationsPerPriority
+
+Topology:
+    - Supported: any topology, t1-multi-asic
+    - Device type: vs (virtual switch)
+
+Fixtures Used:
+    - duthosts: All DUT hosts in testbed
+    - enum_rand_one_per_hwsku_frontend_hostname: Randomly selected frontend DUT
+    - localhost: Local connection for SNMP queries
+    - creds_all_duts: SNMP credentials
+
+Dependencies:
+    - tests.common.helpers.snmp_helpers: SNMP fact collection
+    - PFC SNMP MIB extension
+
+Notes:
+    - Required PFC counters per interface:
+      - cpfcIfRequests: Total PFC requests sent
+      - cpfcIfIndications: Total PFC frames received
+      - requestsPerPriority: PFC requests per priority (0-7)
+      - indicationsPerPriority: PFC indications per priority (0-7)
+    - Management ports excluded (names starting with 'eth')
+    - Arista 7060X6 platform: PT0 ports skipped (management interfaces)
+    - Test validates Ethernet interfaces only (filters by description)
+    - Failure if any Ethernet port missing required PFC counters
+=============================================================================
+"""
+
 import pytest
 from tests.common.helpers.snmp_helpers import get_snmp_facts
 

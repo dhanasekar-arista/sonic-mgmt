@@ -1,3 +1,45 @@
+"""
+=============================================================================
+Module: wan/isis
+File: test_isis_neighbor.py
+=============================================================================
+
+Description:
+    This test validates ISIS (Intermediate System to Intermediate System)
+    neighbor adjacency formation and state transitions in WAN topologies.
+    It tests that ISIS neighbors properly transition between Up and Down
+    states when interfaces are administratively shut down and brought back up.
+
+Test Intent:
+    - test_isis_neighbor: Validates ISIS neighbor state management by:
+        * Verifying initial neighbor is in Up state
+        * Shutting down neighbor's PortChannel and confirming Down state
+        * Re-enabling neighbor's PortChannel and confirming Up state recovery
+        * Shutting down DUT's PortChannel and confirming Down state
+        * Re-enabling DUT's PortChannel and confirming Up state recovery
+
+Topology:
+    wan-com (WAN common topology)
+
+Fixtures Used:
+    - isis_common_setup_teardown: Sets up ISIS configuration and provides
+      selected connections between DUT and neighbors
+    - nbrhosts: Neighbor host objects for interaction
+
+Dependencies:
+    - tests.common.utilities: For wait_until polling
+    - tests.common.helpers.assertions: For pytest assertions
+    - isis_helpers: For ISIS-specific helper functions and constants
+
+Notes:
+    - Uses DEFAULT_ISIS_INSTANCE from isis_helpers
+    - Polls for up to 10 seconds with 2-second intervals for state changes
+    - Tests both DUT-initiated and neighbor-initiated link down scenarios
+    - Verifies bidirectional ISIS adjacency formation
+    - Ensures ISIS neighbor recovery after interface restoration
+    - PortChannel interfaces used for ISIS neighbor connections
+=============================================================================
+"""
 import pytest
 import logging
 

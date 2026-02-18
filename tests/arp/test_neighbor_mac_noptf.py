@@ -1,3 +1,52 @@
+"""
+=============================================================================
+Module: test_neighbor_mac_noptf
+File: test_neighbor_mac_noptf.py
+=============================================================================
+
+Description:
+    This module tests neighbor MAC address handling in SONiC switches without requiring
+    PTF infrastructure. It validates that MAC address changes for neighbors are correctly
+    propagated from the kernel to Redis ASIC_DB across multiple interface types (IPv4/IPv6)
+    and ASIC instances, with BGP disabled to minimize system load and route interference.
+
+Test Intent:
+    - testNeighborMacNoPtf: Validates neighbor MAC learning and update behavior by
+      adding a neighbor IP to a routed interface, changing its MAC address twice,
+      and verifying both the kernel ARP/NDP table and Redis ASIC_DB are synchronized
+      with the final MAC address. Tests on both IPv4 and IPv6 with retry logic for
+      robustness.
+
+Topology:
+    any (Supports all topologies including multi-asic platforms)
+
+Fixtures Used:
+    - setupDutConfig: Module-scoped fixture that disables BGP to reduce DUT load,
+      waits for BGP routes to be removed, and performs config reload on teardown
+    - ipVersion: Parameterized fixture (4, 6) to test both IPv4 and IPv6 neighbors
+    - routedInterfaces: Discovers and returns routed interfaces in 'up' state for testing
+    - verifyOrchagentPresence: Ensures orchagent process is running before and after test
+    - updateNeighborIp: Adds interface IP, adds neighbor, changes MAC twice, then cleans up
+    - arpTableMac: Retrieves neighbor MAC from kernel ARP/NDP table
+    - redisNeighborMac: Retrieves neighbor MAC from Redis ASIC_DB with retry logic
+
+Dependencies:
+    - tests.common.utilities: wait_until for polling conditions
+    - tests.common.helpers.assertions: pytest_assert for validation
+    - tests.common.config_reload: config_reload for DUT restoration
+    - ipaddress: ip_interface for IP address parsing
+
+Notes:
+    - BGP shutdown prevents route churn during neighbor MAC updates
+    - Test waits up to 120 seconds for BGP routes to be removed from ASIC_DB
+    - Retry logic (up to 30 attempts) handles timing variations in MAC propagation
+    - Filters out local routes (10.x, 192.x, fc, fe) and internal routes (8.x, 2603)
+    - Smart switch platforms require filtering backplane port IPs from route counts
+    - Multi-asic platforms tested per-asic with orchagent count validation
+    - Modular chassis platforms skip BGP shutdown due to routing dependencies
+=============================================================================
+"""
+
 import json
 import logging
 import pytest

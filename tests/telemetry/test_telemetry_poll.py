@@ -1,3 +1,71 @@
+"""
+=============================================================================
+Module: telemetry
+File: test_telemetry_poll.py
+=============================================================================
+
+Description:
+    This test file validates gNMI POLL subscription mode functionality in SONiC,
+    which allows periodic querying of database paths for telemetry data. It tests
+    various poll scenarios including non-existent tables/keys, delayed key arrival,
+    key deletion, and route table monitoring to ensure reliable polling behavior
+    across different database conditions.
+
+Test Intent:
+    - test_poll_mode_no_table_or_key: Validates poll mode gracefully handles
+      non-existent tables and keys in APPL_DB by subscribing to fake tables,
+      verifying no errors occur, and confirming sync responses are received even
+      when queried data doesn't exist.
+    - test_poll_mode_present_table_delayed_key: Tests poll mode with tables that
+      initially have no data by starting subscription, adding keys to APPL_DB
+      after subscription starts, and verifying subsequent poll updates include
+      the newly added data.
+    - test_poll_mode_delete: Validates poll mode detects key deletion by subscribing
+      to APPL_DB tables, adding keys, confirming they appear in updates, deleting
+      the keys, and verifying the deletion is reflected in subsequent poll responses.
+    - test_poll_mode_default_route: Tests polling default route (0.0.0.0/0) from
+      ROUTE_TABLE by subscribing in poll mode, deleting the route on DUT, verifying
+      deletion is detected in poll updates, re-adding the route, and confirming
+      the route reappears in subsequent polls.
+    - test_poll_mode_default_route_supervisor: Validates default route polling
+      on supervisor cards by using Python gNMI client, deleting route, verifying
+      deletion detection, re-adding route, and confirming polling works correctly
+      on supervisor architecture.
+
+Topology:
+    any (works with any topology type)
+
+Fixtures Used:
+    - duthosts: Provides access to all DUT hosts
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hwsku
+    - ptfhost: PTF host for running gNMI client
+    - setup_streaming_telemetry: Configures streaming telemetry (parametrized False)
+    - gnxi_path: Path to gNMI client tools on PTF
+    - enum_upstream_dut_hostname: For upstream DUT in multi-DUT scenarios
+    - setup_streaming_telemetry_supervisor: For supervisor card testing
+
+Dependencies:
+    - pytest: Test framework
+    - tests.common.helpers.assertions: For test assertions
+    - tests.common.utilities: Provides wait_until and InterruptableThread
+    - telemetry_utils: gNMI CLI generation and execution utilities
+
+Notes:
+    - Subscription mode: POLL (2)
+    - Default polling interval: 5 seconds
+    - Max sync count: 5 poll cycles
+    - Timeout: 30 seconds for most tests, 60 for route tests
+    - Test database: APPL_DB
+    - Fake tables used: FAKE_APPL_DB_TABLE_0, FAKE_APPL_DB_TABLE_1
+    - Route table path: ROUTE_TABLE:0.0.0.0/0
+    - Multi-ASIC support: Uses namespace asic0 when applicable
+    - Update count: 0 for continuous polling, specific counts for timed tests
+    - Thread-based async operations for route manipulation during polling
+    - Verifies sync_response presence in output
+    - Tests validate both presence and absence of data in poll responses
+    - Route restoration ensures test cleanup doesn't affect system state
+=============================================================================
+"""
 import logging
 import pytest
 import re

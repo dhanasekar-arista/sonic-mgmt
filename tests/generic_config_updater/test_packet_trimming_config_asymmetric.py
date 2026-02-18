@@ -1,3 +1,38 @@
+"""
+=============================================================================
+Module: generic_config_updater
+File: test_packet_trimming_config_asymmetric.py
+=============================================================================
+
+Description:
+    Tests asymmetric packet trimming configuration using Generic Config Updater.
+    Validates trimming parameters including size, DSCP, queue, TC, and DSCP
+    asymmetric settings with proper error handling for invalid values.
+
+Test Intent:
+    - test_trim_size_update: Updates packet trim size
+    - test_trim_dscp_update: Updates DSCP value for trimming
+    - test_trim_queue_update: Updates queue for trimmed packets
+    - test_trim_tc_update: Updates traffic class for trimming
+    - test_trim_dscp_asym_update: Updates asymmetric DSCP setting
+    - test_trim_invalid_*: Tests error handling for invalid values
+
+Topology:
+    Supports t0, t1 topologies
+
+Fixtures Used:
+    - setup_env: Adjusts trim parameters for TH5 ASIC
+    - ensure_dut_readiness: Checkpoint/rollback for tests
+
+Dependencies:
+    - tests.common.gu_utils: GCU patch operations
+
+Notes:
+    - Default Mellanox: size=256, dscp=48, queue=6, tc=5, dscp_asym=from-tc
+    - TH5 ASIC: size=128, queue=5
+    - Invalid values tested: dscp=100, tc=200, queue=20, size=5000
+=============================================================================
+"""
 import logging
 import pytest
 

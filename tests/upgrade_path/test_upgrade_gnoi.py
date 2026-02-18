@@ -1,3 +1,66 @@
+"""
+=============================================================================
+Module: upgrade_path
+File: test_upgrade_gnoi.py
+=============================================================================
+
+Description:
+    This test file validates SONiC software upgrade using the gNOI (gRPC Network
+    Operations Interface) protocol instead of traditional CLI-based upgrade methods.
+    It tests the gNOI OS Install and Activate RPCs to transfer images to the DUT
+    and perform warm or cold upgrades via standardized gRPC interfaces.
+
+Test Intent:
+    - test_upgrade_via_gnoi: Validates gNOI-based software upgrade by setting up
+      base image, transferring target image to DUT via gNOI TransferToRemote RPC,
+      installing the image via gNOI OS Install RPC, activating the new image with
+      specified upgrade type (warm/cold) via gNOI OS Activate RPC, verifying the
+      upgrade completes successfully, and checking the new version is active via
+      'show version' command.
+
+Topology:
+    any (supports all topology types)
+
+Fixtures Used:
+    - localhost: Local host for image operations
+    - duthosts: All DUT hosts in testbed
+    - ptfhost: PTF host for gNOI client operations
+    - rand_one_dut_hostname: Randomly selected DUT for testing
+    - nbrhosts: Neighbor hosts for connectivity verification
+    - fanouthosts: Fanout hosts for topology control
+    - tbinfo: Testbed information
+    - request: Pytest request object for accessing test configuration
+    - gnoi_upgrade_path_lists: Provides upgrade configuration (base/target images,
+      version, upgrade type)
+    - ptf_gnoi: gNOI client fixture for executing gNOI RPCs
+    - setup_gnoi_tls_server: Sets up TLS certificates for secure gNOI communication
+
+Dependencies:
+    - pytest: Test framework
+    - tests.common.fixtures.grpc_fixtures: gRPC/gNOI fixture setup
+    - tests.upgrade_path.test_upgrade_path: Shared upgrade test utilities
+    - tests.common.helpers.upgrade_helpers: gNOI upgrade implementation
+
+Notes:
+    - Test is marked to disable log analyzer
+    - Requires TLS server setup for secure gNOI communication
+    - Only tested on 'vs' device type currently
+    - Upgrade types supported: warm, cold
+    - Image transfer protocol: HTTP (via TransferToRemote)
+    - Target image path on DUT: /var/tmp/sonic_image
+    - Image cleanup: removes existing image at path before transfer
+    - gNOI RPCs used:
+      - gnoi.file.TransferToRemote: Transfer image file to DUT
+      - gnoi.os.Install: Install the transferred image
+      - gnoi.os.Activate: Activate image with reboot
+    - Verifies version using 'show version' command post-upgrade
+    - Uses GnoiUpgradeConfig dataclass for configuration
+    - Supports target version specification for validation
+    - allow_fail parameter set to False (no failure injection)
+    - Upgrade process follows gNOI OS management specification
+    - Provides standardized, vendor-neutral upgrade interface
+=============================================================================
+"""
 import logging
 import pytest
 

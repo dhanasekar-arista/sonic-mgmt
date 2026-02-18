@@ -1,3 +1,36 @@
+"""
+=============================================================================
+Module: generic_config_updater
+File: test_bgp_speaker.py
+=============================================================================
+
+Description:
+    Tests BGP speaker configuration using Generic Config Updater. Validates
+    adding, replacing, and removing BGP speaker IP ranges and source addresses
+    for BGPSLBPassive peer groups.
+
+Test Intent:
+    - test_bgp_speaker_add_init_config: Adds initial BGP speaker configuration
+    - test_bgp_speaker_add_del: Adds then removes BGP speaker
+    - test_bgp_speaker_replace: Replaces BGP speaker IP range and source
+
+Topology:
+    Supports t0 topology only (BGP Speaker limited to t0)
+
+Fixtures Used:
+    - vlan_intf_ip_ranges: VLAN subnet used as BGP speaker IP range
+    - lo_intf_ips: Loopback IPs used as BGP speaker source address
+    - setup_env: Creates checkpoint for rollback
+
+Dependencies:
+    - tests.common.gu_utils: GCU utilities, get_bgp_speaker_runningconfig
+
+Notes:
+    - BGPSLBPassive (IPv4) and BGPSLBPassiveV6 (IPv6)
+    - Validates "bgp listen range" and "update-source" in config
+    - Dummy ranges: 10.255.0.0/25 (v4), cc98:2008:2012:2022::/64 (v6)
+=============================================================================
+"""
 import logging
 import pytest
 import re

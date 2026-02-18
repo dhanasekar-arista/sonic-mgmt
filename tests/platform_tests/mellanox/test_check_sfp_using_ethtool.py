@@ -1,8 +1,43 @@
 """
-Check SFP using ethtool
+=============================================================================
+Module: platform_tests
+File: test_check_sfp_using_ethtool.py
+=============================================================================
 
-This script covers the test case 'Check SFP using ethtool' in the SONiC platform test plan:
-https://github.com/sonic-net/SONiC/blob/master/doc/pmon/sonic_platform_test_plan.md
+Description:
+    Mellanox-specific test validating SFP/transceiver EEPROM accessibility via
+    ethtool. Maps physical ports to sfpN devices and verifies EEPROM readability.
+
+Test Intent:
+    - test_check_sfp_using_ethtool: Verify SFP EEPROM is readable via 'ethtool -m sfpN'
+      for all connected interfaces
+
+Topology:
+    Any topology - Mellanox platforms only
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - rand_one_dut_hostname: Selects one random DUT
+    - conn_graph_facts: Connection graph for interface mapping
+    - tbinfo: Testbed information
+    - xcvr_skip_list: Transceiver skip list
+
+Dependencies:
+    - ethtool utility
+    - sonic-cfggen for PORT configuration
+    - conn_graph_facts for connected interface list
+    - SPC3_HWSKUS data for platform-specific lane divider
+
+Notes:
+    - Test only runs on Mellanox ASIC platforms
+    - SFP ID calculated from port lanes: sfp_id = first_lane/lanes_divider + 1
+    - SPC3 platforms use lanes_divider=8, others use lanes_divider=4
+    - QSFP-DD cables may show limited ethtool output (0x18 identifier only)
+    - Regular transceivers show full parsed EEPROM output (>=5 lines)
+    - Skips interfaces in xcvr_skip_list
+    - Only tests connected interfaces from conn_graph_facts
+    - Test plan reference: https://github.com/sonic-net/SONiC/blob/master/doc/pmon/sonic_platform_test_plan.md
+=============================================================================
 """
 import logging
 import json

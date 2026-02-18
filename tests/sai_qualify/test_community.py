@@ -1,3 +1,56 @@
+"""
+=============================================================================
+Module: sai_qualify
+File: test_community.py
+=============================================================================
+
+Description:
+    This test module runs SAI community test cases to validate SAI implementation
+    using community-contributed test suites. It includes enhanced environment
+    checking with liveness probes and automatic test environment reset capabilities
+    to ensure test reliability. The module validates SAI behavior using community-
+    standard test cases with built-in resilience mechanisms.
+
+Test Intent:
+    - test_sai: Executes parametrized community SAI test cases with advanced
+      environment validation, including liveness checks and automatic environment
+      reset on failures, validates SAI API correctness and data plane behavior,
+      and stores test results for analysis
+
+Topology:
+    - Supported: ptf topology
+    - Requires saiserver with community test support
+    - PTF framework for test execution
+
+Fixtures Used:
+    - sai_testbed: SAI test environment preparation
+    - sai_community_test_env_check: Community-specific environment validation with
+      liveness checks and automatic reset capabilities
+    - creds: Docker registry credentials
+    - duthost: DUT host object
+    - ptfhost: PTF server for test execution
+    - request: Pytest request metadata
+    - create_sai_test_interface_param: Interface configuration for testing
+
+Dependencies:
+    - cases_community: Community SAI test case definitions and probe tests
+    - sai_infra: SAI infrastructure with liveness checking and reset utilities
+    - conftest: Shared configuration and fixtures
+
+Notes:
+    - Environment check includes three-stage validation process:
+      1. Liveness check using PROBE_TEST_CASE
+      2. Automatic environment reset on liveness check failure
+      3. Environment marked as failed after max reset attempts
+    - Liveness check interval: LIVENESS_CHECK_INTERVAL_IN_SEC
+    - Maximum reset attempts: SAI_TEST_ENV_RESET_TIMES
+    - SAI test container cleaned up only on test failure
+    - Test results stored on PTF host after execution
+    - Sanity checks and health checks disabled for community testing
+    - Loganalyzer disabled for SAI-specific validation
+=============================================================================
+"""
+
 import time
 import pytest
 import logging

@@ -1,3 +1,38 @@
+"""
+=============================================================================
+Module: wan/isis
+File: test_isis_csnp_interval.py
+=============================================================================
+
+Description:
+    This test validates ISIS CSNP (Complete Sequence Number PDU) interval
+    configuration. It verifies that the CSNP interval can be configured and
+    that the value is correctly reflected in the ISIS configuration.
+
+Test Intent:
+    - test_isis_csnp_interval: Validates that CSNP interval can be set to 15
+      seconds and verifies the configuration is correctly applied in the
+      ISIS database
+
+Topology:
+    wan-com (WAN common topology)
+
+Fixtures Used:
+    - isis_common_setup_teardown: Sets up ISIS configuration
+    - isis_setup_teardown_csnp_interval: Function-scoped fixture that sets
+      CSNP interval to 15 and reverts after test
+
+Dependencies:
+    - tests.common.helpers.assertions: For pytest assertions
+    - isis_helpers: For ISIS configuration and verification helpers
+
+Notes:
+    - Default CSNP interval: 10 seconds
+    - Test CSNP interval: 15 seconds
+    - CSNP used for database synchronization
+    - Fixture automatically reverts configuration after test
+=============================================================================
+"""
 import pytest
 import logging
 import functools

@@ -1,3 +1,40 @@
+"""
+=============================================================================
+Module: gnmi
+File: test_gnmi.py
+=============================================================================
+
+Description:
+    Tests gNMI (gRPC Network Management Interface) capabilities and authentication
+    in SONiC. Validates capabilities response, role-based access control, and
+    client authentication for different user roles.
+
+Test Intent:
+    - test_gnmi_capabilities: Verifies gNMI capabilities include sonic-db and JSON_IETF
+    - test_gnmi_capabilities_authenticate: Tests capabilities with different roles
+      (noaccess, readonly, admin) and validates authentication behavior
+
+Topology:
+    Supports any topology
+
+Fixtures Used:
+    - duthosts: DUT host objects
+    - rand_one_dut_hostname: Randomly selected DUT
+    - localhost: Localhost for gNMI client operations
+
+Dependencies:
+    - tests.common.helpers.gnmi_utils: gnmi_capabilities, add/del_gnmi_client_common_name
+    - .helper: gnmi_set, dump_gnmi_log
+    - tests.common.utilities: wait_until
+    - tests.common.plugins.allure_wrapper: allure for test reporting
+
+Notes:
+    - Log analyzer disabled for these tests
+    - Tests use test.client.gnmi.sonic as client common name
+    - Roles: gnmi_noaccess, gnmi_readonly, gnmi_admin
+    - Validates sonic-db and JSON_IETF in capabilities response
+=============================================================================
+"""
 import pytest
 import logging
 

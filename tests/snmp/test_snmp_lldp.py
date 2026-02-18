@@ -1,3 +1,55 @@
+"""
+=============================================================================
+Module: snmp
+File: test_snmp_lldp.py
+=============================================================================
+
+Description:
+    This test module validates LLDP (Link Layer Discovery Protocol) MIB
+    implementation on SONiC switches via SNMP. It verifies IEEE 802.1AB LLDP
+    MIBs including local system data, local port table, local management
+    address table, remote neighbor table, and remote management address table.
+
+Test Intent:
+    - test_snmp_lldp: Validates IEEE 802.1AB LLDP MIB objects by verifying all
+      local LLDP data OIDs have values, and remote LLDP neighbor data is
+      available for at least 80% of minigraph neighbors (consistency with
+      standard LLDP test expectations)
+
+Topology:
+    - Supported: t0, t1, t2, m0, mx, m1, lt2, ft2
+    - Device type: vs (virtual switch)
+    - Requires LLDP-enabled neighbors
+
+Fixtures Used:
+    - lldp_setup: Module-scoped auto-use fixture that patches lldpctl for testing
+    - duthosts: All DUT hosts in testbed
+    - enum_rand_one_per_hwsku_hostname: Randomly selected DUT
+    - patch_lldpctl: LLDP control patching fixture
+    - unpatch_lldpctl: LLDP control cleanup fixture
+    - localhost: Local connection for SNMP queries
+    - creds_all_duts: SNMP credentials
+    - tbinfo: Testbed information
+
+Dependencies:
+    - tests.common.helpers.snmp_helpers: SNMP fact gathering
+    - IEEE 802.1AB: LLDP MIB standard
+
+Notes:
+    - LLDP MIB OIDs tested:
+      - lldpLocalSystemData (1.0.8802.1.1.2.1.3): Local system information
+      - lldpLocPortTable (1.0.8802.1.1.2.1.3.7): Local port LLDP data
+      - lldpLocManAddrTable (1.0.8802.1.1.2.1.3.8): Local management addresses
+      - lldpRemTable (1.0.8802.1.1.2.1.4.1): Remote neighbor information
+      - lldpRemManAddrTable (1.0.8802.1.1.2.1.4.2): Remote management addresses
+    - Tests skipped on supervisor nodes (LLDP not supported)
+    - Multi-ASIC support: aggregates neighbors across all ASICs
+    - Requires at least 80% of minigraph neighbors visible via LLDP
+    - Local data: all OIDs must have values
+    - Remote data: coverage threshold based on minigraph neighbor count
+=============================================================================
+"""
+
 import logging
 import re
 import pytest

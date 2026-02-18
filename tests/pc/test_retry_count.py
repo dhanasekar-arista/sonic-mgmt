@@ -1,3 +1,42 @@
+"""
+=============================================================================
+Module: pc
+File: test_retry_count.py
+=============================================================================
+
+Description:
+    This test suite validates LACP (Link Aggregation Control Protocol) retry count
+    functionality in SONiC. Tests verify that LACP frames include the correct retry
+    count TLV when the feature is enabled, and that retry count values are properly
+    communicated between LACP peers. Uses packet capture and scapy to parse LACP PDUs.
+
+Test Intent:
+    - Verify LACP retry count TLV is present in LACP frames when feature is enabled
+    - Validate retry count values in LACP PDUs
+    - Test LACP retry count configuration and persistence
+
+Topology:
+    t0, t1, t0-sonic - Requires topology with LACP-capable links
+
+Fixtures Used:
+    - duthost: Device under test
+    - tbinfo: Testbed information
+    - nbrhosts: Neighbor hosts for LACP peering
+
+Dependencies:
+    - scapy: For LACP packet parsing and custom LACP retry count layer
+    - tcpdump: For capturing LACP frames on interfaces
+    - tests.common.config_reload: Config reload functionality
+
+Notes:
+    - Defines custom scapy LACPRetryCount packet class to parse retry count TLV
+    - LACP version 0xf1 includes retry count, version 0x01 does not
+    - Captures LACP frames using tcpdump with LACP multicast MAC filter (01:80:c2:00:00:02)
+    - Parses pcap files to extract and verify retry count TLV
+    - Retry count TLV format: type=0x80, length=4, value=retry_count
+    - Tests configuration via config_db and verification in captured frames
+=============================================================================
+"""
 import pytest
 
 import time

@@ -1,3 +1,63 @@
+"""
+=============================================================================
+Module: snappi_tests.dash
+File: test_dpuloss.py
+=============================================================================
+
+Description:
+    DASH High Availability (HA) DPU Loss test suite for SmartSwitch dual-DUT topology
+    using Snappi/IxLoad traffic generator. This module validates SmartSwitch resilience
+    and traffic continuity when one DPU fails or is removed from service, ensuring
+    seamless failover to the standby DPU while maintaining active layer 7 connections.
+
+Test Intent:
+    - test_ha_dpuloss: Validates SmartSwitch HA behavior during DPU failure scenarios.
+      Tests traffic continuity, connection migration, and performance degradation
+      during active DPU loss. Ensures standby DPU can handle production traffic load
+      with acceptable connection establishment rates and minimal connection drops.
+
+Topology:
+    - tgen: Traffic generator topology with IxLoad/Snappi L47 capabilities
+    - Requires dual SmartSwitch DUTs with active-standby DPU configuration
+    - Requires UHD (Universal Hardware Dataplane) connectivity for traffic switching
+
+Fixtures Used:
+    - duthosts: Collection of DUT host objects (2 SmartSwitches required)
+    - localhost: Ansible localhost for orchestration and configuration
+    - tbinfo: Testbed information including DPU IPs, MACs, interfaces, and UHD settings
+    - request: Pytest request object for dynamic fixture loading
+    - ha_test_case: Parameterized test case name ('dpuloss')
+    - setup_config_snappi_l47: IxLoad layer 7 traffic configuration setup function
+    - setup_config_npu_dpu: NPU-DPU static routes, ARPs, and DPU interface setup
+    - setup_config_uhd_connect: UHD connectivity configuration for traffic redirection
+    - config_snappi_l47: Resolved IxLoad L47 configuration
+    - config_npu_dpu: Resolved NPU-DPU configuration
+
+Dependencies:
+    - tests.snappi_tests.dash.ha.ha_helper: HA test orchestration (run_dpuloss)
+    - tests.common.snappi_tests.snappi_fixtures: Snappi/UHD configuration utilities
+    - tests.common.snappi_tests.ixload.snappi_fixtures: IxLoad L47 fixtures
+    - concurrent.futures: Parallel fixture execution for faster test setup
+    - snappi: Snappi API for traffic configuration and control
+    - requests: HTTP client for UHD API communication
+    - ipaddress, macaddress: Network address manipulation utilities
+
+Notes:
+    - Test requires exactly 2 SmartSwitch DUTs (both checked for SmartSwitch subtype)
+    - Test skipped if either DUT is not a SmartSwitch
+    - Parallel setup functions execute concurrently (3 workers) for efficiency
+    - DPU loss simulated by: interface shutdown, process kill, or physical disconnect
+    - UHD controls traffic switchover between active and standby DPUs
+    - Static routes and ARP entries configured for both DPU loopback and interface IPs
+    - DPU active/standby configuration: dpu_active_ip, dpu_standby_ip from tbinfo
+    - Log analyzer disabled to prevent false positives during DPU failure
+    - Test measures: connection drop count, failover time, new CPS on standby DPU
+    - Git history: Added in b8e501afc (HA Smartswitch testcase 12 DPU Loss)
+    - Related test cases: test_cps, test_planned_switchover
+
+=============================================================================
+"""
+
 from tests.common.helpers.assertions import pytest_assert, pytest_require  # noqa F401
 from tests.snappi_tests.dash.ha.ha_helper import is_smartswitch, run_ha_test
 from tests.common.snappi_tests.snappi_fixtures import config_uhd_connect  # noqa F401

@@ -1,3 +1,47 @@
+"""
+=============================================================================
+Module: packet_trimming
+File: test_packet_trimming_asymmetric.py
+=============================================================================
+
+Description:
+    This test suite validates packet trimming functionality in asymmetric DSCP mode.
+    Asymmetric mode allows different egress ports to use different DSCP values for
+    trimmed packets based on TC-to-DSCP mapping. This is useful for differentiated
+    QoS treatment on different egress paths. Tests verify configuration, traffic
+    handling, mode switching, and TC-to-DSCP map interaction.
+
+Test Intent:
+    - test_trimming_configuration: Verify valid/invalid asymmetric trimming configs (size, DSCP='from-tc', queue, TC)
+    - test_packet_size_after_trimming: Verify packets are correctly trimmed with asymmetric DSCP marking, including max trim size and TC_TO_DSCP_MAP handling
+    - test_symmetric_asymmetric_mode_switch: Verify trimming works correctly after toggling between symmetric and asymmetric modes multiple times
+    - Inherited tests from BasePacketTrimming: Buffer profile operations, ACL rules, SRv6 compatibility
+
+Topology:
+    t0, t1 - Requires T0 or T1 topology
+
+Fixtures Used:
+    - duthost: Device under test host object
+    - ptfadapter: PTF adapter for packet injection and verification
+    - test_params: Test parameters including ingress/egress ports, buffer profiles, queues, TC_TO_DSCP_MAP config
+
+Dependencies:
+    - tests.packet_trimming.base_packet_trimming: Base class with common test methods
+    - tests.packet_trimming.packet_trimming_config: Configuration constants
+    - tests.packet_trimming.packet_trimming_helper: Helper functions for configuration and verification
+    - tests.packet_trimming.constants: Test constants for packet sizes, DSCP values, etc.
+
+Notes:
+    - Asymmetric mode requires dscp='from-tc' and a TC value in configuration
+    - Different egress ports can have different TC_TO_DSCP_MAP configurations
+    - ASYM_PORT_1_DSCP and ASYM_PORT_2_DSCP define expected DSCP values per port
+    - TC_TO_DSCP_MAP must be configured on egress ports for proper DSCP marking
+    - Test verifies trimming works before and after TC_TO_DSCP_MAP configuration
+    - Mode toggle test ensures no configuration corruption when switching modes
+    - MODE_TOGGLE_COUNT iterations validate stability of mode switching
+    - Max trim size test verifies jumbo packet handling with asymmetric DSCP
+=============================================================================
+"""
 import pytest
 import logging
 from tests.common.helpers.assertions import pytest_assert

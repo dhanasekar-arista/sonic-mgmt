@@ -1,3 +1,50 @@
+"""
+=============================================================================
+Module: vlan
+File: test_vlan_ports_down.py
+=============================================================================
+
+Description:
+    This test validates VLAN interface behavior when all member ports are
+    administratively shutdown. It ensures that the VLAN interface remains
+    operationally up, routes are still advertised to BGP neighbors, and
+    IP-in-IP decapsulation continues to function properly.
+
+Test Intent:
+    - test_vlan_ports_down: Verifies three critical behaviors when all VLAN
+      member ports are down:
+        1. VLAN interface operational status remains UP for both IPv4 and IPv6
+        2. VLAN subnet (both IPv4 and IPv6) continues to be advertised via BGP to T1 neighbors
+        3. IP-in-IP decapsulation works for packets destined to the VLAN interface's IP
+
+Topology:
+    t0
+
+Fixtures Used:
+    - vlan_ports_setup: Brings down all member ports of a VLAN during setup,
+      restores admin state during teardown
+    - duthosts: Multi-DUT fixture
+    - rand_one_dut_hostname: Selects a random DUT for testing
+    - nbrhosts: Neighbor host objects for BGP verification
+    - tbinfo: Testbed information
+    - ptfadapter: PTF adapter for packet transmission and verification
+
+Dependencies:
+    - ptf.testutils: For packet generation and verification
+    - netaddr: For IP network calculations
+    - scapy: For packet construction and masking
+    - tests.common.helpers.assertions: For test assertions
+
+Notes:
+    - Test skips if testbed has no VLANs configured
+    - Waits 5 seconds after bringing down ports for T1 routing table updates
+    - BGP route verification skips PT0 neighbors (limited route advertisement)
+    - IP-in-IP decapsulation test is skipped for 'vs' ASIC type
+    - Uses first VLAN found in the system for testing
+    - Decapsulation test sends IPv4-in-IPv4 packets to verify tunnel termination
+    - For topologies without portchannels, uses first uplink port for testing
+=============================================================================
+"""
 import pytest
 import logging
 import ptf.testutils as testutils

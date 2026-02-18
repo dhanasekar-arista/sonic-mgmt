@@ -1,3 +1,36 @@
+"""
+=============================================================================
+Module: generic_config_updater
+File: test_bgp_sentinel.py
+=============================================================================
+
+Description:
+    Tests BGP Sentinel configuration using Generic Config Updater. Validates
+    adding, replacing, and removing BGP Sentinel IP ranges and source addresses
+    for BGPSentinel peer groups.
+
+Test Intent:
+    - test_bgp_sentinel_add_init_config: Adds initial BGP Sentinel configuration
+    - test_bgp_sentinel_add_del: Adds then removes BGP Sentinel
+    - test_bgp_sentinel_replace: Replaces BGP Sentinel IP range and source
+
+Topology:
+    Supports t1 topology only (BGP Sentinel limited to t1)
+
+Fixtures Used:
+    - lo_intf_ips: Loopback IPs used as BGP Sentinel source address
+    - setup_env: Creates checkpoint for rollback
+
+Dependencies:
+    - tests.common.gu_utils: GCU utilities for patch operations
+
+Notes:
+    - BGPSentinel (IPv4) and BGPSentinelV6 (IPv6)
+    - Validates "bgp listen range" and "update-source" in config
+    - IP ranges: 10.10.20.0/24 (v4), 2603:10a1:30a:8000::/59 (v6)
+    - Dummy ranges: 10.255.0.0/25 (v4), cc98:2008:2012:2022::/64 (v6)
+=============================================================================
+"""
 import logging
 import pytest
 import re

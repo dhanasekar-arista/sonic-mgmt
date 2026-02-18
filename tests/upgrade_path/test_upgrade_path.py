@@ -1,3 +1,78 @@
+"""
+=============================================================================
+Module: upgrade_path
+File: test_upgrade_path.py
+=============================================================================
+
+Description:
+    This comprehensive test file validates SONiC software upgrade paths from one
+    version to another, testing various upgrade types (warm, fast, cold reboot)
+    and failure scenarios (SAD - Service Availability Degradation). It ensures
+    that SONiC can be successfully upgraded from base images to target images
+    while maintaining system stability, data plane consistency, and proper error
+    recovery.
+
+Test Intent:
+    - test_double_upgrade_path: Validates double upgrade scenario (base->intermediate->
+      target) by cleaning previous images, installing base image, installing target
+      image, performing reboot with specified upgrade type (warm/fast/cold), and
+      verifying system health and data consistency after upgrade.
+    - test_upgrade_path: Tests single-hop upgrade path from base image to target
+      image by performing image installation, reboot, and validation on a single
+      DUT, ensuring successful upgrade and system functionality.
+    - test_upgrade_path_t2: Validates upgrade path specifically for T2 topology
+      with multiple DUTs by parallelizing image installation across all DUTs,
+      performing individual upgrades, and verifying health across the entire T2
+      fabric to ensure coordinated multi-DUT upgrade capability.
+    - test_warm_upgrade_sad_path: Tests warm upgrade under SAD (Service Availability
+      Degradation) conditions by injecting failures (BGP down, LAG member down,
+      etc.) during warm boot, verifying system recovers properly, and ensuring
+      data plane consistency is maintained despite failures.
+
+Topology:
+    any (supports all topology types including t0, t1, t2)
+
+Fixtures Used:
+    - localhost: Local host for image operations
+    - duthosts: All DUT hosts in testbed
+    - ptfhost: PTF host for traffic testing
+    - rand_one_dut_hostname: Randomly selected DUT for single-DUT tests
+    - nbrhosts: Neighbor hosts for connectivity testing
+    - fanouthosts: Fanout hosts for topology control
+    - tbinfo: Testbed information
+    - restore_image: Restores original image after test
+    - get_advanced_reboot: Provides advanced reboot functionality
+    - verify_dut_health: Validates DUT health post-upgrade
+    - verify_testbed_health: Validates entire testbed health
+    - advanceboot_loganalyzer: Log analysis for reboot operations
+    - advanceboot_neighbor_restore: Restores neighbor state after reboot
+    - consistency_checker_provider: Validates data plane consistency
+    - upgrade_path_lists: Provides upgrade configuration (base/target images, type)
+    - backup_and_restore_config_db: Backs up and restores config DB
+    - sad_case_type: Parametrized SAD failure type
+
+Dependencies:
+    - pytest: Test framework
+    - tests.common.helpers.upgrade_helpers: Upgrade utilities
+    - tests.common.helpers.multi_thread_utils: Thread pool for parallel operations
+    - tests.upgrade_path.utilities: Upgrade-specific utilities
+    - tests.common.platform.warmboot_sad_cases: SAD case definitions
+
+Notes:
+    - Tests are marked to skip sanity check, disable log analyzer, skip DUT health
+    - Upgrade types: warm, fast, cold reboot
+    - SAD cases include: sad_bgp, sad_lag, sad_bgp_outbound, sad_lag_member, multi_sad
+    - multi_sad combines bgp and lag failures
+    - T2 topology uses parallel upgrade across all DUTs
+    - Image cleanup removes previous images before upgrade
+    - CPA (Container Pre-Allocation) can be enabled via --enable_cpa
+    - Restore to image specified via --restore_to_image
+    - Thread pool executor used for parallel T2 upgrades
+    - Consistency checker validates FDB, ARP, routes after upgrade
+    - Supports both from_list and to_list for batch testing
+    - Default reboot type for cleanup: COLD
+=============================================================================
+"""
 import pytest
 import random
 import logging

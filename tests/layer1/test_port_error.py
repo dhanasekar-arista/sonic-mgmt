@@ -1,3 +1,55 @@
+"""
+=============================================================================
+Module: layer1
+File: test_port_error.py
+=============================================================================
+
+Description:
+    This test validates MAC fault detection and tracking on SONiC devices.
+    It tests the ability to detect and count MAC local and remote faults by
+    manipulating SFP module RX/TX outputs and verifying that fault counters
+    increment correctly when interfaces experience link failures.
+
+Test Intent:
+    - test_mac_local_fault_increment: Validates that MAC local fault counters
+      increment when the RX optical output is disabled and re-enabled on an
+      interface. This simulates loss of receive signal and verifies the device
+      properly detects and counts local faults.
+    - test_mac_remote_fault_increment: Validates that MAC remote fault counters
+      increment when the TX optical output is disabled and re-enabled on an
+      interface. This simulates the remote end losing signal and verifies the
+      device properly detects and counts remote faults received from peers.
+
+Topology:
+    PTP topology required (test skips for non-PTP topologies)
+
+Fixtures Used:
+    - is_supported_platform: Automatically checks if the DUT platform is
+      supported and verifies SONiC release compatibility. Skips test if
+      platform is unsupported or release is too old.
+    - select_random_interfaces: Selects up to 5 random interfaces with SFP
+      modules present for testing
+    - duthosts: Provides list of DUT hosts for testing
+    - enum_rand_one_per_hwsku_frontend_hostname: Selects one random frontend
+      DUT per hardware SKU
+    - tbinfo: Testbed information used to verify PTP topology
+
+Dependencies:
+    - tests.common.helpers.assertions: For pytest assertions
+    - tests.common.utilities: For skip_release functionality
+
+Notes:
+    - Supported platforms: arista_7060x6, nvidia_sn5640, nvidia_sn5600
+    - Requires PTP topology, skips for other topologies
+    - Skips for SONiC releases: 201811, 201911, 202012, 202205, 202211, 202305, 202405
+    - Uses sfputil debug commands to manipulate RX/TX optical outputs
+    - Waits 5 seconds after disabling interface and 20 seconds after enabling
+    - Validates interface status transitions: up -> down -> up
+    - Requires at least one interface with SFP module present
+    - Tests up to 5 randomly selected interfaces per test run
+    - Disables log analyzer to prevent interference with fault injection testing
+=============================================================================
+"""
 import logging
 import pytest
 import random

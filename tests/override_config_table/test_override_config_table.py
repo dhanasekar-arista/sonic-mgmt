@@ -1,3 +1,46 @@
+"""
+=============================================================================
+Module: override_config_table
+File: test_override_config_table.py
+=============================================================================
+
+Description:
+    This test suite validates the Golden Config feature in SONiC, which allows
+    overriding specific CONFIG_DB tables during minigraph reload. Golden Config
+    enables preserving user-configured settings that shouldn't be overwritten
+    when reloading the minigraph. Tests verify table override functionality,
+    empty input handling, and configuration persistence.
+
+Test Intent:
+    - test_load_minigraph_with_golden_empty_input: Verify minigraph reload with empty golden config preserves existing configuration
+    - test_load_minigraph_with_golden_config: Verify golden config successfully overrides specified tables during minigraph reload
+
+Topology:
+    t0, t1, any - Supports various topologies
+
+Fixtures Used:
+    - setup_env: Module-level fixture that backs up configs, reloads minigraph, and restores after test
+    - golden_config_exists_on_dut: Checks if golden config file exists on DUT before test
+    - check_image_version: Skips test for SONiC images older than 202111
+    - duthosts: All DUT hosts
+    - enum_rand_one_per_hwsku_frontend_hostname: Randomly selected frontend DUT per hwsku
+    - tbinfo: Testbed information
+
+Dependencies:
+    - tests.common.utilities: Config backup/restore, minigraph reload utilities
+    - tests.common.config_reload: Config reload functionality
+
+Notes:
+    - Golden config file location: /etc/sonic/golden_config_db.json
+    - Feature requires SONiC 202205 or newer (skipped for older releases)
+    - PFCWD default state is disabled for m0/mx topologies and lossy HWSKUs during test
+    - Non-user config tables (DEVICE_METADATA, CRM, etc.) are excluded from comparison
+    - Test backs up both config_db.json and golden_config_db.json before modifications
+    - Empty golden config input should result in no configuration changes
+    - Golden config can override PORT, INTERFACE, PORTCHANNEL, VLAN tables and others
+    - After test, all configurations are restored and DUT is reloaded
+=============================================================================
+"""
 import pytest
 
 from tests.common.helpers.assertions import pytest_assert

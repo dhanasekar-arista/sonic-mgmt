@@ -1,5 +1,40 @@
 """
-Test the database intance
+=============================================================================
+Module: bmp
+File: test_bmp_redis_instance.py
+=============================================================================
+
+Description:
+    This module validates that the BMP-specific Redis database instance is
+    properly running within the database container. It checks that redis_bmp
+    process is managed by supervisord and in RUNNING state, ensuring the
+    fundamental database infrastructure for BMP feature is operational.
+
+Test Intent:
+    - test_bmp_redis_instance: Verifies that redis_bmp instance is running
+      under supervisord control within the database docker container. This
+      validates the basic infrastructure requirement for BMP feature by
+      confirming the dedicated Redis instance for BMP state storage is
+      properly initialized and operational.
+
+Topology:
+    any - Works with any topology
+
+Fixtures Used:
+    - duthosts: Multi-DUT fixture providing access to all DUTs in the testbed
+    - rand_one_dut_hostname: Randomly selects one DUT hostname from available DUTs
+
+Dependencies:
+    - database docker container: Main database container hosting Redis instances
+    - supervisord: Process control system managing Redis instances
+    - redis_bmp: Dedicated Redis instance for BMP feature (typically redis6)
+
+Notes:
+    - Test uses supervisorctl to check process status within database container
+    - Validates both presence and RUNNING status of redis_bmp process
+    - This is a foundational test ensuring BMP database infrastructure exists
+    - Does not validate actual BMP data, only the database instance itself
+=============================================================================
 """
 import logging
 import pytest

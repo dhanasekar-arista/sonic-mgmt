@@ -1,3 +1,61 @@
+"""
+=============================================================================
+Module: syslog
+File: test_syslog_rate_limit.py
+=============================================================================
+
+Description:
+    This test file validates syslog rate limiting functionality in SONiC, which
+    prevents syslog message flooding by limiting the number of messages that can
+    be logged within a time interval. It tests rate limiting for both container-level
+    and host-level rsyslogd instances, verifies configuration persistence across
+    config reload, and ensures the feature works correctly on multi-ASIC platforms.
+
+Test Intent:
+    - test_syslog_rate_limit: Validates syslog rate limiting by testing (1) container
+      rate limiting - randomly selects a container, configures rate limit (burst=100,
+      interval=10 seconds), generates 101 log messages to trigger rate limiting,
+      verifies rate-limit-reached message appears and only 101 messages are logged,
+      then disables rate limiting (burst=0, interval=0) and verifies all messages
+      are logged without rate limiting, (2) host rate limiting - performs same
+      validation on host rsyslogd instance, and (3) persistence - saves configuration,
+      performs config reload, and re-validates both container and host rate limiting
+      still work correctly after reload.
+
+Topology:
+    any (works with any topology type)
+
+Fixtures Used:
+    - rand_selected_dut: Randomly selects one DUT for testing
+    - check_image_version: Skips test on SONiC versions older than 202205 which
+      don't support rate limiting
+    - restore_rate_limit: Module-scoped fixture that captures original rate limit
+      configuration before tests and restores it after completion, also handles
+      manual feature enable/disable for 202305+ versions
+
+Dependencies:
+    - pytest: Test framework
+    - tests.common.config_reload: For performing config reload
+    - tests.common.utilities: Provides skip_release helper
+    - tests.common.helpers.assertions: For test assertions
+    - tests.common.plugins.loganalyzer.loganalyzer: For analyzing syslog messages
+    - tests.common.helpers.sonic_db: For querying CONFIG_DB
+
+Notes:
+    - Test is marked to disable log analyzer
+    - Requires SONiC version 202211 or newer (skips 201811-202205)
+    - Rate limit parameters: burst=100 messages, interval=10 seconds
+    - Generates 101 messages to trigger rate limiting (1 message over burst limit)
+    - In 202305+, rate limiting is disabled by default and must be manually enabled
+    - Database container does not support rate limit configuration persistence
+    - Only tests one randomly selected container to reduce test time
+    - Supports multi-ASIC platforms with per-ASIC container instances
+    - Waits up to 30 seconds for rsyslogd restart after configuration changes
+    - Uses log_generator.py script to generate test log messages
+    - Expected log patterns: rate-limit-reached message and final test message
+    - Verifies rsyslogd is actually ready by sending test log before proceeding
+=============================================================================
+"""
 import contextlib
 import logging
 import os

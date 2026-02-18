@@ -1,3 +1,56 @@
+"""
+=============================================================================
+Module: vxlan
+File: test_vxlan_decap.py
+=============================================================================
+
+Description:
+    This test validates VXLAN decapsulation functionality by creating VXLAN
+    tunnels and tunnel maps, then verifying that encapsulated packets are
+    correctly decapsulated and forwarded to the appropriate VLAN.
+
+Test Intent:
+    - test_vxlan_decap: Validates VXLAN decapsulation by:
+        * Creating VXLAN tunnel from DUT loopback to remote VTEP (8.8.8.8)
+        * Configuring VXLAN tunnel maps (VNI to VLAN mapping)
+        * Sending VXLAN-encapsulated packets from PTF
+        * Verifying inner packets are decapsulated and forwarded correctly
+        * Cleaning up VXLAN configuration after test
+
+Topology:
+    t0
+
+Fixtures Used:
+    - copy_ptftests_directory: Copies PTF test scripts to PTF host
+    - change_mac_addresses: Changes MAC addresses for testing
+    - copy_arp_responder_py: Copies ARP responder to PTF
+    - remove_ip_addresses: Removes IP addresses from PTF interfaces
+    - toggle_all_simulator_ports_to_rand_selected_tor_m: For dualtor mux control
+    - ptfhost: PTF host object
+    - duthost: DUT host object
+    - mg_facts: Minigraph facts
+    - tbinfo: Testbed information
+
+Dependencies:
+    - tests.ptf_runner: For running PTF dataplane tests
+    - tests.common.fixtures.ptfhost_utils: For PTF utilities
+    - tests.common.dualtor.mux_simulator_control: For dualtor mux control
+    - .vnet_utils: For template rendering utilities
+    - .vnet_constants: For VXLAN configuration constants
+    - jinja2: For template rendering
+    - netaddr: For IP address handling
+
+Notes:
+    - VTEP2_IP: 8.8.8.8 (remote VTEP endpoint)
+    - VNI_BASE: 336
+    - COUNT: 1 (number of VXLAN tunnels/maps)
+    - Uses arp_responder for ARP handling on PTF
+    - Creates VXLAN_TUNNEL and VXLAN_TUNNEL_MAP in CONFIG_DB
+    - PTF script: vxlan-decap.Vxlan (validates decapsulation)
+    - Cleanup removes VXLAN configuration and restarts services
+    - Supports both selected and unselected ToR in dualtor setups
+=============================================================================
+"""
 import json
 import logging
 from datetime import datetime

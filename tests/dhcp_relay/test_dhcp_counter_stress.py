@@ -1,3 +1,65 @@
+"""
+Module: tests.dhcp_relay.test_dhcp_counter_stress
+File: test_dhcp_counter_stress.py
+
+Description:
+    Stress test suite for DHCPv4 relay counter functionality. This module validates that the dhcpmon
+    service can accurately track and count DHCP packets under high load conditions. Tests verify that
+    per-interface RX/TX counters maintain consistency with actual packet counts even when processing
+    thousands of packets per second over extended durations.
+
+Test Intent:
+    - Verify dhcpmon counters maintain accuracy under sustained high packet rates (default 25-20 pps)
+    - Validate per-interface counter consistency between STATE_DB and actual packet capture
+    - Test counter accuracy across all DHCP message types (Discover, Offer, Request, Ack)
+    - Verify counter tracking on both uplink and downlink interfaces
+    - Validate counter behavior in dual-ToR configurations (active/standby)
+    - Ensure packet loss/miss rate stays within acceptable threshold (0.01%)
+    - Verify tcpdump can capture packets accurately with increased buffer size
+
+Topology:
+    - t0: Standard leaf-spine topology with T0 switches
+    - m0: Management topology
+    Requires physical hardware (not virtual switches) to handle stress loads
+
+Fixtures Used:
+    - dut_dhcp_relay_data: DHCP relay configuration data for each VLAN interface
+    - validate_dut_routes_exist: Validates routes to DHCP servers
+    - testing_config: Determines single/dual-ToR mode and provides active DUT
+    - setup_standby_ports_on_rand_unselected_tor: Sets up standby ports on unselected ToR
+    - toggle_all_simulator_ports_to_rand_selected_tor_m: Toggles mux ports to selected ToR
+    - clean_processes_after_stress_test: Cleans up PTF stress test processes after test
+    - ignore_expected_loganalyzer_exceptions: Ignores expected memory threshold warnings
+
+Dependencies:
+    - PTF framework for packet generation
+    - dhcp_relay_stress_test.DHCPStress*Test PTF test suite
+    - tcpdump for packet capture validation (1MB buffer size)
+    - dhcpmon service with 20-second DB update timer
+    - STATE_DB for counter storage and retrieval
+    - Adequate DUT CPU/memory to handle high packet rates
+
+Notes:
+    - Test parameterized by dhcp_type: discover, offer, request, ack
+    - Default packet rates: 25 pps (general), 20 pps for Mellanox-SN2700
+    - Packet send duration: 120 seconds
+    - Error margin: 0.01% (packet count variance allowed)
+    - Requires --max_packets_per_sec CLI option to override default pps
+    - Tests only on physical devices (device_type='physical')
+    - Memory threshold warnings are expected and ignored during stress
+    - Counter validation waits 25 seconds for dhcpmon DB update (20s timer + margin)
+    - Standby ToR counters should remain at 0 in dual-ToR mode
+
+Git History (last 10 commits):
+    3440d4d90 [dhcp_relay] replace typo dhcpcom with dhcpmon
+    05f7ad8db [dhcp_relay] ignore mem checker with stress test
+    f813a0c24 [dhcp_relay] Increase buffer size of tcpdump in dhcpmon counter stress test
+    eb2d7edcd [dhcpmon] Update pps for dhcpmon stress test
+    87372c5c5 Imporve DHCP relay counter stress test
+    ced3f02c4 [dhcp_relay] Add sleep for stress dhcpmon test
+    fdea41626 [dhcp_relay] Verify per-interface counter under stress test
+"""
+
 import pytest
 import logging
 import time

@@ -1,5 +1,45 @@
-'''This script is to test the BGP Allow List feature of SONiC.
-'''
+"""
+=============================================================================
+Module: bgp
+File: test_bgp_allow_list.py
+=============================================================================
+
+Description:
+    Tests BGP Allow List (prefix-list based route filtering) feature in SONiC.
+    Validates route filtering with community-based and prefix-based allow lists
+    with both permit and deny default actions.
+
+Test Intent:
+    - test_default_allow_list_preconfig: Verifies default BGP policy behavior
+      before applying allow list configuration
+    - test_allow_list: Tests allow list with permit/deny default actions, validates
+      route filtering and community handling
+    - test_default_allow_list_postconfig: Ensures BGP policy returns to default
+      after removing allow list configuration
+
+Topology:
+    t1, m1
+
+Fixtures Used:
+    - bgp_allow_list_setup: Sets up test environment with downstream neighbors
+    - load_remove_allow_list: Applies and removes allow list configuration
+    - nbrhosts: Neighbor hosts fixture
+    - ptfhost: PTF host for BGP monitor validation
+    - bgpmon_setup_teardown: Sets up BGP monitor session
+
+Dependencies:
+    - bgp_helpers: Allow list configuration and validation functions
+    - tests.common.helpers.assertions.pytest_assert
+
+Notes:
+    - Only runs on virtual switch (vs) device types
+    - Tests both IPv4 and IPv6 prefix filtering
+    - Validates route propagation to upstream and downstream neighbors
+    - Checks community attribute handling (drop_community)
+    - Uses deployment ID for allow list configuration
+=============================================================================
+"""
+
 import logging
 import pytest
 

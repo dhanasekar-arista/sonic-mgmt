@@ -1,3 +1,46 @@
+"""
+=============================================================================
+Module: http
+File: test_http_copy.py
+=============================================================================
+
+Description:
+    This test module validates the HTTP file transfer capability on SONiC
+    devices. It verifies that files can be successfully downloaded from an
+    HTTP server to the DUT using curl, ensuring file integrity through MD5
+    checksum validation.
+
+Test Intent:
+    - test_http_copy: Verifies that the DUT can successfully download files
+      from an HTTP server using curl, validates file integrity by comparing
+      MD5 checksums of the original and downloaded files, and ensures proper
+      HTTP server startup and shutdown on PTF
+
+Topology:
+    - any, t1-multi-asic: Works with any topology including multi-asic setups
+
+Fixtures Used:
+    - setup_teardown: Autouse fixture that copies HTTP server scripts to PTF,
+      creates a temporary test file, and cleans up files after test completion
+    - duthosts: Collection of DUT hosts in the testbed
+    - rand_one_dut_hostname: Randomly selects one DUT for testing
+    - ptfhost: PTF host used to run HTTP server for file transfers
+
+Dependencies:
+    - http/start_http_server.py: Python script to start HTTP server on PTF
+    - http/stop_http_server.py: Python script to stop HTTP server on PTF
+    - tests.common.helpers.assertions: Test assertion utilities
+
+Notes:
+    - Test runs only on virtual switch (vs) device types
+    - Log analyzer is disabled for this test
+    - Uses port 8080 for HTTP server
+    - Generates 1MB random binary file for transfer testing
+    - Validates server startup/shutdown with retry logic (10 attempts)
+    - File integrity verified using MD5 checksum comparison
+    - Temporary files are automatically cleaned up after test
+=============================================================================
+"""
 import os
 import pytest
 import time

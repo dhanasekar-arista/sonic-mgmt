@@ -1,3 +1,59 @@
+"""
+=============================================================================
+Module: macsec
+File: test_interop_wan_isis.py
+=============================================================================
+
+Description:
+    This test validates MACsec interoperability with IS-IS (Intermediate
+    System to Intermediate System) routing protocol on WAN topologies. It
+    ensures that IS-IS adjacencies remain stable when MACsec is enabled,
+    disabled, and re-enabled on links.
+
+Test Intent:
+    - test_isis_over_macsec: Validates IS-IS protocol functionality over
+      MACsec-protected WAN links. Tests three scenarios:
+      1) Verifies IS-IS neighbors are Up with MACsec enabled initially
+      2) Disables MACsec on both DUT and neighbor, waits for MACsec to be
+         down, then verifies IS-IS neighbors remain Up without encryption
+      3) Re-enables MACsec on both ends, waits for MACsec session to
+         establish, then verifies IS-IS neighbors remain Up with encryption
+      Ensures IS-IS routing is resilient to MACsec state changes and that
+      MACsec encryption does not break IS-IS adjacencies. Only runs on
+      wan-pub-isis virtual testbed topology.
+
+Topology:
+    wan-pub-isis topology with MACsec support required
+
+Fixtures Used:
+    - tbinfo: Testbed information used to verify topology is wan-pub-isis
+    - duthost: DUT host object for test execution
+    - ctrl_links: Dictionary of MACsec-controlled links on the DUT
+    - upstream_links: Upstream link information (parameter present but not used)
+    - profile_name: MACsec profile name for re-enabling MACsec
+    - wait_mka_establish: Waits for MKA session establishment before tests
+
+Dependencies:
+    - tests.common.utilities: For wait_until polling functionality
+    - tests.common.helpers.assertions: For pytest assertions
+    - tests.common.macsec.macsec_platform_helper: For portchannel operations
+    - tests.common.macsec.macsec_config_helper: For MACsec port enable/disable
+
+Notes:
+    - Disables loganalyzer for this test
+    - ISIS_HOLDTIME = 30 seconds
+    - Only runs on wan-pub-isis topology, skips all others
+    - Queries IS-IS facts from duthost to get neighbor state
+    - Checks IS-IS neighbor state is "Up" in neighbors['1'] dictionary
+    - Waits up to 30 seconds for portchannel to come Up (5s interval, 5s delay)
+    - Waits up to 30 seconds for IS-IS neighbor to reach Up state (6s interval,
+      5s delay)
+    - Waits up to 30 seconds for MACsec interface state changes (3s interval)
+    - Only checks IS-IS neighbor state when portchannel is Up
+    - Test iterates through all controlled links for comprehensive validation
+    - Supports portchannel interfaces that may flap during MACsec state changes
+=============================================================================
+"""
 import pytest
 import logging
 
@@ -14,11 +70,6 @@ pytestmark = [
     pytest.mark.macsec_required,
     pytest.mark.topology("wan-pub-isis"),
 ]
-
-
-'''
-Macsec interop with is-is protocols
-'''
 
 ISIS_HOLDTIME = 30
 

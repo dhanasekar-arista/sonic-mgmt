@@ -1,3 +1,57 @@
+"""
+=============================================================================
+Module: generic_config_updater
+File: test_aaa.py
+=============================================================================
+
+Description:
+    This module tests AAA (Authentication, Authorization, and Accounting)
+    configuration updates using the Generic Config Updater (GCU) framework
+    in SONiC. It validates TACACS+ and RADIUS server configuration, including
+    add, replace, and remove operations with proper rollback capabilities.
+
+Test Intent:
+    - test_aaa_tacacs_add_config: Adds TACACS+ server configuration
+    - test_aaa_tacacs_add_del_config: Adds then removes TACACS+ configuration
+    - test_aaa_tacacs_replace_del_config: Replaces then removes TACACS+ config
+    - test_aaa_tacacs_del_random_server_without_config: Tests error handling
+      for deleting non-existent server
+    - test_aaa_tacacs_del_all: Removes all TACACS+ configuration
+    - test_aaa_tacacs_del_server_option: Removes specific server options
+    - test_aaa_tacacs_replace_server_option: Replaces TACACS+ server options
+    - test_aaa_tacacs_del_category: Removes AAA categories
+    - test_aaa_tacacs_replace_category: Replaces AAA categories
+    - test_aaa_radius_add_config: Adds RADIUS server configuration
+    - test_aaa_radius_add_del_config: Adds then removes RADIUS configuration
+    - test_aaa_radius_del_server_option: Removes RADIUS server options
+    - test_aaa_radius_replace_server_option: Replaces RADIUS server options
+
+Topology:
+    Supports any topology
+
+Fixtures Used:
+    - get_aaa_sub_options_value: Retrieves AAA configuration values
+    - ensure_dut_readiness: Ensures DUT is ready for testing
+
+Dependencies:
+    - tests.common.helpers.assertions: pytest_assert
+    - tests.common.fixtures.tacacs: TACACS utilities
+    - tests.common.gu_utils: GCU utilities including apply_patch, expect_op_success,
+      expect_op_failure, generate_tmpfile, delete_tmpfile, create_checkpoint,
+      delete_checkpoint, rollback_or_reload, format_json_patch_for_multiasic
+
+Notes:
+    - AAA categories: authentication, authorization, accounting
+    - Default TACACS server: 100.127.20.21
+    - Default RADIUS server: 100.127.20.22
+    - Uses JSON patch format for configuration updates
+    - Supports multi-ASIC configurations
+    - Creates checkpoints before each operation for rollback
+    - Validates configuration changes in CONFIG_DB
+    - TACACS config includes auth_type, passkey, timeout, priority, tcp_port
+    - RADIUS config includes auth_type, passkey, timeout, retransmit, auth_port
+=============================================================================
+"""
 import logging
 import pytest
 

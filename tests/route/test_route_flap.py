@@ -1,3 +1,55 @@
+"""
+=============================================================================
+Module: route
+File: test_route_flap.py
+=============================================================================
+
+Description:
+    This test module validates route flapping behavior on SONiC switches by
+    repeatedly announcing and withdrawing BGP routes via ExaBGP. It verifies
+    that traffic forwarding follows route state changes correctly - packets
+    are forwarded when routes are announced and dropped when routes are withdrawn.
+    Tests simulate real-world route flapping scenarios to ensure routing stability
+    and correct FIB updates.
+
+Test Intent:
+    - test_route_flap: Repeatedly announces and withdraws routes from multiple
+      ExaBGP peers, sending test packets after each state change to verify
+      traffic is forwarded when routes exist and dropped when routes are
+      withdrawn, ensuring FIB updates correctly track BGP route state
+
+Topology:
+    - Supported: any topology
+    - Device type: vs (virtual switch)
+    - Requires ExaBGP instances on PTF (base port 5000)
+
+Fixtures Used:
+    - duthosts: All DUT hosts in the testbed
+    - enum_rand_one_per_hwsku_frontend_hostname: Randomly selected frontend DUT
+    - ptfadapter: PTF adapter for traffic verification
+    - tbinfo: Testbed information including PTF IP and topology configuration
+    - announce_default_routes: Module-scoped fixture that restores default routes after test
+    - toggle_all_simulator_ports_to_enum_rand_one_per_hwsku_frontend_host_m: Dualtor mux control
+    - get_function_completeness_level: Test iteration count based on completeness level
+
+Dependencies:
+    - requests: HTTP communication with ExaBGP REST API
+    - ptf.testutils, ptf.packet: Packet generation and verification
+    - tests.common.utilities: wait_until helper for route state verification
+
+Notes:
+    - Test iterations controlled by completeness level (debug:1, basic:3, thorough:20)
+    - ExaBGP communicates via HTTP REST API on PTF
+    - Route prefix length varies by topology (m1: /0, m0/mx: configurable, t0: /25)
+    - Test uses ICMP packets to verify route state
+    - Traffic verification: expects packets when route announced, dropped when withdrawn
+    - Upstream ports used for packet reception (varies by topology)
+    - 5-second delays between announce/withdraw operations for BGP convergence
+    - Packet timeout: 15 seconds for expected packet arrival
+    - Cleanup: Default routes restored via fixture at module teardown
+=============================================================================
+"""
+
 import requests
 import json
 import logging

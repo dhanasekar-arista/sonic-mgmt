@@ -1,5 +1,43 @@
-'''This script is to test the BGP Bounce Back Routing (BBR) feature default state after restart.
-'''
+"""
+=============================================================================
+Module: bgp
+File: test_bgp_bbr_default_state.py
+=============================================================================
+
+Description:
+    Tests BGP Bounce Back Routing (BBR) feature default state persistence across
+    device restarts. Validates that BBR configuration is correctly maintained
+    and restored after various types of system restarts and reloads.
+
+Test Intent:
+    - test_bbr_default_state_after_config_reload: Verifies BBR state persists
+      correctly after config reload operation
+    - test_bbr_default_state_after_cold_reboot: Ensures BBR configuration survives
+      cold reboot and is restored to correct state
+
+Topology:
+    t1
+
+Fixtures Used:
+    - prepare_bbr_config_files: Creates BBR enable/disable config templates
+    - setup: Configures BBR test environment
+    - duthosts: Multi-DUT fixture
+    - rand_one_dut_hostname: Randomly selected DUT
+
+Dependencies:
+    - tests.common.gu_utils: Generic Updater utilities
+    - tests.common.config_reload: Config reload functionality
+    - tests.common.utilities.delete_running_config
+
+Notes:
+    - Only runs on virtual switch (vs) device types
+    - Tests persistence of both enabled and disabled BBR states
+    - Uses GCU (Generic Config Updater) for configuration changes
+    - Validates running configuration matches expected state post-restart
+    - Cleans up BBR configuration after tests complete
+=============================================================================
+"""
+
 import json
 import logging
 import time

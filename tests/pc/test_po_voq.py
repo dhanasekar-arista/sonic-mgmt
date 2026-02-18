@@ -1,3 +1,42 @@
+"""
+=============================================================================
+Module: pc
+File: test_po_voq.py
+=============================================================================
+
+Description:
+    This test suite validates PortChannel functionality in VOQ (Virtual Output Queue)
+    systems, specifically for T2 chassis topologies. Tests verify that PortChannels
+    function correctly across ASICs in distributed VOQ architectures, including member
+    operations, traffic forwarding, and route/nexthop consistency.
+
+Test Intent:
+    - Verify PortChannel member operations in VOQ systems
+    - Test traffic forwarding through PortChannels in VOQ architecture
+    - Validate route and nexthop consistency when PortChannel members change
+    - Test PortChannel operations across multiple ASICs
+
+Topology:
+    t2 - Requires T2 topology (VOQ chassis)
+
+Fixtures Used:
+    - setup_teardown: Module-level fixture that creates temporary test PortChannel, moves members/IP, then restores
+    - duthosts: All DUT hosts
+    - enum_rand_one_per_hwsku_frontend_hostname: Randomly selected frontend DUT
+
+Dependencies:
+    - tests.common.helpers.voq_lag: VOQ LAG-specific helper functions
+    - tests.common.helpers.voq_helpers: VOQ helper utilities for route verification
+    - tests.common.platform.device_utils: Device and fanout utilities
+
+Notes:
+    - VOQ systems have distributed forwarding across multiple ASICs
+    - Tests verify nexthop consistency across system components
+    - Uses temporary PortChannel to avoid disrupting production config
+    - Random ASIC selection ensures test coverage across all ASICs
+    - Verifies routes are properly removed when PortChannel members are deleted
+=============================================================================
+"""
 import pytest
 import random
 import tests.common.helpers.voq_lag as voq_lag

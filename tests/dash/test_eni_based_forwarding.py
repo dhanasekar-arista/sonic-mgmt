@@ -1,3 +1,68 @@
+"""
+Module: tests.dash
+File: test_eni_based_forwarding.py
+Description:
+    DASH ENI-based forwarding test suite for SmartSwitch topology. This module validates
+    intelligent packet routing based on ENI (Elastic Network Interface) state (active/standby)
+    using ACL-based redirection, supporting multi-DPU deployments with dynamic ENI migration.
+
+Test Intent:
+    - Validate ENI-based forwarding ACL table and rule creation
+    - Test active ENI forwarding to local DPU dataplane interface
+    - Verify standby ENI forwarding through tunnel to peer T1
+    - Test non-existing ENI forwarding through tunnel
+    - Validate tunnel route updates and egress interface changes
+    - Test ENI state transitions (active <-> standby)
+    - Verify tunnel termination with double encapsulation
+    - Ensure proper ACL rule updates on ENI state changes
+
+Topology:
+    - smartswitch: SmartSwitch topology with multi-DPU support
+    - Requires tunnel routes to peer T1 loopback
+    - Mock PA (Provider Address) interface for local DPU traffic
+    - Traffic flows: VXLAN(VM->VIP) -> ACL redirect -> Local DPU or Tunnel
+
+Fixtures Used:
+    - duthost: Device Under Test (NPU) host object
+    - ptfadapter: PTF adapter for packet injection/verification
+    - dpuhosts: List of DPU host objects (multi-DPU support)
+    - dpu_num: Number of DPUs in the SmartSwitch
+    - dash_pl_config: PrivateLink DASH configuration
+    - vdpus_info: Randomly selected vDPU pair and index
+    - mock_pa_ipv4: Mock PA IPv4 for local DPU dataplane
+    - loopback_ips: Loopback0 IPs (local and peer T1)
+    - apply_peer_route: Fixture to add tunnel route to peer T1
+    - update_peer_route: Fixture to temporarily change tunnel route
+    - apply_config_db: Applies CONFIG_DB for ENI forwarding
+    - apply_appl_db_and_check_acl_rules: Applies APPL_DB and validates ACL rules
+    - vxlan_udp_dport: Configurable VXLAN UDP destination port
+
+Dependencies:
+    - configs.privatelink_config: PrivateLink configuration constants
+    - constants: DASH test constants (imported via *)
+    - dash_utils: DASH utility functions (render_template, apply_swssconfig)
+    - packets: Packet generation utilities
+    - tests.common.config_reload: Configuration reload utilities
+    - tests.common.platform.interface_utils: Interface utility functions
+    - smartswitch_utils: SmartSwitch hardware SKU configuration
+
+Notes:
+    - gNMI server fixture overridden (test doesn't use gNMI)
+    - ACL table type: ENI_REDIRECT with INNER_DST_MAC, DST_IP, TUNNEL_TERM matches
+    - ACL rules created per ENI: <VNET>_<MAC> and <VNET>_<MAC>_TERM
+    - Active ENI redirect: mock_pa_ipv4 (local DPU interface)
+    - Standby ENI redirect: peer_loopback0_ip@tunnel_v4,<VNI>
+    - Three ENIs tested: ENI1 (active), ENI2 (standby), ENI3 (non-existing)
+    - Random vDPU selection from available DPUs
+    - ACL rules validated with 10s timeout, 5s interval polling
+    - Tunnel termination validates double-encapped packets
+    - Config reload used for final cleanup
+    - Dataplane logger set to ERROR level to reduce noise
+
+Git History (last 1 commit):
+    ace9c0f94 [Smartswitch] ENI based forwarding test (#21251)
+"""
+
 import pytest
 import logging
 import random

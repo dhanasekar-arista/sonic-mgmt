@@ -1,3 +1,47 @@
+"""
+=============================================================================
+Module: voq
+File: test_voq_intfs.py
+=============================================================================
+
+Description:
+    This test validates VOQ interface lifecycle operations including deletion,
+    recreation, and verification through config save/load operations. It tests
+    modifying portchannel configurations and creating new IP interfaces.
+
+Test Intent:
+    - test_cycle_voq_intf: Tests the complete lifecycle of VOQ interfaces by:
+        * Removing members from a portchannel
+        * Adding an IP interface to a former portchannel member
+        * Saving and reloading configuration
+        * Verifying interface creation in local and chassis DB
+        * Restoring original minigraph configuration
+        * Verifying interfaces are properly restored
+
+Topology:
+    t2 (VOQ chassis topology)
+
+Fixtures Used:
+    - duthosts: Multi-DUT fixture for chassis systems
+    - all_cfg_facts: Configuration facts for all DUTs and ASICs
+    - nbrhosts: Neighbor host objects
+    - nbr_macs: Neighbor MAC addresses from conftest
+
+Dependencies:
+    - tests.common.config_reload: For config reload operations
+    - .test_voq_init.check_voq_interfaces: For interface verification
+    - tests.common.helpers.sonic_db: For VoqDbCli operations
+    - .test_voq_disrupts.check_bgp_neighbors: For BGP neighbor verification
+
+Notes:
+    - Test uses temporary IP address 50.1.1.1/24 for interface creation
+    - Verifies interfaces in both local ASIC DB and chassis APP_DB
+    - Ensures BGP neighbors re-establish after configuration changes
+    - Always restores original minigraph configuration regardless of test outcome
+    - Waits up to 300 seconds for BGP to stabilize after config changes
+    - Validates router interface (RIF) presence on supervisor chassis DB
+=============================================================================
+"""
 
 import pytest
 import logging

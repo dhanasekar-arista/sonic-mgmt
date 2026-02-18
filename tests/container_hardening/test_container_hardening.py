@@ -1,3 +1,56 @@
+"""
+=============================================================================
+Module: container_hardening
+File: test_container_hardening.py
+=============================================================================
+
+Description:
+    This module validates container security hardening in SONiC by ensuring
+    containers run without privileged mode unless specifically required. It
+    verifies that non-privileged containers have restricted access to host
+    block devices, preventing potential security vulnerabilities from
+    unrestricted device access.
+
+Test Intent:
+    - test_container_privileged: Validates that containers running without the
+      --privileged flag cannot access host block devices (/dev/vda*, /dev/sda*).
+      This ensures proper container isolation and prevents unprivileged containers
+      from accessing sensitive storage devices, which is critical for security
+      hardening. The test explicitly skips syncd, gbsyncd, swss, and gnmi containers
+      which require privileged mode for hardware interaction.
+
+Topology:
+    any (supports t0, t1, t2, multi-asic, and all other topologies)
+
+Fixtures Used:
+    - duthosts: Provides access to all DUT (Device Under Test) hosts
+    - enum_rand_one_per_hwsku_hostname: Randomly selects one DUT hostname per
+      hardware SKU to ensure test coverage across different hardware types
+    - enum_rand_one_asic_index: Enumerates ASIC instances for multi-asic testing
+    - enum_dut_feature: Enumerates all features/containers on the DUT to test
+      each container's privilege settings
+
+Dependencies:
+    - tests.common.helpers.assertions: pytest_assert, pytest_require for test
+      validation and conditional skipping
+    - tests.common.helpers.dut_utils: is_container_running, get_disabled_container_list
+      for container state verification
+    - Standard libraries: re (regex for container name parsing), pytest, logging
+
+Notes:
+    - PRIVILEGED_CONTAINERS list defines containers that must run in privileged
+      mode (syncd, gbsyncd, gnmi) and are excluded from hardening tests
+    - The test uses CONTAINER_NAME_REGEX to extract feature names from container
+      names (e.g., bgp0 -> bgp) for proper skip condition matching
+    - Test skips disabled containers and containers in the privileged list
+    - Validation checks mount points to identify block devices and ensures
+      the container cannot access them (ls command should fail/return empty)
+    - Historical context: Originally tested only BGP containers (2021), expanded
+      to include LLDP, teamd, and multi-asic support, with ongoing refinements
+      to the privileged container list based on operational requirements
+=============================================================================
+"""
+
 import re
 import pytest
 import logging

@@ -1,3 +1,48 @@
+"""
+=============================================================================
+Module: dns
+File: test_dns_resolv_conf.py
+=============================================================================
+
+Description:
+    Test suite to validate DNS nameserver configuration in /etc/resolv.conf on SONiC devices.
+    This module verifies that the resolv.conf file on both the host and within all running
+    containers contains the expected default nameservers based on the SONiC image type
+    (EOS or SONiC). Tests ensure proper DNS configuration after config reload.
+
+Test Intent:
+    - test_dns_resolv_conf: Verify /etc/resolv.conf contains expected default nameservers on host and in all Docker containers
+
+Topology:
+    - any: Test works on any topology (t0, t1, t2, m0, mx, etc.)
+
+Fixtures Used:
+    - setup_env: Module-level fixture to backup config, reload with golden config, and restore after test
+    - duthost: DUT host object for executing commands and retrieving configuration
+
+Dependencies:
+    - /etc/resolv.conf file on DUT host and in Docker containers
+    - CONFIG_DB (/etc/sonic/config_db.json) for configuration management
+    - GOLDEN_CONFIG (/etc/sonic/golden_config_db.json) for golden config override
+    - tests.common.constants.RESOLV_CONF_NAMESERVERS for expected nameserver mappings
+    - Docker containers running on DUT
+    - config_reload and minigraph rendering utilities
+
+Notes:
+    - Test is skipped on multi-ASIC platforms (designed for single ASIC only)
+    - LogAnalyzer is disabled globally for this test
+    - Expected nameservers vary by image type (EOS vs SONiC)
+    - Test validates nameservers on both host and inside all running Docker containers
+    - Setup backs up config_db.json and golden_config_db.json before test
+    - Setup reloads config with minigraph and golden config override to ensure default DNS
+    - Teardown restores original config_db.json and golden_config_db.json
+    - Nameserver comparison uses set symmetric difference to detect mismatches
+    - Test fails if any container has different nameservers than expected
+    - Expected nameservers are defined in RESOLV_CONF_NAMESERVERS constant
+
+=============================================================================
+"""
+
 import pytest
 import logging
 from tests.common.constants import RESOLV_CONF_NAMESERVERS

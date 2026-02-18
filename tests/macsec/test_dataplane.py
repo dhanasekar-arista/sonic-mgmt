@@ -1,3 +1,69 @@
+"""
+=============================================================================
+Module: macsec
+File: test_dataplane.py
+=============================================================================
+
+Description:
+    This test validates MACsec data plane functionality on SONiC devices.
+    It verifies encrypted packet forwarding, traffic flow between servers
+    and neighbors through MACsec-protected links, neighbor-to-neighbor
+    communication, and MACsec counter operations for encrypted traffic.
+
+Test Intent:
+    - test_server_to_neighbor: Validates traffic forwarding from downstream
+      servers to upstream neighbors through MACsec-protected portchannel links.
+      Sends packets via PTF and verifies MACsec-encrypted packets are received
+      at upstream ports with correct TTL decrement. Tests all portchannel members.
+    - test_dut_to_neighbor: Tests basic connectivity from DUT to upstream
+      neighbors using ping over MACsec-protected links. Verifies encryption
+      does not break L3 connectivity.
+    - test_neighbor_to_neighbor: Validates end-to-end traffic between different
+      upstream neighbors routing through the DUT. Temporarily sets DUT as
+      gateway for both requester and responder, then tests ping connectivity.
+      Ensures MACsec encryption/decryption works for transit traffic.
+    - test_counters: Validates MACsec SA (Security Association) counters
+      increment correctly for encrypted traffic. Checks XPN (eXtended Packet
+      Number), octets encrypted, and packets encrypted/OK counters. Skips
+      when rekey is active to avoid counter reset during test.
+    - test_clear_counters: Verifies 'sonic-clear macsec counters' command
+      properly clears MACsec statistics counters while preserving non-stat
+      attributes. Skips when rekey is active.
+
+Topology:
+    t0, t2, t0-sonic topologies with MACsec support required
+
+Fixtures Used:
+    - duthost: DUT host object for test execution
+    - ctrl_links: Dictionary of MACsec-controlled links on the DUT
+    - upstream_links: Upstream link information for neighbor connectivity
+    - downstream_links: Downstream link information for server traffic
+    - ptfadapter: PTF adapter for packet injection and verification
+    - wait_mka_establish: Waits for MKA session establishment before tests
+    - rekey_period: Period for automatic key rotation (tests skip if active)
+
+Dependencies:
+    - tests.common.devices.eos: For EOS device support
+    - tests.common.macsec.macsec_helper: Packet creation, MACsec packet
+      verification, counter operations
+    - tests.common.macsec.macsec_platform_helper: Portchannel management
+    - scapy: For packet manipulation
+    - ptf.testutils: For PTF packet operations
+
+Notes:
+    - Requires MACsec-capable hardware and topology
+    - test_server_to_neighbor sends 10 packets per test (BATCH_COUNT=10)
+    - test_server_to_neighbor forces PTF MACsec module reload
+    - Skips portchannels without members
+    - test_neighbor_to_neighbor temporarily modifies routing, then reverts
+    - Counter tests skip when rekey_period is active to avoid race conditions
+    - test_counters validates at least 5 packets with 1024-byte payload
+    - Virtual switch (vsonic) only validates XPN counter, not octet/packet counters
+    - test_clear_counters verifies stats counters reset but attributes preserved
+    - Waits 10 seconds for counter polling after traffic generation
+    - Supports both SONiC and EOS neighbors
+=============================================================================
+"""
 from time import sleep
 import pytest
 import logging

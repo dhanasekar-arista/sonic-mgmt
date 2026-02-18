@@ -1,3 +1,52 @@
+"""
+=============================================================================
+Module: platform_tests
+File: test_chassis_fans.py
+=============================================================================
+
+Description:
+    Validates Platform API functionality for chassis-level Fan objects. Tests fan
+    metadata retrieval, speed control, direction detection, and LED status management.
+    Temporarily stops thermal control daemon during testing to allow manual speed control.
+
+Test Intent:
+    - test_get_name: Verify fan name retrieval and match with platform.json
+    - test_get_presence: Confirm all chassis fans are present
+    - test_get_model: Validate fan model string retrieval
+    - test_get_serial: Verify fan serial number retrieval
+    - test_get_status: Test fan operational status
+    - test_get_position_in_parent: Validate position value is an integer
+    - test_is_replaceable: Verify replaceable status is boolean
+    - test_get_speed: Confirm fan speed percentage is within 1-100 range
+    - test_get_direction: Validate fan direction (intake/exhaust/N/A)
+    - test_get_fans_target_speed: Test target speed setting and retrieval
+    - test_set_fans_speed: Verify fan speed control and tolerance validation
+    - test_set_fans_led: Test LED color control (off/red/amber/green)
+
+Topology:
+    Any topology - tests run on all platforms with chassis fans
+
+Fixtures Used:
+    - platform_api_conn: Platform API service connection
+    - setup: Function-scoped autofixture managing thermal control daemon lifecycle
+    - duthosts: Multi-DUT host fixture
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hardware SKU
+
+Dependencies:
+    - tests.common.helpers.platform_api (chassis, fan)
+    - platform.json (fan metadata including controllable/speed ranges)
+    - thermal_control_daemon (stopped during tests, restarted after)
+
+Notes:
+    - Test skips if no fans found on device
+    - Speed control tests skip fans marked as non-controllable in platform.json
+    - Speed changes validated against is_under_speed/is_over_speed tolerance
+    - LED tests skip if LED not available/controllable
+    - Mellanox platforms don't support 'off' LED color
+    - Cisco-8000 platforms use 40-60% speed range
+    - Test respects platform-specific speed minimum/maximum/delay settings
+=============================================================================
+"""
 import logging
 import random
 import time

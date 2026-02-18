@@ -1,3 +1,49 @@
+"""
+=============================================================================
+Module: vxlan
+File: test_vxlan_multi_tunnel.py
+=============================================================================
+
+Description:
+    This test validates multiple VXLAN tunnel creation and management. It
+    verifies that multiple VXLAN tunnels can coexist, be created, deleted,
+    and that APP_DB entries are correctly synchronized.
+
+Test Intent:
+    - test_create_multiple_tunnels: Validates creation of multiple VXLAN
+      tunnels and verifies they appear in APP_DB
+    - test_delete_all_tunnels: Tests deletion of all VXLAN tunnels and
+      confirms APP_DB entries are removed
+    - test_tunnel_recreation: Validates that tunnels can be recreated after
+      deletion without errors
+
+Topology:
+    t1, t1-64-lag, t1-56-lag, t1-lag
+
+Fixtures Used:
+    - setup_ecmp_utils: Module-scoped auto-use fixture to configure ECMP utils
+    - configure_vxlan_global_params: Configures and restores global VXLAN
+      parameters (vxlan_port, vxlan_router_mac)
+    - duthost: DUT host object
+    - minigraph_facts: Minigraph information
+    - tbinfo: Testbed information
+
+Dependencies:
+    - tests.common.helpers.assertions: For pytest assertions
+    - tests.common.utilities: For wait_until polling
+    - tests.common.vxlan_ecmp_utils: For VXLAN utilities
+    - tests.common.plugins.loganalyzer: For log analysis
+
+Notes:
+    - Loganalyzer is disabled to avoid catching unrelated errors
+    - Only runs on T1 topologies
+    - Configures vxlan_port and vxlan_router_mac in APPL_DB
+    - Validates VXLAN_TUNNEL table entries in APP_DB
+    - Tests tunnel creation/deletion synchronization
+    - Waits for APP_DB updates with polling
+    - Restores original VXLAN configuration after tests
+=============================================================================
+"""
 import pytest
 import logging
 

@@ -1,3 +1,54 @@
+"""
+=============================================================================
+Module: console
+File: test_console_loopback.py
+=============================================================================
+
+Description:
+    This test validates bidirectional data transfer capabilities through the console
+    switch using loopback configurations. It tests both single-line echo (data sent
+    and received on same line) and cross-line ping-pong (data sent between paired
+    console lines) scenarios to verify proper serial data transmission, timing, and
+    routing through the console switch hardware.
+
+Test Intent:
+    - test_console_loopback_echo: Validates single-line loopback by sending random
+      64-byte strings to console lines (1-16) and verifying the data is echoed back
+      within timing constraints based on configured baud rate
+    - test_console_loopback_pingpong: Validates cross-line communication by establishing
+      sessions on paired console lines and verifying bidirectional message exchange
+      ('ping'/'pong') between physically looped line pairs
+
+Topology:
+    any
+
+Fixtures Used:
+    - duthost: DUT host fixture for executing commands on the device under test
+    - creds: Credentials fixture providing sonicadmin username and password
+    - skip_if_os_not_support: Auto-fixture that skips tests on unsupported OS versions
+      (201803, 201807, 201811, 201911)
+    - skip_if_console_feature_disabled: Auto-fixture that skips tests when console
+      switch feature is disabled
+    - console_facts: Provides console configuration and state information from DUT
+
+Dependencies:
+    - pexpect: For interactive SSH session control (via console_helper)
+    - tests.common.helpers.console_helper: assert_expect_text, create_ssh_client,
+      ensure_console_session_up helper functions
+    - string, random: For generating random test data
+    - conftest.py: Module-level fixtures for OS version and feature checks
+
+Notes:
+    - Echo test parametrized for lines 1-16, tests skipped if line not configured
+    - Ping-pong test uses specific line pairs: (17,19), (18,20), (21,27), (22,28),
+      (23,25), (24,26), (29,35), (30,36), (31,33), (32,34)
+    - Timeout calculated dynamically: (packet_size * 8 * delay_factor) / baud_rate
+    - Default packet size is 64 bytes with 2.0x delay factor for timing margin
+    - Physical loopback cables must connect paired console lines for ping-pong tests
+    - Tests verify data integrity and timing characteristics of serial communication
+=============================================================================
+"""
+
 import pytest
 import random
 from tests.common.helpers.assertions import pytest_assert

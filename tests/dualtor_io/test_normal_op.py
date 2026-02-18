@@ -1,3 +1,69 @@
+"""
+=============================================================================
+Module: dualtor_io
+File: test_normal_op.py
+=============================================================================
+
+Description:
+    Test suite for validating dual-ToR normal operation without failures. This module tests
+    traffic forwarding in steady-state conditions, config reload resilience, and server-to-
+    server communication across mux cables. Tests verify that traffic flows correctly and
+    mux states remain stable during normal operations and configuration changes.
+
+Test Intent:
+    - test_normal_op_upstream: Verify upstream traffic flows without disruption or switchover (server to T1)
+    - test_normal_op_downstream_active: Verify downstream traffic flows to active server without disruption (T1 to server)
+    - test_normal_op_downstream_standby: Verify downstream traffic flows to standby server without disruption (T1 to server)
+    - test_normal_op_upstream_soc: Verify SoC upstream traffic flows without disruption (SoC to T1)
+    - test_normal_op_downstream_soc_active: Verify SoC downstream traffic flows to active server without disruption (T1 to SoC)
+    - test_normal_op_downstream_soc_standby: Verify SoC downstream traffic flows to standby server without disruption (T1 to SoC)
+    - test_normal_op_config_reload_active_tor: Verify traffic disruption is minimal during active ToR config reload
+    - test_normal_op_config_reload_standby_tor: Verify standby ToR config reload does not disrupt traffic
+    - test_normal_op_server_to_server: Verify server-to-server traffic flows without disruption across mux cables
+
+Topology:
+    - dualtor: Dual-ToR topology with active-standby or active-active cable types
+
+Fixtures Used:
+    - upper_tor_host: Upper ToR DUT host object
+    - lower_tor_host: Lower ToR DUT host object
+    - toggle_all_simulator_ports_to_upper_tor: Sets all mux ports to upper ToR (active)
+    - send_t1_to_server_with_action: Sends downstream traffic with action during transmission
+    - send_server_to_t1_with_action: Sends upstream traffic with action during transmission
+    - send_soc_to_t1_with_action: Sends SoC to T1 traffic with action
+    - send_t1_to_soc_with_action: Sends T1 to SoC traffic with action
+    - send_server_to_server_with_action: Sends server-to-server traffic with action
+    - force_active_tor: Forces specific ToR to be active for all mux ports
+    - force_standby_tor: Forces specific ToR to be standby for all mux ports
+    - run_icmp_responder: Runs ICMP responder on PTF for server simulation
+    - run_garp_service: Runs GARP service on PTF for MAC address updates
+    - change_mac_addresses: Changes PTF MAC addresses to match server MACs
+    - check_simulator_flap_counter: Verifies mux simulator flap counts
+    - cable_type: Cable type fixture (active-standby or active-active)
+    - active_active_ports: Active-active port configuration
+    - validate_active_active_dualtor_setup: Validates active-active setup
+
+Dependencies:
+    - Mux simulator control for cable state management
+    - PTF framework for traffic generation and verification
+    - config_reload utility for ToR configuration management
+    - show muxcable status command for mux state verification
+
+Notes:
+    - Tests are marked with pytest.mark.topology("dualtor")
+    - Normal operation tests expect zero disruption
+    - Active-active tests are marked with @pytest.mark.enable_active_active
+    - Config reload disruption must be less than CONFIG_RELOAD_ALLOWED_DISRUPTION_SEC
+    - Active ToR config reload may cause brief traffic disruption
+    - Standby ToR config reload should not affect traffic at all
+    - Server-to-server traffic tests cross-mux communication
+    - Tests verify control plane (mux state) and data plane (traffic forwarding)
+    - Active-active cable tests verify all ports remain active during operations
+    - Config reload includes save, reload, and wait for critical processes
+
+=============================================================================
+"""
+
 import pytest
 
 from tests.common.config_reload import config_reload

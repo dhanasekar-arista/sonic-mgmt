@@ -1,3 +1,43 @@
+"""
+=============================================================================
+Module: gnmi
+File: test_gnoi_system_reboot.py
+=============================================================================
+
+Description:
+    Tests gNOI System Reboot API including various reboot methods (COLD, WARM,
+    POWERDOWN, NSF) for NPU and DPU devices. Validates reboot status and system
+    recovery after reboot.
+
+Test Intent:
+    - test_gnoi_system_reboot: Tests NPU reboot with various methods
+    - test_gnoi_system_reboot_powerup_standalone: Tests POWERUP method
+    - test_gnoi_system_reboot_status: Validates reboot status API
+    - test_gnoi_system_cancel_reboot: Tests reboot cancellation API
+    - test_gnoi_system_reboot_dpu: Tests DPU-specific reboot operations
+
+Topology:
+    Supports any topology
+
+Fixtures Used:
+    - duthosts: DUT host objects
+    - rand_one_dut_hostname: Randomly selected DUT
+    - localhost: Localhost for gNOI client
+    - dpus: DPU objects for DPU reboot tests
+
+Dependencies:
+    - .helper: gnoi_request, extract_gnoi_response, apply_cert_config
+    - tests.common.reboot: wait_for_startup
+    - tests.common.platform.processes_utils: wait_critical_processes
+    - tests.common.utilities: wait_until
+
+Notes:
+    - Reboot methods: UNKNOWN=0, COLD=1, POWERDOWN=2, HALT=3, WARM=4, NSF=5, POWERUP=7
+    - Log analyzer disabled (reboot triggers kernel warnings on VS)
+    - Default reboot message: "gnoi test reboot"
+    - Validates gNMI container restart after reboot
+=============================================================================
+"""
 import pytest
 import logging
 import json

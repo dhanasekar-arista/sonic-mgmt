@@ -1,3 +1,72 @@
+"""
+=============================================================================
+Module: upgrade_path
+File: test_multi_hop_upgrade_path.py
+=============================================================================
+
+Description:
+    This test file validates multi-hop SONiC software upgrade paths where the
+    system is upgraded through multiple intermediate versions (e.g., v1 -> v2 -> v3)
+    rather than a direct single-hop upgrade. It tests sequential warm upgrades
+    across multiple versions and SAD (Service Availability Degradation) scenarios
+    to ensure compatibility and stability across version transitions.
+
+Test Intent:
+    - test_multi_hop_upgrade_path: Validates sequential multi-hop warm upgrade by
+      booting into base image (first URL), then iteratively installing and warm
+      booting through each subsequent image in the upgrade path, verifying system
+      health after each hop, checking services/neighbors/CoPP config, validating
+      reboot cause matches expected warm-reboot, and confirming data plane
+      consistency across all upgrade hops.
+    - test_multi_hop_warm_upgrade_sad_path: Tests multi-hop warm upgrade under SAD
+      conditions by performing sequential upgrades through multiple versions while
+      injecting service failures (BGP down, LAG down, multi_sad, etc.) during warm
+      boot, verifying system recovers properly at each hop, and ensuring data plane
+      consistency is maintained despite failures across the entire upgrade chain.
+
+Topology:
+    any (supports all topology types)
+
+Fixtures Used:
+    - localhost: Local host for image operations
+    - duthosts: All DUT hosts in testbed
+    - rand_one_dut_hostname: Randomly selected DUT for testing
+    - ptfhost: PTF host for traffic and connectivity testing
+    - tbinfo: Testbed information
+    - request: Pytest request object for accessing test configuration
+    - get_advanced_reboot: Provides advanced reboot functionality
+    - multihop_advanceboot_loganalyzer_factory: Log analyzer for multi-hop reboot
+    - verify_dut_health: Validates DUT health after each upgrade hop
+    - consistency_checker_provider: Validates data plane consistency
+    - restore_image: Restores original image after test
+    - advanceboot_neighbor_restore: Restores neighbor state
+    - backup_and_restore_config_db: Backs up and restores config DB
+    - sad_case_type: Parametrized SAD failure type
+
+Dependencies:
+    - pytest: Test framework
+    - tests.common.fixtures.advanced_reboot: Advanced reboot functionality
+    - tests.common.helpers.upgrade_helpers: Upgrade utilities and helpers
+    - tests.common.platform.warmboot_sad_cases: SAD case definitions
+    - tests.common.platform.device_utils: Device health and neighbor checking
+    - tests.upgrade_path.utilities: Upgrade-specific utilities
+
+Notes:
+    - Only supports warm upgrade (assertion fails if not warm)
+    - Requires at least 2 image URLs for multi-hop testing
+    - Upgrade path URLs provided via --multi_hop_upgrade_path (comma-separated)
+    - SAD cases: sad_bgp, sad_lag, sad_bgp_outbound, sad_lag_member, multi_sad
+    - multi_sad removed from list if both sad_bgp and sad_lag are present
+    - System stabilization max time: typically 300 seconds
+    - Verifies reboot cause is 'warm-reboot' after each hop
+    - Checks critical services, neighbor adjacencies, CoPP config after each hop
+    - CPA (Container Pre-Allocation) can be enabled via --enable_cpa
+    - Base image setup runs only once at the beginning
+    - Each hop includes full validation before proceeding to next
+    - Multi-hop testing critical for long-term upgrade planning
+    - Validates upgrade compatibility across version chains
+=============================================================================
+"""
 import pytest
 import logging
 from tests.common.fixtures.advanced_reboot import get_advanced_reboot                                   # noqa: F401

@@ -1,3 +1,45 @@
+"""
+=============================================================================
+Module: test_neighbor_mac
+File: test_neighbor_mac.py
+=============================================================================
+
+Description:
+    This module tests neighbor MAC address handling in SONiC switches using PTF docker.
+    It verifies that MAC address updates for neighbors are correctly propagated from
+    the kernel ARP table to the Redis ASIC database, ensuring hardware-software
+    consistency in neighbor entry management.
+
+Test Intent:
+    - testNeighborMac: Validates that when a neighbor's MAC address is changed on
+      the PTF host, the new MAC address is correctly learned and stored in both the
+      kernel ARP table and the Redis ASIC_DB neighbor entry. Tests with two different
+      MAC addresses to verify update functionality.
+
+Topology:
+    m1, t1, ptf (T1-lag and PTF topologies requiring Ethernet0 interface)
+
+Fixtures Used:
+    - interfaceConfig: Module-scoped fixture that configures Ethernet0 interface,
+      removes it from portchannel if needed, adds IP address, and restores config
+      after test completion
+    - macIndex: Parameterized fixture (0, 1) to select which test MAC to use
+    - configureNeighborIpAndPing: Configures neighbor IP/MAC on PTF and pings DUT
+    - redisNeighborMac: Retrieves and validates neighbor MAC from Redis ASIC_DB
+
+Dependencies:
+    - tests.common.helpers.assertions: pytest_assert for validation
+    - tests.common.utilities: wait_until for polling interface status
+
+Notes:
+    - Test requires Ethernet0 to be operational (admin and oper up)
+    - Interface is temporarily removed from portchannel if it's a member
+    - Uses contextlib.contextmanager for cleanup of portchannel membership
+    - Pings DUT from PTF to populate ARP entry before verification
+    - 2 second delay allows ARP entries to stabilize before validation
+=============================================================================
+"""
+
 import contextlib
 import logging
 import pytest

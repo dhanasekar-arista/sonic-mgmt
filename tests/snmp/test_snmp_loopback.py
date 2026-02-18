@@ -1,3 +1,50 @@
+"""
+=============================================================================
+Module: snmp
+File: test_snmp_loopback.py
+=============================================================================
+
+Description:
+    This test module validates SNMP functionality over loopback IP addresses
+    (both IPv4 and IPv6) on SONiC switches. It performs SNMP queries from BGP
+    neighbor VMs to the DUT's loopback interface and compares results with
+    local SNMP facts to ensure loopback-based SNMP access works correctly.
+
+Test Intent:
+    - test_snmp_loopback: Performs SNMP query over DUT loopback IP (IPv4 or IPv6)
+      from a BGP neighbor VM, retrieves sysDescr, and compares result with local
+      SNMP facts to validate loopback-based SNMP queries function properly
+
+Topology:
+    - Supported: t0, t1, t2, m0, mx, m1, t1-multi-asic, lt2, ft2
+    - Device type: vs (virtual switch)
+    - Requires BGP neighbors configured
+
+Fixtures Used:
+    - duthosts: All DUT hosts in testbed
+    - enum_rand_one_per_hwsku_frontend_hostname: Randomly selected frontend DUT
+    - nbrhosts: BGP neighbor hosts for remote SNMP queries
+    - tbinfo: Testbed information
+    - localhost: Local connection for SNMP queries
+    - creds_all_duts: SNMP credentials
+    - ip_version: Parametrized fixture testing IPv4 and IPv6
+
+Dependencies:
+    - tests.common.helpers.snmp_helpers: SNMP queries and fact gathering
+    - tests.common.devices.eos: EOS host device support
+    - tests.common.utilities: Release version skipping
+
+Notes:
+    - Test parametrized for both IPv4 and IPv6 loopback addresses
+    - Loopback interface: Loopback0 from LOOPBACK_INTERFACE configuration
+    - SNMP queries executed from first BGP neighbor (or UT2 neighbor on LT2)
+    - IPv6 SNMP over loopback not supported on single-ASIC in older releases
+    - Skipped releases for IPv6: 202211, 202205, 202305 (single-ASIC only)
+    - Compares sysDescr between local and remote SNMP query results
+    - Multi-ASIC: IPv6 loopback SNMP fully supported
+=============================================================================
+"""
+
 import pytest
 import ipaddress
 from tests.common.helpers.snmp_helpers import get_snmp_facts, get_snmp_output

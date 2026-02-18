@@ -1,3 +1,54 @@
+"""
+=============================================================================
+Module: test_unknown_mac
+File: test_unknown_mac.py
+=============================================================================
+
+Description:
+    This module tests the behavior of SONiC switches when forwarding packets to
+    destinations with known ARP entries but unknown MAC addresses in the FDB table.
+    It validates that packets are properly dropped with correct drop counter increments
+    for both lossless (DSCP 3, 4) and lossy (DSCP 8) traffic priorities, ensuring
+    the switch doesn't flood or mishandle such scenarios.
+
+Test Intent:
+    - test_unknown_mac: Validates unknown MAC handling by creating ARP entry without
+      corresponding FDB entry (by clearing FDB after ARP learning), sending UDP packets
+      with various DSCP values from portchannel/sub-interface members, and verifying
+      all packets are dropped at ingress interface with RX_DRP counters incremented
+      correctly. Tests DSCP 3, 4 (lossless), and 8 (lossy) to cover all QoS classes.
+
+Topology:
+    t0 (ToR topology including dualtor and backend topologies)
+
+Fixtures Used:
+    - dut_disable_arp_update: Module-scoped fixture that disables arp_update to prevent
+      automatic MAC re-learning during test execution
+    - unknownMacSetup: Module-scoped fixture that populates test parameters including
+      VLAN info, PTF port mappings, portchannel/sub-interface members
+    - flushArpFdb: Flushes all ARP and FDB entries before and after test
+    - populateArp: Configures IP on PTF, pings DUT to populate ARP, then clears FDB
+    - toggle_all_simulator_ports_to_rand_selected_tor_m: Configures mux for dualtor
+    - setup_standby_ports_on_rand_unselected_tor_unconditionally: Sets standby ports
+    - iptables_drop_ipv6_tx: Drops IPv6 packets on PTF to prevent interference
+
+Dependencies:
+    - tests.common.fixtures.ptfhost_utils: PTF MAC changes and ARP responder utilities
+    - tests.common.dualtor.dual_tor_utils: mux_cable_server_ip for dualtor
+    - tests.common.utilities: get_intf_by_sub_intf for sub-interface handling
+    - ptf.testutils, ptf.mask, ptf.packet: Packet construction and verification
+
+Notes:
+    - Test skipped on Mellanox and Barefoot platforms (flood instead of drop behavior)
+    - arp_update disabled to prevent automatic FDB re-population during test
+    - Backend topologies use VLAN sub-interfaces instead of portchannels
+    - Test sends 10 packets per interface to verify consistent drop behavior
+    - Drop counters cleared before test, verified after with expected increment
+    - VS platform excluded from counter verification due to timing variations
+    - Server IPs excluded from IP generation to avoid conflicts in dualtor setups
+=============================================================================
+"""
+
 import functools
 import inspect
 import json

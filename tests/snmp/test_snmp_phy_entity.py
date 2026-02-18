@@ -1,3 +1,68 @@
+"""
+=============================================================================
+Module: snmp
+File: test_snmp_phy_entity.py
+=============================================================================
+
+Description:
+    This test module validates ENTITY-MIB and ENTITY-SENSOR-MIB (RFC 2737, RFC 3433)
+    implementation on SONiC physical devices. It verifies physical entity hierarchy
+    (chassis, modules, PSUs, fans, thermals, transceivers) and sensor data (temperature,
+    voltage, current, power, RPM) are correctly exposed via SNMP with proper OID
+    structure, containment relationships, and sensor characteristics.
+
+Test Intent:
+    - test_fabric_card_info: Validates fabric card module information in entity MIB
+      matches STATE_DB on supervisor nodes
+    - test_fan_drawer_info: Verifies fan drawer container information and hierarchy
+    - test_fan_info: Tests fan entity and tachometer sensor data accuracy
+    - test_psu_info: Validates PSU entity information and associated sensors (temp,
+      power, current, voltage) on supervisor nodes
+    - test_thermal_info: Verifies chassis thermal sensor entity and temperature data
+    - test_transceiver_info: Tests transceiver port entity and DOM sensor information
+      (temperature, voltage, TX/RX power, TX bias)
+    - test_turn_off_psu_and_check_psu_info: Powers off PSU via PDU and validates
+      sensor entities are removed from MIB when PSU is offline
+    - test_remove_insert_fan_and_check_fan_info: Mocks fan removal and verifies
+      entity and sensor information is removed from MIB
+
+Topology:
+    - Supported: any topology
+    - Device type: physical (hardware tests, not virtual switches)
+    - Skip on 201911 images (not supported)
+
+Fixtures Used:
+    - snmp_physical_entity_and_sensor_info: Module-level SNMP entity/sensor MIB data
+    - check_image_version: Auto-use fixture skipping unsupported image versions
+    - duthosts: All DUT hosts for testing
+    - enum_rand_one_per_hwsku_hostname: Randomly selected DUT
+    - enum_supervisor_dut_hostname: Supervisor node selection
+    - localhost: Local connection for SNMP queries
+    - creds_all_duts: SNMP credentials
+    - get_pdu_controller: PDU controller for PSU power tests
+    - mocker_factory: Factory for creating hardware mockers (fan removal)
+
+Dependencies:
+    - tests.common.helpers.snmp_helpers: SNMP fact gathering
+    - tests.common.helpers.psu_helpers: PSU and PDU control utilities
+    - tests.common.helpers.thermal_control_test_helper: Hardware mocker support
+    - RFC 2737: ENTITY-MIB physical entity definitions
+    - RFC 3433: ENTITY-SENSOR-MIB sensor type definitions
+
+Notes:
+    - OID structure follows SONiC convention with module/device/sensor type multipliers
+    - Physical classes: chassis(3), container(5), PSU(6), fan(7), sensor(8), module(9), port(10)
+    - Sensor data types: volts_dc(4), amperes(5), watts(6), celsius(8), rpm(10)
+    - Sensor scales: units(9), milli(8), precision field indicates decimal places
+    - FRU status: replaceable(1), not_replaceable(2)
+    - Multi-ASIC support: queries all frontend ASIC namespaces
+    - PSU test requires at least 2 PSUs and PDU controller
+    - Fan test requires removable fan support and 75-second mock wait time
+    - Sensor tests only run on images newer than 202012
+    - Transceiver hardware_rev vs vendor_rev field changed in 202012+
+=============================================================================
+"""
+
 import ast
 import logging
 import pytest

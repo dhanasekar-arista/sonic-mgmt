@@ -1,5 +1,55 @@
 """
-Tests for the `counterpoll queue/watermark/pg-drop ...` commands in SONiC
+=============================================================================
+Module: platform_tests
+File: test_counterpoll_watermark.py
+=============================================================================
+
+Description:
+    Tests for the 'counterpoll queue/watermark/pg-drop' CLI commands in SONiC.
+    Validates that enabling/disabling counterpollers correctly populates and
+    clears FLEX_COUNTER_TABLE and COUNTERS_DB entries, and verifies persistence
+    across config reload and system reboot.
+
+Test Intent:
+    - test_counterpoll_queue_watermark_pg_drop: Verify FLEXCOUNTERS_DB and COUNTERS_DB
+      content after enabling queue/watermark/pg-drop counterpollers. Test validates:
+      1) Flex counter tables populated when enabled
+      2) Counter maps created in COUNTERS_DB with appropriate delay
+      3) Changes persist across config reload
+      4) Changes persist across system reboot
+      5) Counters cleared when disabled
+      6) Watermark-specific stats (USER/PERSISTENT/PERIODIC) managed correctly
+
+Topology:
+    Any topology - tests run on frontend nodes
+
+Fixtures Used:
+    - dut_vars: Module-scoped fixture loading inventory variables
+    - duthosts: Multi-DUT host fixture
+    - enum_rand_one_per_hwsku_frontend_hostname: Selects one frontend DUT per hardware SKU
+
+Dependencies:
+    - counterpoll CLI commands (queue, watermark, pg-drop)
+    - FLEX_COUNTER_TABLE in FLEXCOUNTERS_DB
+    - Counter maps in COUNTERS_DB (QUEUE, PG)
+    - config_reload for persistence validation
+    - reboot helper for reboot persistence validation
+
+Notes:
+    - Test validates three counterpollers: queue, watermark, pg-drop
+    - Queue counterpoll maps: QUEUE_NAME, QUEUE_INDEX, QUEUE_TYPE, QUEUE_PORT
+    - PG counterpoll maps: PG_INDEX, PG_PORT, PG_NAME
+    - Watermark manages both queue and PG watermark stats
+    - Default delays: queue=15s, watermark=65s, pg-drop=15s
+    - Watermark types: USER_WATERMARKS, PERSISTENT_WATERMARKS, PERIODIC_WATERMARKS
+    - Test waits for counters to populate after enable (delay + margin)
+    - Config reload test validates configuration persistence
+    - Reboot test validates settings survive system restart
+    - Skips on releases without counterpoll support
+    - Uses SonicDbCli helper for COUNTERS_DB/FLEXCOUNTERS_DB access
+    - Allure test reporting integration for detailed test tracking
+    - Test covers enable/disable transitions and DB state verification
+=============================================================================
 """
 
 import allure

@@ -1,8 +1,58 @@
+"""
+=============================================================================
+Module: vxlan
+File: test_vxlan_bfd_tsa.py
+=============================================================================
+
+Description:
+    This test suite validates VXLAN ECMP behavior with BFD (Bidirectional
+    Forwarding Detection) monitoring during TSA (Traffic Shift Away) and
+    TSB (Traffic Shift Back) operations. It ensures VXLAN tunnels correctly
+    handle traffic redirection when DUT enters/exits maintenance mode.
+
+Test Intent:
+    - test_bfd_tsa_tsb: Validates TSA/TSB behavior with BFD-monitored VXLAN
+      tunnels, ensuring traffic shifts away during TSA and returns during TSB
+    - test_bfd_session_down_during_tsa: Tests BFD session down event handling
+      during TSA, verifying proper route redistribution
+    - test_route_add_during_tsa: Validates new route addition behavior during
+      TSA state
+    Tests cover all encapsulation types: v4_in_v4, v4_in_v6, v6_in_v4, v6_in_v6
+
+Topology:
+    t1, t1-64-lag, t1-56-lag, t1-lag
+
+Fixtures Used:
+    - encap_type: Parametrized fixture for encapsulation type (module scope)
+    - setUp: Module-scoped fixture for VXLAN configuration setup
+    - cleanup_after_test: Function-scoped auto-use fixture for TSB and route cleanup
+    - _ignore_route_sync_errlogs: Auto-use fixture to ignore expected errors
+    - copy_ptftests_directory: Copies PTF test scripts to PTF host
+    - duthosts: Multi-DUT fixture
+    - ptfhost: PTF host object
+    - minigraph_facts: Minigraph information
+    - tbinfo: Testbed information
+
+Dependencies:
+    - tests.common.vxlan_ecmp_utils: For VXLAN ECMP utilities
+    - tests.ptf_runner: For running PTF dataplane tests
+    - tests.common.config_reload: For config reload operations
+    - tests.common.utilities: For wait_until polling
+    - tests.common.helpers.assertions: For pytest assertions
+
+Notes:
+    - Supported encap types: v4_in_v4, v6_in_v4, v4_in_v6, v6_in_v6
+    - Destination prefix: 150
+    - Nexthop prefix: 100
+    - Auto-cleanup applies TSB and deletes created routes after each test
+    - Ignores expected route sync and VNET error logs
+    - TSA isolates DUT from forwarding traffic
+    - TSB returns DUT to normal forwarding operation
+    - BFD used for tunnel endpoint health monitoring
+    - Validates ECMP path selection during TSA/TSB transitions
+=============================================================================
+"""
 #! /usr/bin/env python3
-'''
-    These tests check the Vxlam ecmp with BFD TSA/TSB functionality. Further details are
-    provided with each test.
-'''
 
 import time
 import logging

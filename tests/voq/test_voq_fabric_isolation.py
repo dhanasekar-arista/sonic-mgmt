@@ -1,3 +1,44 @@
+"""
+=============================================================================
+Module: voq
+File: test_voq_fabric_isolation.py
+=============================================================================
+
+Description:
+    This test validates the fabric link isolation monitoring algorithm on
+    VOQ chassis systems. It simulates fabric link errors (CRC errors) and
+    verifies that the auto-isolation mechanism correctly detects and isolates
+    problematic links, then clears isolation when errors are resolved.
+
+Test Intent:
+    - test_voq_fabric_isolation_status: Tests fabric link isolation by:
+        * Selecting a random up fabric link
+        * Injecting fake CRC errors on the link
+        * Verifying auto_isolated status is set in STATE_DB
+        * Clearing the fake errors
+        * Confirming auto_isolated status is cleared
+
+Topology:
+    t2 (VOQ chassis topology)
+
+Fixtures Used:
+    - duthosts: Multi-DUT fixture for chassis systems
+    - enum_frontend_dut_hostname: Enumerates frontend DUTs (linecards)
+
+Dependencies:
+    - tests.common.helpers.assertions: For pytest assertions
+    - tests.common.utilities: For wait_until polling
+
+Notes:
+    - Test randomly selects an ASIC on multi-ASIC systems
+    - Skips test if selected fabric link is not in 'up' status
+    - Waits for 20 link monitoring poll cycles before injecting errors
+    - Uses STATE_DB FABRIC_PORT_TABLE for link status verification
+    - Polls for up to 1200 seconds for isolation status changes
+    - Simulates errors to test link monitoring without actual hardware issues
+    - Test validates both isolation trigger and auto-recovery
+=============================================================================
+"""
 from tests.common.helpers.assertions import pytest_assert
 from tests.common.utilities import wait_until
 import logging

@@ -1,8 +1,44 @@
 """
-Check xcvrd information in DB
+=============================================================================
+Module: platform_tests
+File: test_xcvr_info_in_db.py
+=============================================================================
 
-This script is to cover the test case 'Check xcvrd information in DB' in the SONiC platform test plan:
-https://github.com/sonic-net/SONiC/blob/master/doc/pmon/sonic_platform_test_plan.md
+Description:
+    Tests xcvrd daemon functionality by validating transceiver information in database.
+    Verifies xcvrd properly populates STATE_DB with transceiver status, EEPROM data, and
+    DOM values. Covers 'Check xcvrd information in DB' test case from SONiC platform test plan.
+
+Test Intent:
+    - test_xcvr_info_in_db: Verify xcvrd populates STATE_DB with correct transceiver information
+
+Topology:
+    Any topology
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - enum_rand_one_per_hwsku_frontend_hostname: Selects one frontend DUT per hardware SKU
+    - enum_frontend_asic_index: Frontend ASIC index
+    - conn_graph_facts: Connection graph for interface validation
+    - xcvr_skip_list: Transceiver skip list
+    - port_list_with_flat_memory: Ports with flat memory (skip DOM checks)
+
+Dependencies:
+    - xcvrd daemon in pmon container
+    - STATE_DB for transceiver data
+    - check_transceiver_status validator
+    - get_port_map for port mapping
+    - get_lport_to_first_subport_mapping for logical port mapping
+
+Notes:
+    - Test waits for pmon uptime > minimum threshold (360s wait, 10s interval)
+    - Validates transceiver status in STATE_DB for all connected interfaces
+    - Skips interfaces in xcvr_skip_list
+    - Skips ports with flat memory (no DOM support)
+    - For multi-ASIC: validates only interfaces on specified ASIC
+    - Uses wait_until for asynchronous checks
+    - Test plan: https://github.com/sonic-net/SONiC/blob/master/doc/pmon/sonic_platform_test_plan.md
+=============================================================================
 """
 import logging
 import pytest

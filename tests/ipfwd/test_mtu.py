@@ -1,3 +1,42 @@
+"""
+=============================================================================
+Module: ipfwd
+File: test_mtu.py
+=============================================================================
+
+Description:
+    This test module validates MTU (Maximum Transmission Unit) handling in
+    SONiC IP forwarding. It tests packet forwarding for different MTU sizes,
+    ensuring packets are properly forwarded or fragmented based on configured
+    MTU values.
+
+Test Intent:
+    - test_mtu: Parametrized test that validates IP forwarding with MTU sizes
+      of 1514 bytes (standard) and 9114 bytes (jumbo frames), ensuring packets
+      within MTU are forwarded and oversized packets are handled correctly
+
+Topology:
+    - t1, t2, m1, lt2, ft2: Tests run on T1 and related topologies
+
+Fixtures Used:
+    - copy_ptftests_directory: Copies PTF test files to PTF host
+    - set_ptf_port_mapping_mode: Configures PTF port mapping mode
+    - gather_facts: Provides router MAC, IPs, and port information
+    - tbinfo: Testbed topology information
+
+Dependencies:
+    - tests.ptf_runner: PTF test execution framework
+    - tests.common.fixtures.ptfhost_utils: PTF configuration utilities
+
+Notes:
+    - Test is parametrized to run with MTU values: 1514 and 9114 bytes
+    - Only runs on virtual switch (vs) device types
+    - Tests both IPv4 and IPv6 packet forwarding with different MTU sizes
+    - PTF test verifies packets are forwarded when size <= MTU
+    - KVM support is enabled for virtual environment testing
+    - Log files generated with timestamp in /tmp/mtu_test.<mtu>-<timestamp>.log
+=============================================================================
+"""
 import pytest
 import logging
 

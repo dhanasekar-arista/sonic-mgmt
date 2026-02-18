@@ -1,3 +1,49 @@
+"""
+=============================================================================
+Module: zmq
+File: test_gnmi_zmq.py
+=============================================================================
+
+Description:
+    This test validates gNMI (gRPC Network Management Interface) ZMQ (ZeroMQ)
+    functionality for SmartSwitch devices. It tests that when the device subtype
+    is set to "SmartSwitch", gNMI set operations correctly propagate to both
+    CONFIG_DB and ZMQ endpoints.
+
+Test Intent:
+    Tests verify gNMI ZMQ integration by:
+    - Setting device subtype to SmartSwitch to enable ZMQ
+    - Executing gNMI set operations with delete/update/replace
+    - Verifying changes appear in CONFIG_DB
+    - Confirming changes are published to ZMQ endpoint
+    - Restoring original device configuration after tests
+
+Topology:
+    any (works on all topologies)
+
+Fixtures Used:
+    - enable_zmq: Module-scoped fixture that enables SmartSwitch subtype,
+      performs config save/reload, waits for services and BGP to stabilize,
+      and reverts changes on teardown
+    - duthost: DUT host object
+    - ptfhost: PTF host object for running gNMI client
+
+Dependencies:
+    - tests.common.utilities: For wait_until polling
+    - tests.common.helpers.assertions: For pytest assertions
+    - gnxi/gnmi_cli_py: Python gNMI client on PTF host
+
+Notes:
+    - Loganalyzer is disabled for this test module
+    - gNMI endpoint: port 8080 (notls mode)
+    - Uses py_gnmicli.py for gNMI operations
+    - Waits up to 360 seconds for orchagent/telemetry restart after config reload
+    - Validates BGP sessions restore after enabling ZMQ
+    - ZMQ publisher endpoint checked for message propagation
+    - Test skips if device is already configured as SmartSwitch
+    - Config save and reload performed to activate ZMQ functionality
+=============================================================================
+"""
 import pytest
 import logging
 import random

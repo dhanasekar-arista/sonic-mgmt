@@ -1,3 +1,22 @@
+"""
+=============================================================================
+Module: wan/isis
+File: test_isis_redistribute.py
+=============================================================================
+
+Description:
+    Validates ISIS route redistribution configuration.
+
+Test Intent:
+    - test_isis_redistribute: Tests redistribution of routes into ISIS
+
+Topology:
+    wan-com
+
+Notes:
+    - Redistributes routes from other protocols into ISIS
+=============================================================================
+"""
 import pytest
 import logging
 import functools

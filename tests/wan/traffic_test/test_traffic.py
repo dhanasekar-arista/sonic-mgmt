@@ -1,3 +1,31 @@
+"""
+=============================================================================
+Module: wan/traffic_test
+File: test_traffic.py
+=============================================================================
+
+Description:
+    Validates traffic forwarding in WAN topologies using TRex traffic generator.
+    Tests IMIX traffic patterns and validates throughput.
+
+Test Intent:
+    - test_traffic: Validates traffic forwarding using TRex generator with
+      IMIX (Internet Mix) traffic patterns
+
+Topology:
+    wan-3link-tg (vs devices with TRex traffic generator)
+
+Dependencies:
+    - subprocess: For running TRex commands
+    - TRex: Traffic generator in Docker container
+
+Notes:
+    - Uses TRex v2.41
+    - Runs stl_imix.py script for IMIX traffic
+    - Validates packet forwarding and statistics
+    - Traffic generator runs in Docker container
+=============================================================================
+"""
 import logging
 import pytest
 import subprocess

@@ -1,3 +1,53 @@
+"""
+=============================================================================
+Module: vxlan
+File: test_vnet_route_leak.py
+=============================================================================
+
+Description:
+    This test validates VNET route leaking functionality on Mellanox ASICs.
+    It verifies that VNET routes are properly advertised to BGP neighbors,
+    ensuring route redistribution between VNETs and the global routing table.
+
+Test Intent:
+    - test_vnet_route_leak: Validates that VNET routes are correctly leaked
+      and advertised to BGP neighbors by:
+        * Setting up VNET configuration with VxLAN tunnels
+        * Verifying BGP sessions are established
+        * Confirming VNET routes appear in BGP advertised routes
+        * Checking route advertisement to all expected BGP neighbors
+
+Topology:
+    t0 (Mellanox ASIC only)
+
+Fixtures Used:
+    - configure_dut: Module-scoped fixture that applies VNET configuration,
+      backs up config_db.json, and performs cleanup on teardown
+    - minigraph_facts: Minigraph information
+    - duthosts: Multi-DUT fixture
+    - rand_one_dut_hostname: Random DUT selection
+    - vnet_config: VNET configuration dictionary
+    - vnet_test_params: VNET test parameters
+
+Dependencies:
+    - tests.common.helpers.assertions: For pytest assertions
+    - tests.common.utilities: For wait_until polling
+    - .vnet_utils: VNET configuration and cleanup utilities
+    - .vnet_constants: VNET-related constants
+    - tests.common.config_reload: For config reload operations
+
+Notes:
+    - Mellanox ASIC specific test
+    - BGP wait timeout: 240 seconds
+    - BGP poll rate: 10 seconds
+    - Backs up and restores config_db.json during test
+    - Restarts BGP service during cleanup
+    - Falls back to config_reload if BGP sessions don't restore
+    - Validates route leaking via "show ip bgp neighbor advertised-routes"
+    - Uses regex to parse BGP neighbor IPs and advertised routes
+    - Cleanup can be skipped via CLEANUP_KEY parameter
+=============================================================================
+"""
 import logging
 import pytest
 import re

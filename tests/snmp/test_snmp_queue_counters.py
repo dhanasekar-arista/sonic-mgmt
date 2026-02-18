@@ -1,3 +1,49 @@
+"""
+=============================================================================
+Module: snmp
+File: test_snmp_queue_counters.py
+=============================================================================
+
+Description:
+    This test module validates SNMP queue counter reporting on SONiC switches
+    by testing configuration changes to queue maps and buffer profiles, then
+    verifying SNMP correctly reflects the updated queue counter structure with
+    proper unicast and multicast queue counts.
+
+Test Intent:
+    - test_snmp_queue_counters: Modifies queue configuration (DSCP to queue map,
+      buffer profiles, buffer queue table) via config_db.json, performs config
+      reload, and validates SNMP queue counter OIDs report correct queue counts
+      matching the modified configuration
+
+Topology:
+    - Supported: any topology, t1-multi-asic
+    - Device type: vs (virtual switch)
+    - Route check disabled during test
+
+Fixtures Used:
+    - duthosts: All DUT hosts in testbed
+    - enum_rand_one_per_hwsku_hostname: Randomly selected DUT
+    - loganalyzer: Log analysis for config reload
+
+Dependencies:
+    - tests.common.config_reload: Configuration reload utilities
+    - config_db.json: Configuration database modification
+    - queuestat: Queue statistics CLI command
+
+Notes:
+    - Default queue counters: 4 unicast, 4 multicast
+    - Test modifies: DSCP_TO_TC_MAP, BUFFER_PROFILE, BUFFER_QUEUE tables
+    - Config backup saved to /etc/sonic/orig_config_db.json
+    - Test creates custom queue map and buffer profiles
+    - Verifies queuestat command shows updated queue counts
+    - SNMP queue counter OIDs validated post-configuration
+    - Config restored to original after test completion
+    - Waits for SNMP to update (30 second timeout with 10 second delay)
+    - Multi-ASIC: tests aggregate queue counters across ASICs
+=============================================================================
+"""
+
 import pytest
 import json
 import re

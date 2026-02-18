@@ -1,15 +1,41 @@
 """
-This test checks secure upgrade feature. If we have a secure system with secured image installed
-on it, the system is expected to install only secured images on it. So trying to install non-secure image
-will cause fail and a print of failure message to console indicating it is not a secured image.
-This test case validates the error flow mentioned above.
+=============================================================================
+Module: platform_tests
+File: test_secure_upgrade.py
+=============================================================================
 
-In order to run this test, you need to specify the following argument:
+Description:
+    Tests secure upgrade feature. Validates that secure systems reject non-secure
+    image installations and display appropriate error messages. Ensures security
+    policies are enforced during image upgrade.
 
-    --target_image_list (to contain one non-secure image path e.g. /tmp/images/my_non_secure_img.bin)
+Test Intent:
+    - test_secure_upgrade: Verify secure system rejects non-secure image installation
+      with appropriate error message
 
-Example run from tests directory:
-    "pytest platform_tests/test_secure_upgrade.py <regular arguments> --target_image_list non_secure_image.bin"
+Topology:
+    Any topology
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - localhost: Localhost connection
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hardware SKU
+    - keep_same_version_installed: Function-scoped fixture restoring original image
+
+Dependencies:
+    - install_sonic helper for image installation
+    - --target_image_list CLI option (must contain non-secure image path)
+
+Notes:
+    - Test requires --target_image_list with non-secure image path
+    - Example: pytest platform_tests/test_secure_upgrade.py --target_image_list non_secure.bin
+    - Validates installation fails for non-secure image on secure system
+    - Checks for security rejection message in output
+    - keep_same_version_installed fixture restores original image post-test
+    - Uses RunAnsibleModuleFail to catch expected installation failure
+    - Loganalyzer disabled (expected error logs during failed install)
+    - Test validates security enforcement in upgrade path
+=============================================================================
 """
 import logging
 import pytest

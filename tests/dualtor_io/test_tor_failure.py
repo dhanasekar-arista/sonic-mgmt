@@ -1,3 +1,65 @@
+"""
+=============================================================================
+Module: dualtor_io
+File: test_tor_failure.py
+=============================================================================
+
+Description:
+    Test suite for validating dual-ToR resilience and traffic forwarding during ToR device
+    failures. This module tests failover behavior when active or standby ToR experiences
+    hard failures (power off, reboot) or blackhole traffic conditions. Tests verify minimal
+    traffic disruption and proper mux state transitions during ToR recovery scenarios.
+
+Test Intent:
+    - test_active_tor_reboot_upstream: Verify traffic failover when active ToR reboots (server to T1 traffic)
+    - test_active_tor_reboot_downstream: Verify traffic failover when active ToR reboots (T1 to server traffic)
+    - test_standby_tor_reboot: Verify standby ToR reboot does not affect traffic or mux states
+    - test_active_tor_power_off: Verify traffic failover when active ToR power is toggled via PDU
+    - test_standby_tor_power_off: Verify standby ToR power toggle does not affect traffic or mux states
+    - test_active_tor_blackhole_upstream: Verify traffic failover when active ToR drops all traffic (upstream)
+    - test_active_tor_blackhole_downstream: Verify traffic failover when active ToR drops all traffic (downstream)
+    - test_standby_tor_blackhole: Verify standby ToR blackholing does not affect traffic
+
+Topology:
+    - dualtor: Dual-ToR topology with active-standby or active-active cable types
+
+Fixtures Used:
+    - upper_tor_host: Upper ToR DUT host object
+    - lower_tor_host: Lower ToR DUT host object
+    - toggle_all_simulator_ports_to_upper_tor: Sets all mux ports to upper ToR (active)
+    - send_t1_to_server_with_action: Sends downstream traffic with action during transmission
+    - send_server_to_t1_with_action: Sends upstream traffic with action during transmission
+    - run_icmp_responder: Runs ICMP responder on PTF for server simulation
+    - run_garp_service: Runs GARP service on PTF for MAC address updates
+    - change_mac_addresses: Changes PTF MAC addresses to match server MACs
+    - check_simulator_flap_counter: Verifies mux simulator flap counts
+    - toggle_upper_tor_pdu: PDU controller fixture for upper ToR power control
+    - toggle_lower_tor_pdu: PDU controller fixture for lower ToR power control
+    - mux_status_from_nic_simulator: NIC simulator mux status getter
+    - tunnel_traffic_monitor: Monitors tunnel traffic during tests
+
+Dependencies:
+    - Mux simulator control for cable state management
+    - NIC simulator for active-active forwarding state validation
+    - PDU controller for power management tests
+    - PTF framework for traffic generation and verification
+    - tor_failure_utils for reboot and blackhole operations
+    - LogAnalyzer for syslog validation during failures
+
+Notes:
+    - Tests are marked with pytest.mark.topology("dualtor")
+    - Disruption must be less than MUX_SIM_ALLOWED_DISRUPTION_SEC (1 second)
+    - Active-active cable tests verify forwarding states instead of active/standby
+    - Reboot tests use cold reboot and wait for mux container recovery
+    - Power tests require PDU controller availability (skipped if unavailable)
+    - Blackhole tests use DROP iptables rules to simulate traffic loss
+    - Expected log patterns: container not running errors during failures
+    - Tests verify control plane (mux state) and data plane (traffic forwarding)
+    - Active-active uses NIC simulator forwarding states (ACTIVE, STANDBY, UNKNOWN)
+
+=============================================================================
+"""
+
 import logging
 import pytest
 import time

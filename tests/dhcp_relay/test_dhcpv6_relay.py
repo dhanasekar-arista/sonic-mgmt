@@ -1,3 +1,80 @@
+"""
+Module: tests.dhcp_relay.test_dhcpv6_relay
+File: test_dhcpv6_relay.py
+
+Description:
+    Comprehensive test suite for DHCPv6 relay functionality in SONiC. This module validates that the
+    DHCPv6 relay agent (dhcp6relay) correctly forwards DHCPv6 packets between clients and servers,
+    properly binds to IPv6 link-local addresses on VLAN interfaces, and maintains accurate per-interface
+    counters. Tests cover various network scenarios including link flaps, cold starts, multiple VLANs,
+    and dual-ToR topologies with proper link address selection.
+
+Test Intent:
+    - Verify dhcp6relay binds to correct VLAN and uplink interfaces on port 547
+    - Validate link-local address (LLA) socket binding with automatic recovery
+    - Test DHCPv6 counter tracking for all message types (Solicit, Advertise, Request, Reply, etc.)
+    - Verify DHCPv6 relay packet forwarding (Solicit, Advertise, Request, Reply, Release, etc.)
+    - Test relay functionality after interface link flaps
+    - Validate relay operation when starting with uplinks down
+    - Test correct link address selection in Relay-Forward packets with multiple VLANs
+    - Verify DHCPv6 relay counter accuracy on uplink and downlink interfaces
+    - Validate relay behavior in dual-ToR configurations (loopback vs VLAN interface reception)
+    - Test that VLANs without dhcpv6_servers are not bound by relay agent
+    - Verify client reachability via neighbor discovery before relay operations
+
+Topology:
+    - t0: Standard leaf-spine topology with T0 switches
+    - m0: Management topology
+    - mx: Management extended topology
+    - t0-2vlans: T0 topology with 2 VLANs for multi-VLAN testing
+    Supports both single-ToR and dual-ToR (active-standby, active-active) configurations
+
+Fixtures Used:
+    - dut_dhcp_relay_data: DHCPv6 relay configuration data for each VLAN interface
+    - validate_dut_routes_exist: Validates routes to DHCPv6 servers
+    - testing_config: Determines single/dual-ToR mode and provides active DUT
+    - setup_and_teardown_no_servers_vlan: Creates/removes VLAN without dhcpv6_servers
+    - setup_multiple_vlans_and_teardown: Sets up multiple VLANs for multi-VLAN testing
+    - toggle_all_simulator_ports_to_rand_selected_tor_m: Toggles mux ports to selected ToR
+    - setup_active_active_as_active_standby: Configures active-active ports as active-standby
+    - validate_active_active_dualtor_setup: Validates active-active dual-ToR configuration
+    - active_active_ports: Provides list of active-active mux ports
+
+Dependencies:
+    - PTF framework for packet generation and validation
+    - dhcpv6_relay_test.DHCPTest PTF test suite
+    - dhcpv6_counter_test.DHCPCounterTest PTF test suite
+    - dhcp6relay process in dhcp_relay container
+    - STATE_DB DHCPv6_COUNTER_TABLE for counter storage
+    - Link-local IPv6 addresses on VLAN interfaces (fe80::/64)
+    - BGP sessions for route validation after link changes
+
+Notes:
+    - Tests run on virtual switches (device_type='vs')
+    - Link-local address binding has 60-second check interval in dhcp6relay
+    - Counter table format changed between versions (old: flat, new: RX/TX dict)
+    - DHCPv6 multicast: ff02::1:2 (All_DHCP_Relay_Agents_and_Servers)
+    - DHCPv6 multicast MAC: 33:33:00:01:00:02
+    - Client reachability ensured via ping6 to ff02::1 before relay operations
+    - Dual-ToR: Relay-Reply received on loopback interface, not VLAN
+    - Active-active dual-ToR: Configured as active-standby to avoid ECMP issues
+    - Multiple VLAN test validates correct link address per VLAN in Relay-Forward
+    - VLANs without dhcpv6_servers should not have relay sockets bound
+    - LLA recovery test validates automatic socket binding when LLA appears
+
+Git History (last 10 commits):
+    13fffb8cf [DHCPv6_Relay]: Ensuring Client Reachability
+    58c6767c5 [dhcp_relay] Remove useless release skip in dhcp_relay test
+    cececca1f Fix spelling error
+    442e9c2ee [dhcp_relay] Add test case to verify dhcp6relay LLA waiting logic
+    357c09a39 Set default kvm_support to False in ptf_runner
+    3d4dba77f Add new topology marks for some subtype topologies
+    5737e5cef [dhcpv6_relay_test] test if dhcpv6_relay will set correct link address in packet on multiple vlans host
+    7b5156e14 [dhcp_relay] Add dhcpv6 relay bind test when dhcpv6_server is not configured
+    dab77c420 Remove TACACS fixture from none TACACS test cases
+    07f328770 Enable TACACS on test cases
+"""
+
 import ipaddress
 import pytest
 import random

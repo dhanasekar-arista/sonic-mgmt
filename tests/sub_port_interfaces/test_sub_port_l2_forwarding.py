@@ -1,3 +1,59 @@
+"""
+=============================================================================
+Module: sub_port_interfaces
+File: test_sub_port_l2_forwarding.py
+=============================================================================
+
+Description:
+    This test file validates that sub-port interfaces in SONiC operate strictly
+    as Layer 3 (L3) interfaces and do NOT perform Layer 2 (L2) forwarding or
+    switching. It sends various types of Ethernet packets with VLAN tags to
+    sub-ports and verifies that L2 forwarding does not occur, ensuring sub-ports
+    only handle routed traffic.
+
+Test Intent:
+    - test_sub_port_l2_forwarding: Verifies that sub-ports do not perform L2
+      forwarding by sending 1000 tagged Ethernet packets with three different
+      scenarios - (1) packets with dummy unicast MAC destination, (2) packets
+      with broadcast MAC destination (ff:ff:ff:ff:ff:ff), and (3) packets with
+      MAC address of a different sub-port's neighbor. For each scenario, confirms
+      that packets are NOT forwarded to any PTF ports and are NOT punted to CPU,
+      proving sub-ports operate only at L3 and don't bridge/switch traffic.
+
+Topology:
+    t0 (standard topology)
+
+Fixtures Used:
+    - apply_config_on_the_dut: Creates sub-port configuration on DUT
+    - duthosts: Provides access to all DUT hosts in the testbed
+    - rand_one_dut_hostname: Randomly selects one DUT hostname for testing
+    - test_sub_port: Randomly selects one configured sub-port for testing
+    - generate_eth_packets: Generates three test packets with different MAC
+      destinations (dummy unicast, broadcast, and another sub-port's MAC)
+    - testbed_params: Provides sub-port configuration including parent port,
+      VLAN ID, and PTF port indices
+    - ptfadapter: PTF adapter for sending packets and checking received traffic
+    - define_sub_ports_configuration: Defines sub-port test configuration
+
+Dependencies:
+    - pytest: Test framework
+    - scapy: For packet crafting (Ether, Dot1Q layers)
+    - ptf.testutils: For sending packets via PTF
+    - tests.common.constants: Provides VLAN_SUB_INTERFACE_SEPARATOR
+    - tests.common.utilities: For packet dump formatting
+    - tests.common.helpers.assertions: For test assertions
+
+Notes:
+    - Uses PTF_PORT_MAPPING_MODE = 'use_orig_interface'
+    - Sends 1000 packets per test scenario to ensure reliable verification
+    - Waits 10 seconds after sending packets to ensure processing completes
+    - Uses unique payload fingerprint "SUBPORTL2TESTING" to identify test packets
+    - Captures packets on DUT CPU interface to verify no punting occurs
+    - Packets saved to /tmp/eth_packets.pcap on DUT for analysis
+    - Tests three MAC destination scenarios: dummy unicast, broadcast, cross-port
+    - Confirms sub-ports are strictly L3 interfaces without L2 bridging capability
+=============================================================================
+"""
 import pytest
 import random
 import logging

@@ -1,6 +1,53 @@
 """
-This module tests ARP scenarios specific to dual ToR testbeds
+=============================================================================
+Module: test_arp_dualtor
+File: test_arp_dualtor.py
+=============================================================================
+
+Description:
+    This module tests ARP and NDP (Neighbor Discovery Protocol) scenarios specific
+    to dual ToR testbeds. It validates proxy ARP functionality for standby neighbors,
+    arp_update script behavior with failed/standby neighbors, and unsolicited neighbor
+    learning (GARP/unsolicited NA) on standby ToRs.
+
+Test Intent:
+    - test_proxy_arp_for_standby_neighbor: Verifies that ToR responds to ARP/NDP
+      requests for standby neighbors (routed via IPinIP tunnel) with proxy ARP replies
+    - test_arp_update_for_failed_standby_neighbor: Tests arp_update script's ability
+      to recover from failed neighbor entries on standby ToR by promoting to incomplete
+      state and eventually to reachable after active ToR sends updates
+    - test_standby_unsolicited_neigh_learning: Validates that standby ToR can learn
+      neighbor entries via unsolicited advertisements (GARP/unsolicited NA) from active ToR
+
+Topology:
+    dualtor (Dual ToR topology with mux cables and active-standby configuration)
+
+Fixtures Used:
+    - restore_mux_auto_config: Ensures all mux interfaces return to auto mode after test
+    - pause_arp_update: Temporarily stops arp_update process to prevent test interference
+    - selected_mux_port: Randomly selects a mux port with IPv4/IPv6 for testing
+    - clear_neighbor_table: Flushes neighbor table on all DUTs before test
+    - toggle_all_simulator_ports_to_upper_tor: Sets all mux ports to upper ToR
+    - toggle_all_simulator_ports_to_rand_selected_tor: Sets mux to randomly selected ToR
+    - config_dualtor_arp_responder: Configures ARP/NDP responder for dualtor testing
+    - upper_tor_host: Returns the upper ToR host instance
+    - proxy_arp_enabled: Enables proxy ARP on VLAN interfaces
+
+Dependencies:
+    - tests.common.dualtor.mux_simulator_control: Mux simulator port control
+    - tests.common.dualtor.dual_tor_utils: Upper/lower ToR utilities, mux status
+    - tests.common.fixtures.ptfhost_utils: GARP service and ICMP responder utilities
+    - tests.common.utilities: wait_until for polling conditions
+
+Notes:
+    - Tests verify critical dual-ToR failover scenarios where neighbor state must
+      be maintained correctly across active and standby ToRs
+    - IPv6 tests may be skipped on VS platform due to timing issues with swss updates
+    - Failed neighbor state on standby ToR should transition to incomplete, not reachable
+    - GARP and unsolicited NA messages enable standby ToR to learn without explicit requests
+=============================================================================
 """
+
 from ipaddress import ip_address, ip_interface
 import logging
 import random

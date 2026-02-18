@@ -1,3 +1,37 @@
+"""
+=============================================================================
+Module: wan/isis
+File: test_isis_level_capacity.py
+=============================================================================
+
+Description:
+    This test validates ISIS level capacity (level-1, level-2, level-1-2)
+    configuration. It verifies that routers can operate at different ISIS
+    levels and form appropriate adjacencies.
+
+Test Intent:
+    - test_isis_level_capacity: Tests ISIS level configuration and validates
+      adjacency formation at different levels (L1, L2, L1-2)
+
+Topology:
+    wan-com (WAN common topology)
+
+Fixtures Used:
+    - isis_common_setup_teardown: Sets up ISIS configuration
+    - isis_setup_teardown_level: Function-scoped fixture for level config
+
+Dependencies:
+    - tests.common.utilities: For wait_until polling
+    - tests.common.helpers.assertions: For pytest assertions
+    - isis_helpers: For ISIS configuration helpers
+
+Notes:
+    - Level-1: Intra-area routing
+    - Level-2: Inter-area routing
+    - Level-1-2: Both intra and inter-area
+    - Adjacencies form only between compatible levels
+=============================================================================
+"""
 import pytest
 import logging
 import functools

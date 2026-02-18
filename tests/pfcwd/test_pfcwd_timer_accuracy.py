@@ -1,3 +1,52 @@
+"""
+=============================================================================
+Module: pfcwd
+File: test_pfcwd_timer_accuracy.py
+=============================================================================
+
+Description:
+    This test validates the accuracy of PFC Watchdog detection and restoration
+    timers by comparing configured timer values against actual timestamps
+    extracted from syslog messages. Runs multiple iterations to get statistical
+    confidence.
+
+Test Intent:
+    - test_pfcwd_timer_accuracy: Executes 20 iterations (10 for T2) of PFC
+      storm generation and measures actual detection/restoration times from
+      syslog timestamps. Verifies that real detection time is less than
+      (configured_detect + poll_time) and greater than configured_detect.
+      Similarly validates restoration time accuracy. For T2 topologies,
+      validates detect-to-restore elapsed time is under 10 seconds.
+
+Topology:
+    any topology (all topologies supported)
+
+Fixtures Used:
+    - pfcwd_timer_setup_restore: Module-scoped fixture that sets up storm
+      parameters, starts PFCwd, configures iptables for syslog forwarding,
+      and provides cleanup
+    - pfc_queue_idx: Class-scoped fixture providing queue index (value 4)
+    - start_background_traffic: Sends background traffic during test
+    - ignore_loganalyzer_exceptions: Autouse fixture to ignore FDB errors
+    - set_pfc_time_cisco_8000: Sets PFC timer for Cisco 8000 platforms
+
+Dependencies:
+    - tests.common.helpers.pfc_storm.PFCStorm: PFC storm generation
+    - tests.common.helpers.pfcwd_helper: PFCwd helper functions
+    - tests.common.plugins.loganalyzer.DisableLogrotateCronContext: Prevents
+      log rotation during test
+    - tests.common.config_reload: Config reload for cleanup
+
+Notes:
+    - Uses iptables to forward syslog from mgmt interface to localhost
+    - Extracts timestamps from syslog using regex patterns
+    - Sorts timing results and uses median (ITERATION_NUM//2) for validation
+    - Relaxes checks for non-Onyx/non-Mellanox fanout with Mellanox DUT
+    - For Broadcom, adds half poll_time compensation to detect config time
+    - T2 with SONiC fanout uses different validation (detect-to-restore < 10s)
+    - Skips timer verification on VS platforms
+=============================================================================
+"""
 import logging
 import pytest
 import time

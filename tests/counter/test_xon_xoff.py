@@ -1,4 +1,50 @@
-# tests/counter/test_xon_xoff.py
+"""
+=============================================================================
+Module: counter
+File: test_xon_xoff.py
+=============================================================================
+
+Description:
+    This test module verifies that IEEE 802.3x PAUSE frames (XON/XOFF) are
+    properly handled by the DUT and do not incorrectly increment RX_DROPS
+    counter. PAUSE frames are used for flow control and should be processed
+    by the hardware without being counted as dropped packets.
+
+Test Intent:
+    - test_xon_xoff_does_not_increase_rx_drop: Validates that sending XOFF
+      (pause) and XON (resume) frames to a DUT port does not cause the
+      RX_DROPS counter to increase, ensuring proper 802.3x flow control
+      handling without misclassifying control frames as packet drops.
+
+Topology:
+    t0, t1, lt2, ft2, ptf
+    Requires PTF host for traffic generation and testbed with ptf_map
+    configured for DUT-to-PTF port mapping.
+
+Fixtures Used:
+    - duthosts: Multi-DUT test fixture providing access to all DUTs
+    - rand_one_dut_hostname: Randomly selects one DUT hostname from available DUTs
+    - rand_one_dut_portname_oper_up: Randomly selects one operational port
+    - ptfadapter: PTF test adapter for sending/receiving test packets
+    - tbinfo: Testbed information including topology and port mappings
+
+Dependencies:
+    - pytest: Test framework
+    - ptf.packet (scapy): Packet crafting library
+    - struct: Binary data packing for pause frame construction
+    - time: Timing control for packet transmission
+    - COUNTERS_DB: Redis database for interface counter queries
+
+Notes:
+    - Test sends 300 XOFF frames (quanta=0xFFFF) followed by 300 XON frames
+      (quanta=0x0000) with 5ms intervals between frames
+    - Allows up to 10 RX_DROP counter increase as tolerance for edge cases
+    - PAUSE frames use destination MAC 01:80:C2:00:00:01 and EtherType 0x8808
+    - Requires testbed with proper PTF port mapping configured
+    - Git history: Added in commit b0b41bcb9 to address RX_DROP issue with
+      802.3x pause frames (#20543)
+=============================================================================
+"""
 import time
 import struct
 import pytest

@@ -1,3 +1,40 @@
+"""
+=============================================================================
+Module: pc
+File: test_lag_member_forwarding.py
+=============================================================================
+
+Description:
+    This test suite validates packet forwarding behavior through LAG members in SONiC.
+    Tests verify that traffic is properly forwarded when LAG members are added, removed,
+    or have their state changed. Uses PTF to inject packets and verify they are received
+    on expected LAG member ports with correct modifications.
+
+Test Intent:
+    - Verify packet forwarding through LAG members
+    - Test forwarding behavior when LAG members are added/removed
+    - Validate load balancing across LAG members
+    - Verify packet headers are correctly modified in LAG forwarding
+
+Topology:
+    any - Can run on any topology
+
+Fixtures Used:
+    - ignore_expected_loganalyzer_exception: Ignores expected errors from syncd and memory_checker during test
+    - duthosts: All DUT hosts
+    - ptfadapter: PTF adapter for packet injection
+
+Dependencies:
+    - ptf.mask, ptf.packet, ptf.testutils: PTF utilities for packet creation and verification
+    - tests.common.config_reload: Config reload functionality
+
+Notes:
+    - Uses scapy for packet construction
+    - Packet matching uses masks to ignore certain fields (src/dst MAC, IP version, etc.)
+    - Tests TCP packets with specific TTL and port values
+    - Expected errors from gbsyncd and memory_checker are ignored as they don't affect functionality
+=============================================================================
+"""
 import ipaddr as ipaddress
 import json
 import pytest

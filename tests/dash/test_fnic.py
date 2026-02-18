@@ -1,3 +1,64 @@
+"""
+Module: tests.dash
+File: test_fnic.py
+Description:
+    DASH Floating NIC (FNIC) test suite for SmartSwitch topology. This module validates
+    bi-directional traffic flow through floating NICs with PrivateLink configuration,
+    including outbound VM-to-PE traffic and inbound PE-to-VM return traffic with tunnel
+    endpoint ECMP distribution testing.
+
+Test Intent:
+    - Validate Floating NIC (FNIC) functionality on SmartSwitch DPU
+    - Test bi-directional traffic transformation (VM <-> PE)
+    - Verify tunnel endpoint ECMP distribution for multi-endpoint configurations
+    - Validate proper encapsulation/decapsulation with trusted VNI
+    - Test single-endpoint and multi-endpoint tunnel configurations
+    - Ensure packet distribution across multiple tunnel endpoints is balanced
+
+Topology:
+    - smartswitch: SmartSwitch topology with DPU-NPU architecture
+    - Requires DPU-NPU dataplane interface IP assignments
+    - Neighbor info must be learned on DPU dataplane port before DASH config
+    - Traffic flows: VM <-> DPU <-> PE (bi-directional)
+
+Fixtures Used:
+    - localhost: Ansible localhost for configuration management
+    - duthost: Device Under Test (NPU) host object
+    - ptfhost: PTF (Packet Test Framework) host
+    - ptfadapter: PTF adapter for packet injection/verification
+    - dpuhosts: List of DPU host objects
+    - dpu_index: Index of DPU to use for testing
+    - dash_pl_config: PrivateLink DASH configuration
+    - skip_config: Flag to skip configuration application
+    - set_vxlan_udp_sport_range: Fixture to configure VXLAN UDP source port range
+    - setup_npu_dpu: Combined fixture for NPU and DPU setup
+    - single_endpoint: Parameterized fixture for single vs multi-endpoint testing
+    - common_setup_teardown: Main setup/teardown with FNIC-specific DASH configs
+
+Dependencies:
+    - configs.privatelink_config: PrivateLink configuration constants
+    - constants: DASH test constants
+    - gnmi_utils: gNMI utilities for configuration via protobuf messages
+    - packets: Packet generation utilities (rand_udp_port_packets)
+    - tests.dash.dash_utils: DASH-specific utilities (verify_tunnel_packets)
+    - tests.common.config_reload: Configuration reload utilities
+
+Notes:
+    - Neighbor info learning is automatic via default route application
+    - orchagent resolves next hop IP to learn neighbor information
+    - Single-endpoint: 5 packets tested, validates basic functionality
+    - Multi-endpoint: 1000 packets tested to verify ECMP distribution
+    - Expected packet distribution: +/- 25% of average per tunnel endpoint
+    - Inbound routing not implemented in Pensando SAI (route rules skipped)
+    - Config reload used for cleanup due to route rule removal bug
+    - Related GitHub issue: https://github.com/sonic-net/sonic-buildimage/issues/23590
+    - Payload updated for return packets to include test metadata
+
+Git History (last 2 commits):
+    2c20c10f5 [DASH] Need to avoid skipping the dash tests on smartswitch (#20958)
+    12abd5cea [dash] Add tests to cover PLNSG, FNIC, trusted VNI, return path ECMP (#19700)
+"""
+
 import logging
 
 import configs.privatelink_config as pl
@@ -14,18 +75,6 @@ pytestmark = [
     pytest.mark.topology("smartswitch"),
     pytest.mark.skip_check_dut_health
 ]
-
-
-"""
-Test prerequisites:
-- Assign IPs to DPU-NPU dataplane interfaces
-
-Note: It's also necessary for the DPU to learn the neighbor info of the dataplane port to the NPU before any
-DASH configs are programmed. This should be handled automatically by fixture ordering and does not require
-manual steps.
-
-The neighbor info is learned when appling the default route as orchagent will attempt to resolve the next hop IP.
-"""
 
 
 @pytest.fixture(autouse=True)

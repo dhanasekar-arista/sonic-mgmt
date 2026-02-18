@@ -1,3 +1,42 @@
+"""
+=============================================================================
+Module: generic_config_updater
+File: test_dynamic_acl.py
+=============================================================================
+
+Description:
+    Tests dynamic ACL configuration using Generic Config Updater with traffic
+    validation. Validates adding, removing, and modifying ACL tables and rules
+    with packet forwarding/dropping verification via PTF.
+
+Test Intent:
+    - test_dynamic_acl_add_remove_rule: Adds/removes ACL rules with traffic tests
+    - test_dynamic_acl_update_rule: Updates ACL rule parameters
+    - test_dynamic_acl_add_remove_table: Adds/removes entire ACL tables
+    - Tests IPv4/IPv6, TCP/UDP, L3/L4 ACL matching with PTF verification
+
+Topology:
+    Supports any topology
+
+Fixtures Used:
+    - remove_ip_addresses: Cleans PTF interface IPs
+    - toggle_all_simulator_ports_to_rand_selected_tor: Mux control for dualtor
+    - setup_standby_ports_on_rand_unselected_tor: Standby port setup
+
+Dependencies:
+    - tests.common.gu_utils: GCU utilities for ACL operations
+    - tests.generic_config_updater.gu_utils: Template and patch utilities
+    - ptf.testutils: Packet send/verify utilities
+    - scapy: Packet crafting
+
+Notes:
+    - Tests Everflow, drop, and forwarding ACL actions
+    - Validates ACL rule matching via packet tests
+    - Supports multiple port bindings for ACL tables
+    - Tests L3 (IP) and L4 (TCP/UDP) ACL qualifiers
+    - Includes IPv6-only topology handling
+=============================================================================
+"""
 import logging
 import time
 import pytest

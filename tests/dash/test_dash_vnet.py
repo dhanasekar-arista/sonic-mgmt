@@ -1,3 +1,68 @@
+"""
+Module: tests.dash
+File: test_dash_vnet.py
+Description:
+    DASH VNET test suite for DPU topology. This module validates outbound and inbound
+    VNET traffic transformation, including vnet, vnet_direct, and direct routing modes,
+    as well as PA (Provider Address) validation for inbound traffic.
+
+Test Intent:
+    - Validate outbound VNET routing with VXLAN encapsulation
+    - Test outbound VNET direct routing with overlay IP lookup
+    - Verify outbound direct routing (without VNET encapsulation)
+    - Test inbound VNET with PA validation (match and mismatch scenarios)
+    - Verify ASIC DB entries for VNET and ENI objects
+    - Ensure proper packet transformation for multiple inner packet types
+    - Test configurable VXLAN UDP destination port
+
+Topology:
+    - dpu: DPU topology for DASH testing
+    - Requires DASH VNET configuration applied via fixtures
+
+Fixtures Used:
+    - ptfadapter: PTF adapter for packet injection/verification
+    - apply_vnet_configs: Applies VNET routing configuration
+    - apply_vnet_direct_configs: Applies VNET direct routing configuration
+    - apply_direct_configs: Applies direct routing configuration
+    - apply_inbound_configs: Applies inbound VNET configuration
+    - dash_config_info: DASH configuration information dictionary
+    - skip_dataplane_checking: Flag to skip dataplane verification
+    - asic_db_checker: Fixture to verify ASIC DB entries
+    - inner_packet_type: Parameterized inner packet type (udp/tcp/echo_request/echo_reply)
+    - acl_default_rule: Default ACL rule configuration
+    - vxlan_udp_dport: Configurable VXLAN UDP destination port
+
+Dependencies:
+    - constants: DASH test constants (LOCAL_PTF_INTF, REMOTE_PTF_INTF)
+    - packets: Packet generation utilities (outbound_vnet_packets, inbound_vnet_packets)
+    - ptf.testutils: PTF packet testing utilities
+    - pytest: Testing framework with markers
+
+Notes:
+    - Log analyzer disabled for this test suite
+    - ASIC DB verification checks for SAI_OBJECT_TYPE_VNET and SAI_OBJECT_TYPE_ENI
+    - Inner packet types tested: UDP, TCP, ICMP echo request, ICMP echo reply
+    - Outbound vnet: VM VNI -> Remote VNI with VXLAN encapsulation
+    - Outbound vnet_direct: Uses maprouting with overlay IP lookup (1.1.1.1)
+    - Outbound direct: No VNET encapsulation, direct IP forwarding
+    - Inbound PA validation: Tests both matching and mismatching source PA
+    - PA mismatch packets expected to be dropped (no verification packet sent)
+    - VXLAN UDP dport configurable via --vxlan_udp_dport parameter
+    - Default ACL rules may be required on specific hardware (Nvidia DPUs)
+
+Git History (last 10 commits):
+    24668cbd0 [Dash] Relaxed match support (#11630)
+    dab77c420 Remove TACACS fixture from none TACACS test cases (#13422)
+    07f328770 Enable TACACS on test cases. (#12433)
+    e5e678fba Align dash tests to support DPU with one single port (#11394)
+    3657b8878 [Dash] Enhance the dash vnet test to support tcp and icmp packets (#10904)
+    d7371c53c [dash]: Add test cases for DASH ACL (#7848)
+    5ea2dc657 DPU test cases with GNMI and Protobuf (#9238)
+    513c9ecb9 [topo]: Rename topology appliance to dpu (#9901)
+    49a21a19d [dash] Add VNET direct and direct routing tests (#8072)
+    5733ca7fe [pre-commit] Fix style issues in test scripts (#8001)
+"""
+
 import logging
 import pytest
 import ptf.testutils as testutils

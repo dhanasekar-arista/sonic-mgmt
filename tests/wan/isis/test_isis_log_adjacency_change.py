@@ -1,3 +1,30 @@
+"""
+=============================================================================
+Module: wan/isis
+File: test_isis_log_adjacency_change.py
+=============================================================================
+
+Description:
+    This test validates ISIS log-adjacency-changes configuration which enables
+    logging of adjacency state transitions for troubleshooting.
+
+Test Intent:
+    - test_isis_log_adjacency_change: Validates log-adjacency-changes config
+
+Topology:
+    wan-com
+
+Fixtures Used:
+    - isis_common_setup_teardown: Sets up ISIS
+    - isis_setup_teardown_log_adjacency_change: Configures logging
+
+Dependencies:
+    - isis_helpers: For ISIS configuration
+
+Notes:
+    - Logs adjacency Up/Down events
+=============================================================================
+"""
 import pytest
 import logging
 import functools

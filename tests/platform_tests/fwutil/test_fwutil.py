@@ -1,3 +1,57 @@
+"""
+=============================================================================
+Module: platform_tests
+File: test_fwutil.py
+=============================================================================
+
+Description:
+    Tests for the 'fwutil' CLI tool for firmware management in SONiC. Validates
+    firmware show/install/update operations, component validation, and firmware
+    package handling from local files and URLs.
+
+Test Intent:
+    - test_fwutil_show: Verify 'fwutil show' displays all platform components
+    - test_fwutil_install_file: Test firmware installation from local file path
+    - test_fwutil_install_url: Validate firmware installation from URL
+    - test_fwutil_install_bad_name: Ensure invalid component names are rejected
+    - test_fwutil_install_bad_path: Verify invalid firmware paths are rejected
+    - test_fwutil_update_current: Test firmware update from current image
+    - test_fwutil_update_next: Validate firmware update from next boot image
+    - test_fwutil_update_non_exist_image: Ensure non-existent image is rejected
+    - test_fwutil_update_bad_name: Verify invalid component names are rejected
+    - test_fwutil_update_platform_upload: Test platform-specific firmware upload
+
+Topology:
+    Any topology - tests run on all platforms with firmware components
+
+Fixtures Used:
+    - duthost: DUT host fixture
+    - localhost: Localhost connection for file operations
+    - pdu_controller: PDU controller for power cycling if needed
+    - component: Component name from platform_components.json
+    - fw_pkg: Firmware package file for testing
+    - host_firmware: Host firmware URL for URL-based installation
+    - next_image: Next boot image name for update testing
+
+Dependencies:
+    - fwutil CLI tool
+    - /usr/share/sonic/device/<platform>/platform_components.json
+    - fwutil_common helper module (call_fwutil, show_firmware, upload_platform, find_pattern)
+    - Firmware packages for test components
+
+Notes:
+    - Test backs up platform_components.json before testing
+    - Validates component names against platform_components.json
+    - Install operations support both file paths and URLs
+    - Update operations reference current or next boot image
+    - Bad name/path tests validate error handling
+    - PDU controller may be used for power cycling during firmware update
+    - Platform-specific upload test validates vendor firmware upload mechanisms
+    - Test uses module_ignore_errors for negative test cases
+    - Firmware packages must be available in test environment
+    - Update tests may require device reboot depending on component
+=============================================================================
+"""
 import re
 import pytest
 import os

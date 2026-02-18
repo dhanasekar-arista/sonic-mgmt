@@ -1,3 +1,58 @@
+"""
+=============================================================================
+Module: platform_tests
+File: test_thermal.py
+=============================================================================
+
+Description:
+    Validates Platform API functionality for Thermal sensor class. Tests
+    temperature reading, threshold configuration, high/low/critical alarm
+    detection, and minimum/maximum temperature tracking.
+
+Test Intent:
+    - test_get_name: Verify thermal sensor name retrieval matches platform.json
+    - test_get_presence: Confirm all thermal sensors are detected as present
+    - test_get_model: Validate thermal sensor model string retrieval
+    - test_get_serial: Verify thermal sensor serial number retrieval
+    - test_get_status: Test thermal sensor operational status
+    - test_get_position_in_parent: Validate position value is an integer
+    - test_is_replaceable: Confirm replaceable status is boolean
+    - test_get_temperature: Verify current temperature reading is valid float
+    - test_get_high_threshold: Validate high temperature threshold
+    - test_get_low_threshold: Verify low temperature threshold
+    - test_get_high_critical_threshold: Test critical high threshold
+    - test_get_low_critical_threshold: Validate critical low threshold
+    - test_set_high_threshold: Test high threshold configuration
+    - test_set_low_threshold: Verify low threshold configuration
+    - test_get_minimum_recorded: Validate minimum recorded temperature
+    - test_get_maximum_recorded: Verify maximum recorded temperature
+
+Topology:
+    Any topology - tests run on all platforms with thermal sensors
+
+Fixtures Used:
+    - platform_api_conn: Platform API service connection
+    - setup: Function-scoped autofixture validating thermal sensor count
+    - duthosts: Multi-DUT host fixture
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hardware SKU
+
+Dependencies:
+    - tests.common.helpers.platform_api (chassis, thermal)
+    - platform.json (thermal sensor metadata including thresholds)
+
+Notes:
+    - Test skips if no thermal sensors found on device
+    - Threshold setters test platform support for runtime configuration
+    - Some platforms have read-only thresholds (returns False on set)
+    - Minimum/maximum recorded values track historical temperature range
+    - Temperature readings validated as float values
+    - Mellanox platforms may have platform-specific threshold behavior
+    - Critical thresholds typically trigger emergency shutdown
+    - High/low thresholds typically trigger warnings/alarms
+    - Sensor name list derived from platform.json thermals array
+    - Tests validate temperature reading is within reasonable range
+=============================================================================
+"""
 import logging
 import pytest
 

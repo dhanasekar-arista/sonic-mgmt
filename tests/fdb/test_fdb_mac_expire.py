@@ -1,3 +1,48 @@
+"""
+=============================================================================
+Module: fdb
+File: test_fdb_mac_expire.py
+=============================================================================
+
+Description:
+    This module tests FDB MAC address aging and expiration in SONiC switches.
+    It validates that the FDB aging timer works correctly by configuring a
+    custom aging time, populating the FDB table, and verifying entries expire
+    after the configured timeout period.
+
+Test Intent:
+    - test_fdb_mac_expire_enable_refresh: Tests FDB aging with refresh enabled,
+      where entries are kept alive by continuous traffic
+    - test_fdb_mac_expire_disable_refresh: Validates FDB aging without refresh,
+      ensuring entries expire after the configured aging time even with traffic
+
+Topology:
+    Supports t0, m0, and mx topologies
+
+Fixtures Used:
+    - copy_ptftests_directory: Copies PTF test scripts to PTF host
+    - ptfhost: PTF host for traffic generation
+    - duthosts: DUT host objects
+    - rand_one_dut_hostname: Randomly selected DUT for testing
+    - tbinfo: Testbed information
+
+Dependencies:
+    - tests.common.helpers.assertions: pytest_assert for validations
+    - tests.common.fixtures.ptfhost_utils: PTF utilities
+    - tests.ptf_runner: PTF test execution framework
+
+Notes:
+    - Test modifies fdb_aging_time in CONFIG_DB
+    - Restarts swss to apply new aging configuration
+    - Uses dummy MAC prefix "00:11:22:33:44" for test entries
+    - Polling interval is 15 seconds to check FDB expiration
+    - FDB info stored in /root/fdb_info.txt on DUT
+    - DISABLE_REFRESH mode tests pure aging without traffic refresh
+    - REFRESH_DEST_MAC mode tests aging with destination MAC refresh
+    - Test ensures FDB entries are cleared after aging timeout
+    - Cleanup removes temporary switch.json configuration files
+=============================================================================
+"""
 import logging
 import pytest
 import time

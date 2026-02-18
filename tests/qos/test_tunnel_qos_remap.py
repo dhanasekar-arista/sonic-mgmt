@@ -1,3 +1,58 @@
+"""
+=============================================================================
+Module: qos
+File: test_tunnel_qos_remap.py
+=============================================================================
+
+Description:
+    Tests tunnel QoS remapping functionality on dualtor topologies. Validates
+    DSCP rewriting for encapsulated packets, decapsulated packets, and
+    verifies QoS behavior during PFC pause scenarios on standby ToR.
+
+Test Intent:
+    - test_encap_dscp_rewrite: Validates outer DSCP rewriting on encapsulated
+      packets when traffic passes through standby ToR to active ToR via tunnel
+    - test_decap_dscp_rewrite: Verifies inner DSCP preservation and queue
+      mapping for decapsulated packets arriving at active ToR from standby
+    - test_standby_tor_downstream_pfc_pause: Tests PFC pause behavior on
+      standby ToR's downstream (server-facing) ports to ensure proper queue
+      handling during congestion
+    - test_standby_tor_upstream_pfc_pause: Validates PFC pause on standby
+      ToR's upstream (T1-facing) ports with tunnel traffic
+
+Topology:
+    dualtor (active-active enabled)
+
+Fixtures Used:
+    - check_running_condition: Module autouse fixture verifying dualtor topo
+      and tunnel_qos_remap enabled before running tests
+    - disable_pfcwd: Module autouse fixture that disables PFCwd on all DUTs
+      during tests and re-enables after completion
+    - upper_tor_host, lower_tor_host: Upper/lower ToR DUT instances
+    - toggle_all_simulator_ports_to_lower_tor: Toggles all mux ports to lower ToR
+    - toggle_all_aa_ports_to_lower_tor: Toggles active-active ports to lower ToR
+    - tunnel_qos_maps: Tunnel QoS mapping configuration
+    - swap_syncd: Swaps to RPC syncd for SAI operations
+    - disable_voq_watchdog_dualtor: Disables VoQ watchdog on dualtor
+
+Dependencies:
+    - tests.qos.tunnel_qos_remap_base: Base functions for packet building,
+      queue counter checking, mux toggling, PFC storm generation
+    - tests.common.dualtor: Dualtor utilities and mux simulator control
+    - tests.common.helpers.pfc_storm.PFCStorm: PFC storm generation
+    - PTF packet utilities: Packet crafting and verification
+
+Notes:
+    - Only runs on dualtor testbeds with tunnel_qos_remap enabled
+    - Server IP: 192.168.0.2, Dummy IP: 1.1.1.1
+    - VLAN MAC: 00:aa:bb:cc:dd:ee, Dummy MAC: aa:aa:aa:aa:aa:aa
+    - PFC packet count: 10000000 (takes ~32 seconds)
+    - PFC pause test retry max: 5 attempts
+    - Uses RPC syncd (port 9092) for SAI thrift operations
+    - Disables packet aging to prevent queue overflow
+    - Tests both upstream and downstream PFC scenarios
+=============================================================================
+"""
 import logging
 import pytest
 import time

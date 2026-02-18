@@ -1,3 +1,37 @@
+"""
+=============================================================================
+Module: generic_config_updater
+File: test_ip_bgp.py
+=============================================================================
+
+Description:
+    Tests BGP neighbor configuration using Generic Config Updater. Validates
+    adding, replacing, and removing BGP neighbors with IPv4 and IPv6 addresses
+    including local and peer addresses.
+
+Test Intent:
+    - test_bgp_neighbor_ip_add_del: Adds then removes BGP neighbor
+    - test_bgp_neighbor_ip_add: Adds new BGP neighbor configuration
+    - test_bgp_neighbor_ip_replace: Replaces existing BGP neighbor IP
+    - test_bgp_neighbor_invalid_ip: Tests error for invalid IP address
+
+Topology:
+    Supports t0, t1, m0, mx, m1 topologies
+
+Fixtures Used:
+    - ensure_dut_readiness: Creates checkpoint for rollback
+
+Dependencies:
+    - tests.common.gu_utils: GCU utilities for patch operations
+    - tests.common.utilities: is_ipv6_only_topology check
+
+Notes:
+    - Validates BGP neighbor in running configuration
+    - Tests both IPv4 and IPv6 neighbor addresses
+    - Includes local_addr and peer_addr configuration
+    - Skips on IPv6-only topologies for IPv4 tests
+=============================================================================
+"""
 import logging
 import pytest
 import ipaddress

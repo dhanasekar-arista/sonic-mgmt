@@ -1,3 +1,56 @@
+"""
+=============================================================================
+Module: qos
+File: test_buffer.py
+=============================================================================
+
+Description:
+    Comprehensive test suite for dynamic buffer management in SONiC. Validates
+    buffer profile calculations, headroom allocation, shared headroom pool
+    behavior, and buffer configuration updates based on cable length, speed,
+    and MTU changes.
+
+Test Intent:
+    - test_check_buffer_profile_details: Validates buffer profile parameter
+      calculations (xon, xoff, size, threshold) match expected values
+    - test_headroom_override: Tests manual headroom override functionality
+    - test_buffer_profile_format: Verifies profile name format matches pattern
+    - test_changing_speed_cable_len: Tests buffer updates when port speed or
+      cable length changes
+    - test_extra_overhead: Validates buffer calculations with extra overhead
+    - test_shared_headroom_pool: Tests shared headroom pool behavior and sizing
+    - test_buffer_pg_update: Validates buffer priority group updates
+    - test_mtu_update: Tests buffer recalculation after MTU changes
+    - test_dpu_npu_ports: Validates buffer config for DPU-NPU ports
+
+Topology:
+    any topology
+
+Fixtures Used:
+    - dutConfig: DUT buffer configuration and parameters
+    - duthosts: List of DUT hosts for testing
+    - conn_graph_facts: Testbed topology connectivity
+    - dualtor_ports: Dualtor downlink ports (for tunnel QoS remap)
+    - update_cable_len_for_all_ports: Updates cable length configuration
+
+Dependencies:
+    - tests.qos.buffer_helpers.DutDbInfo: Buffer database information extraction
+    - tests.common.mellanox_data: Mellanox device detection and chip info
+    - tests.common.marvell_teralynx_data: Marvell device detection
+    - tests.common.config_reload: Configuration reload utility
+
+Notes:
+    - Supports both dynamic and traditional buffer models
+    - Profile name format: pg_lossless_{speed}_{cable_len}_profile
+    - Tests various cable lengths: 5m, 40m, 300m, 2000m
+    - Validates xon/xoff/size calculations based on chip type
+    - Skips certain tests on specific SONiC releases
+    - Handles 8-lane ports differently for speed/cable length tests
+    - Uses LogAnalyzer to check for buffer calculation errors
+    - Supports Mellanox, Marvell Teralynx, and other ASIC types
+    - Validates shared headroom pool size and over-subscribe ratio
+=============================================================================
+"""
 import logging
 import re
 import json

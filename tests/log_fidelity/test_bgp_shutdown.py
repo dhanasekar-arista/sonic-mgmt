@@ -1,3 +1,48 @@
+"""
+=============================================================================
+Module: log_fidelity
+File: test_bgp_shutdown.py
+=============================================================================
+
+Description:
+    This test validates log fidelity for BGP administrative state changes.
+    It ensures that when BGP is administratively shut down, the expected log
+    message appears in syslog, verifying proper logging of BGP state transitions.
+
+Test Intent:
+    - test_bgp_shutdown: Validates that shutting down all BGP sessions using
+      'config bgp shutdown all' command produces the expected syslog message
+      "admin state is set to 'down'". This ensures BGP administrative actions
+      are properly logged for operational visibility and troubleshooting.
+      Test restores BGP to operational state after verification.
+
+Topology:
+    any topology
+
+Fixtures Used:
+    - ignore_expected_loganalyzer_exception: Automatically ignores expected
+      syncd errors related to SAI_API_TUNNEL MPTNL route event operations
+      that can occur on dualtor topologies during BGP state changes
+    - duthosts: Provides list of DUT hosts for testing
+    - enum_rand_one_per_hwsku_frontend_hostname: Selects one random frontend
+      DUT per hardware SKU for testing
+    - loganalyzer: Log analyzer fixture for monitoring system logs
+
+Dependencies:
+    - tests.common.plugins.loganalyzer.loganalyzer: Provides LogAnalyzer for
+      syslog validation and LogAnalyzerError for error handling
+
+Notes:
+    - Test originally designed to run on linecards only
+    - Uses LogAnalyzer to validate expected log message appears in syslog
+    - BGP is restored to operational state in finally block to ensure cleanup
+    - Ignores specific syncd tunnel-related errors that may occur on dualtor
+      topologies: _brcm_sai_mptnl_tnl_route_event_add and
+      _brcm_sai_mptnl_process_route_add_mode_default_and_host errors
+    - Expected log message: "admin state is set to 'down'"
+    - Commands used: 'config bgp shutdown all' and 'config bgp startup all'
+=============================================================================
+"""
 import logging
 import pytest
 

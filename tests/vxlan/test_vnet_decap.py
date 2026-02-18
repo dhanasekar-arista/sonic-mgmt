@@ -1,3 +1,51 @@
+"""
+=============================================================================
+Module: vxlan
+File: test_vnet_decap.py
+=============================================================================
+
+Description:
+    This test validates VXLAN decapsulation functionality for VNET traffic.
+    It tests various combinations of inner and outer IP versions (IPv4/IPv6)
+    to ensure proper decapsulation and forwarding of VXLAN-encapsulated packets.
+
+Test Intent:
+    - test_vnet_decap: Validates VXLAN decapsulation by sending encapsulated
+      packets to the DUT and verifying the inner packet is correctly decapsulated
+      and forwarded. Tests all combinations of IPv4/IPv6 for inner and outer headers.
+
+Topology:
+    t1, t1-64-lag, t1-56-lag, t1-lag
+
+Fixtures Used:
+    - inner_ip_version: Parametrized fixture for inner IP version (4 or 6)
+    - outer_ip_version: Parametrized fixture for outer IP version (4 or 6)
+    - setup: Creates VXLAN tunnel, VNET, and routes for testing; handles cleanup
+    - duthosts: Multi-DUT fixture
+    - rand_one_dut_hostname: Random DUT selection
+    - tbinfo: Testbed information
+    - ptfadapter: PTF adapter for packet operations
+
+Dependencies:
+    - tests.common.vxlan_ecmp_utils: For VXLAN and ECMP utilities
+    - tests.common.helpers.assertions: For pytest assertions
+    - ptf.testutils: For packet generation and verification
+    - ptf.packet: For packet construction
+    - ptf.mask: For packet masking
+
+Notes:
+    - Loganalyzer is disabled for this test module
+    - Only runs on Cisco-8000 and Mellanox ASICs
+    - Skips on Mellanox msn2700 (does not support VNET decapsulation)
+    - Destination prefix: 150
+    - Endpoint prefix: 100
+    - VNI: 10000
+    - VXLAN destination port: 4789
+    - Tests four encapsulation combinations: v4_in_v4, v4_in_v6, v6_in_v4, v6_in_v6
+    - Verifies inner packet TTL/hop-limit is decremented after decapsulation
+    - Uses default VNET scope (supports only one VNET)
+=============================================================================
+"""
 import pytest
 import logging
 import time

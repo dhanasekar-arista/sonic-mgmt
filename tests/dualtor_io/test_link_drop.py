@@ -1,3 +1,70 @@
+"""
+=============================================================================
+Module: dualtor_io
+File: test_link_drop.py
+=============================================================================
+
+Description:
+    Test suite for validating dual-ToR resilience when mux simulator drops packets on specific
+    links. This module simulates packet loss on upper/lower ToR paths and NIC links to verify
+    failover behavior and traffic recovery. Tests cover both active-standby and active-active
+    cable types with various packet drop scenarios.
+
+Test Intent:
+    - test_link_drop_active_active_upstream: Verify traffic failover when upstream link to active-active NIC drops packets (server to T1)
+    - test_link_drop_active_active_downstream_nic: Verify traffic failover when downstream NIC link drops packets (T1 to server, active-active)
+    - test_link_drop_active_active_downstream_tor: Verify traffic failover when downstream ToR link drops packets (T1 to server, active-active)
+    - test_link_drop_active_upstream: Verify traffic failover when active ToR link drops packets (server to T1)
+    - test_link_drop_standby_upstream: Verify standby ToR link drop does not affect traffic (server to T1)
+    - test_link_drop_active_downstream: Verify traffic failover when active ToR link drops packets (T1 to server)
+    - test_link_drop_standby_downstream: Verify standby ToR link drop does not affect traffic (T1 to server)
+
+Topology:
+    - dualtor: Dual-ToR topology with active-standby or active-active cable types
+
+Fixtures Used:
+    - upper_tor_host: Upper ToR DUT host object
+    - lower_tor_host: Lower ToR DUT host object
+    - toggle_all_simulator_ports_to_upper_tor: Sets all mux ports to upper ToR (active)
+    - send_t1_to_server_with_action: Sends downstream traffic with action during transmission
+    - send_server_to_t1_with_action: Sends upstream traffic with action during transmission
+    - run_icmp_responder: Runs ICMP responder on PTF for server simulation
+    - run_garp_service: Runs GARP service on PTF for MAC address updates
+    - change_mac_addresses: Changes PTF MAC addresses to match server MACs
+    - check_simulator_flap_counter: Verifies mux simulator flap counts
+    - set_drop: Drops packets on specified interface and direction in mux simulator
+    - set_drop_all: Drops all packets on specified interface in mux simulator
+    - set_output: Restores normal forwarding on specified interface
+    - simulator_flap_counter: Gets flap counter from mux simulator
+    - nic_simulator_flap_counter: Gets flap counter from NIC simulator
+    - set_drop_active_active: Drops packets on active-active NIC link
+    - cable_type: Cable type fixture (active-standby or active-active)
+    - active_active_ports: Active-active port configuration
+    - active_standby_ports: Active-standby port configuration
+    - drop_flow_upper_tor: Drops packets to upper ToR
+    - drop_flow_lower_tor: Drops packets to lower ToR
+
+Dependencies:
+    - Mux simulator control for packet drop simulation
+    - NIC simulator control for active-active drop simulation
+    - PTF framework for traffic generation and verification
+    - TrafficDirection enum: NIC_DOWNSTREAM, NIC_UPSTREAM, TOR_DOWNSTREAM, TOR_UPSTREAM
+
+Notes:
+    - Tests are marked with pytest.mark.topology("dualtor")
+    - Disruption must be less than MUX_SIM_ALLOWED_DISRUPTION_SEC (1 second)
+    - Active-active tests are marked with @pytest.mark.enable_active_active
+    - Packet drop is simulated at mux level (not actual link failure)
+    - set_drop uses traffic direction: upper_tor, lower_tor, tor_a, tor_b, nic
+    - Active-active uses NIC-level drop (NIC_UPSTREAM, NIC_DOWNSTREAM, TOR_UPSTREAM, TOR_DOWNSTREAM)
+    - Tests verify that dropping packets on active link triggers failover
+    - Tests verify that dropping packets on standby link has no effect
+    - Cleanup: set_output restores normal forwarding on all interfaces
+    - Flap counter validates that switchover occurred during active link drop
+
+=============================================================================
+"""
+
 import logging
 import pytest
 import time

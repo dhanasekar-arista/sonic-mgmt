@@ -1,3 +1,35 @@
+"""
+=============================================================================
+Module: generic_config_updater
+File: test_dns_nameserver.py
+=============================================================================
+
+Description:
+    Tests DNS nameserver configuration updates using Generic Config Updater.
+    Validates adding and removing DNS nameservers with verification in
+    /etc/resolv.conf.
+
+Test Intent:
+    - test_dns_add_init_config: Adds initial DNS nameserver configuration
+    - test_dns_add_del_config: Adds then removes DNS nameserver
+    - test_dns_replace: Replaces existing DNS nameserver
+
+Topology:
+    Supports any topology (vs device type only)
+
+Fixtures Used:
+    - setup_env: Creates checkpoint and validates DNS state after rollback
+
+Dependencies:
+    - tests.common.gu_utils: GCU utilities for patch operations
+    - tests.common.helpers.assertions: pytest_assert
+
+Notes:
+    - Validates nameserver entries in /etc/resolv.conf
+    - Uses regex pattern "nameserver {}" for verification
+    - Only runs on virtual switch (vs) device type
+=============================================================================
+"""
 import logging
 import pytest
 import re

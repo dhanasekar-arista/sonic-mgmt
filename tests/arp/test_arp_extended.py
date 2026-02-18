@@ -1,6 +1,50 @@
 """
-This module tests extended ARP features including gratuitous ARP and proxy ARP
+=============================================================================
+Module: test_arp_extended
+File: test_arp_extended.py
+=============================================================================
+
+Description:
+    This module tests extended ARP features including gratuitous ARP (GARP) and
+    proxy ARP/NDP functionality. It validates that SONiC correctly handles unsolicited
+    ARP packets and can proxy ARP/NDP requests for addresses within its VLAN subnets,
+    which is essential for proper network neighbor discovery and reachability.
+
+Test Intent:
+    - test_arp_garp_enabled: Verifies that when gratuitous ARP is enabled, the DUT
+      learns neighbor entries from unsolicited GARP packets sent by hosts, allowing
+      the switch to populate its ARP table without explicit requests
+    - test_proxy_arp: Validates proxy ARP/NDP functionality where the DUT responds
+      to ARP requests or IPv6 Neighbor Solicitations with its own MAC address for
+      IP addresses within the VLAN subnet, enabling communication for hosts
+
+Topology:
+    t0, dualtor (ToR topologies with VLAN interfaces)
+
+Fixtures Used:
+    - garp_enabled: Enables gratuitous ARP on all VLAN interfaces
+    - proxy_arp_enabled: Enables proxy ARP/NDP on all VLAN interfaces
+    - ip_and_intf_info: Provides IPv4/IPv6 addresses and PTF interface information
+    - intfs_for_test: Returns test interface names and PTF indices
+    - config_facts: DUT running configuration facts
+    - packets_for_test: Generates ARP request and IPv6 NS packets with expected responses
+    - rand_selected_dut: Randomly selected DUT from test topology
+
+Dependencies:
+    - tests.arp.arp_utils: clear_dut_arp_cache for ARP table cleanup
+    - tests.common.helpers.constants: PTF_TIMEOUT for packet verification
+    - tests.common.utilities: increment_ipv4_addr for IP address generation
+    - ptf.testutils: Packet construction and verification utilities
+
+Notes:
+    - Gratuitous ARP must be explicitly enabled in CONFIG_DB VLAN_INTERFACE table
+    - Proxy ARP enables ToR to respond on behalf of servers in the same subnet
+    - IPv6 proxy NDP relies on ndppd daemon which may have performance issues with
+      large routing tables (test includes logging for /proc/net/ipv6_route read time)
+    - VS platform may have timing issues with IPv6 NDP proxy, test includes skip logic
+=============================================================================
 """
+
 import logging
 import ptf.testutils as testutils
 import pytest

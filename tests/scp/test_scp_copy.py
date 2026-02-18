@@ -1,3 +1,52 @@
+"""
+=============================================================================
+Module: scp
+File: test_scp_copy.py
+=============================================================================
+
+Description:
+    This test module validates SCP (Secure Copy Protocol) functionality between
+    SONiC DUT and PTF host. It tests bidirectional file transfer (get and put
+    operations) using the scp command with password authentication via pexpect,
+    verifying file integrity using MD5 checksums and supporting both IPv4 and
+    IPv6 management interfaces.
+
+Test Intent:
+    - test_scp_copy: Tests SCP file transfer in both directions by generating a
+      large test file (500MB) on PTF, copying it to DUT via SCP get, verifying
+      file integrity with MD5 checksum, then copying it back to PTF via SCP put,
+      and confirming checksums match across all transfers
+
+Topology:
+    - Supported: any topology, t1-multi-asic
+    - Device type: vs (virtual switch)
+    - Requires network connectivity between DUT management and PTF
+
+Fixtures Used:
+    - duthosts: All DUT hosts in the testbed
+    - enum_rand_one_per_hwsku_hostname: Randomly selected DUT
+    - ptfhost: PTF host for file transfer operations
+    - setup_teardown: Copies perform_scp.py script to DUT and cleans up test files
+    - creds: Credentials for DUT and PTF authentication
+
+Dependencies:
+    - tests.common.utilities: Password detection and current password validation
+    - pexpect: Python module for automating interactive commands (SCP authentication)
+    - perform_scp.py: Helper script for executing SCP with password automation
+
+Notes:
+    - Test file size: 500MB (BLOCK_SIZE=500000000) generated from /dev/urandom
+    - File integrity validated using MD5 checksums at each step
+    - Supports IPv6-only management: uses bracket notation for IPv6 addresses
+    - Password rotation support: tries multiple passwords from ansible vars
+    - Python version detection: uses python3 if pexpect available, else python2
+    - SCP operations: "in" (get from PTF), "out" (put to PTF)
+    - Test files cleaned up automatically via fixture
+    - Loganalyzer disabled due to expected authentication log messages
+    - Default SCP port: 22
+=============================================================================
+"""
+
 import logging
 import pytest
 from tests.common.helpers.assertions import pytest_assert

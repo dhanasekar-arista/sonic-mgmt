@@ -1,3 +1,37 @@
+"""
+=============================================================================
+Module: gnmi
+File: test_gnmi_stress.py
+=============================================================================
+
+Description:
+    Tests gNMI stress and latency performance by repeatedly updating interface
+    descriptions and measuring operation latency.
+
+Test Intent:
+    - test_gnmi_latency_01: Stress tests gNMI set operations by updating interface
+      description 500 times and validates latency is under 500ms
+
+Topology:
+    Supports any topology
+
+Fixtures Used:
+    - duthosts: DUT host objects
+    - rand_one_dut_hostname: Randomly selected DUT
+    - ptfhost: PTF host for gNMI client operations
+
+Dependencies:
+    - .helper: gnmi_set for gNMI set operations
+
+Notes:
+    - Log analyzer disabled for these tests
+    - Skips on supervisor nodes (no frontpanel ports)
+    - Uses first available interface with lanes (physical port)
+    - Performs 500 iterations of description updates
+    - Validates average latency is under 500ms
+    - Tests gNMI write performance under stress
+=============================================================================
+"""
 import logging
 import pytest
 import time

@@ -1,3 +1,46 @@
+"""
+=============================================================================
+Module: platform_tests
+File: test_psu_power_threshold.py
+=============================================================================
+
+Description:
+    Mellanox-specific test validating PSU power threshold monitoring and dynamic
+    threshold adjustment based on ambient temperature. Tests power budget management
+    and threshold enforcement in thermal control system.
+
+Test Intent:
+    - test_psu_power_threshold: Verify PSU power threshold monitoring and syslog alerts
+    - test_dynamic_psu_power_threshold: Validate dynamic threshold adjustment based on ambient temperature
+
+Topology:
+    Any topology - Mellanox platforms only
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - rand_one_dut_hostname: Selects one random DUT
+    - mocker_factory: Creates PsuPowerThresholdMocker for simulating thresholds
+    - mock_ambient_temp_threshold: Mocks ambient temperature thresholds
+    - check_feature_supported: Autofixture validating PSU threshold support
+
+Dependencies:
+    - PsuPowerThresholdMocker for threshold simulation
+    - LogAnalyzer for syslog monitoring
+    - Platform data for PSU count and thresholds
+    - Thermal control helpers
+
+Notes:
+    - Test only runs on Mellanox ASIC platforms with threshold support
+    - Skips if PSUs don't support power thresholds (unless --mock_any_testbed provided)
+    - Tests read PSU power threshold and slope values
+    - Dynamic threshold test simulates high ambient temperature conditions
+    - Validates syslog alerts when thresholds exceeded
+    - Uses wait_until for asynchronous threshold updates
+    - Allure test reporting integration
+    - Platform data defines number of PSUs per platform
+    - Test may mock threshold values if real hardware doesn't support feature
+=============================================================================
+"""
 import allure
 import logging
 import pytest

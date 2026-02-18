@@ -1,5 +1,49 @@
-'''This script is to test the BGP Bounce Back Routing (BBR) feature of SONiC.
-'''
+"""
+=============================================================================
+Module: bgp
+File: test_bgp_bbr.py
+=============================================================================
+
+Description:
+    Tests BGP Bounce Back Routing (BBR) feature in SONiC which allows acceptance
+    of routes containing the local ASN in the AS-PATH. Validates route propagation
+    and filtering based on BBR enabled/disabled states and AS-PATH characteristics.
+
+Test Intent:
+    - test_bbr_enabled_dut_asn_in_aspath: Verifies routes with DUT ASN in path
+      are accepted and propagated when BBR is enabled
+    - test_bbr_enabled_dual_dut_asn_in_aspath: Ensures routes with dual DUT ASN
+      in path are rejected even when BBR is enabled
+    - test_bbr_disabled_dut_asn_in_aspath: Validates routes with DUT ASN are
+      rejected when BBR is disabled
+    - test_bbr_status_consistent_after_reload: Confirms BBR status persists
+      after config reload
+
+Topology:
+    t1, t1-multi-asic
+
+Fixtures Used:
+    - prepare_bbr_config_files: Creates BBR enable/disable config files
+    - setup: Configures BBR test environment with T0 neighbors
+    - config_bbr_enabled/disabled: Temporarily enables/disables BBR
+    - restore_bbr_default_state: Restores BBR to original state
+    - prepare_routes: Announces and withdraws test routes via exabgp
+
+Dependencies:
+    - bgp_bbr_helpers: BBR configuration and state management
+    - tests.common.gu_utils: Generic Updater utilities
+    - tests.common.config_reload
+    - requests: For exabgp HTTP API interaction
+
+Notes:
+    - Only runs on virtual switch (vs) device types
+    - Tests both IPv4 and IPv6 routes
+    - Uses exabgp for route announcement
+    - Validates route propagation to T0 and other T1 neighbors
+    - Multi-ASIC support via sonic-cfggen
+=============================================================================
+"""
+
 import json
 import logging
 import time

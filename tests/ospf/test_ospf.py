@@ -1,3 +1,46 @@
+"""
+=============================================================================
+Module: ospf
+File: test_ospf.py
+=============================================================================
+
+Description:
+    This test suite validates Open Shortest Path First (OSPF) routing protocol
+    functionality in SONiC. Tests verify OSPF neighborship establishment, route
+    advertisement and withdrawal, and dynamic routing updates. The suite starts
+    the ospfd daemon in the BGP container and configures OSPF neighbors on the
+    DUT and neighbor devices to validate OSPF operation.
+
+Test Intent:
+    - test_ospf_neighborship: Verify OSPF neighbors are established in Full state and BGP routes are converted to OSPF routes
+    - test_ospf_dynamic_routing: Verify dynamic route advertisement and withdrawal via OSPF when loopback interfaces are added/removed
+
+Topology:
+    t0 - Requires T0 topology with OSPF-capable neighbors
+
+Fixtures Used:
+    - ospf_setup: Module-level fixture that provides OSPF configuration including neighbor addresses and BGP routes
+    - duthosts: All DUT hosts in the testbed
+    - rand_one_dut_hostname: Randomly selected DUT hostname for testing
+    - nbrhosts: Neighbor hosts dictionary for configuring and verifying OSPF neighbors
+
+Dependencies:
+    - FRRouting (FRR) ospfd daemon running in BGP container
+    - vtysh command-line interface for OSPF configuration
+    - Neighbor devices capable of running OSPF
+
+Notes:
+    - Tests start ospfd daemon in the BGP container if not already running
+    - BGP routing is disabled and replaced with OSPF for test duration
+    - OSPF configuration uses area 0 (backbone area)
+    - Neighbor networks are configured as /31 point-to-point links
+    - OSPF neighborship state "Full" indicates successful adjacency
+    - Dynamic routing test adds a loopback interface (192.168.10.1/32) on first neighbor
+    - Route advertisement is verified by checking DUT routing table for OSPF routes (O>*)
+    - Loopback removal simulates link down and verifies route withdrawal
+    - Configuration is persisted via 'do write' command in vtysh
+=============================================================================
+"""
 import pytest
 import logging
 import time

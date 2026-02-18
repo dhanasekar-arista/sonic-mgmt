@@ -1,4 +1,47 @@
-# Test cases to validate functionality of the arp_update script
+"""
+=============================================================================
+Module: test_arp_update
+File: test_arp_update.py
+=============================================================================
+
+Description:
+    This module validates the functionality of the arp_update script in SONiC.
+    It tests scenarios where the kernel ARP/NDP table and APPL_DB neighbor entries
+    become out of sync, ensuring the arp_update script can detect and correct
+    MAC address mismatches between the kernel and application database.
+
+Test Intent:
+    - test_kernel_asic_mac_mismatch: Verifies that when kernel and APPL_DB have
+      different MAC addresses for the same neighbor, the arp_update script detects
+      this mismatch and clears the stale entry, allowing re-learning of the correct
+      neighbor information. Tests both IPv4 and IPv6 neighbors.
+
+Topology:
+    t0 (ToR topology with VLAN interfaces and server connections)
+
+Fixtures Used:
+    - setup: Stops arp_update supervisor process before test, starts it after
+    - setup_standby_ports_on_non_enum_rand_one_per_hwsku_frontend_host_m_unconditionally:
+      Sets up standby ports configuration
+    - toggle_all_simulator_ports_to_rand_selected_tor: Configures mux simulator for dualtor
+    - setup_vlan_arp_responder: Configures PTF to respond to ARP/NDP requests on VLAN
+    - rand_selected_dut: Randomly selected DUT from available hosts
+    - tbinfo: Testbed information fixture
+
+Dependencies:
+    - tests.common.dualtor.mux_simulator_control: Mux simulator control for dualtor
+    - tests.common.fixtures.ptfhost_utils: VLAN ARP responder setup utilities
+    - tests.common.utilities: wait_until helper for polling conditions
+    - tests.common.dualtor.dual_tor_utils: mux_cable_server_ip for dualtor IPs
+
+Notes:
+    - This test is critical for dual-ToR topologies where neighbors may be learned
+      via different paths and MAC addresses can become inconsistent
+    - The arp_update script runs periodically to maintain consistency between
+      kernel neighbor table and APPL_DB
+    - Test manually manipulates APPL_DB to simulate out-of-sync conditions
+=============================================================================
+"""
 
 import logging
 import ptf.testutils as testutils

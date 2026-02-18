@@ -1,3 +1,40 @@
+"""
+=============================================================================
+Module: generic_config_updater
+File: test_static_route.py
+=============================================================================
+
+Description:
+    Tests static route configuration using Generic Config Updater. Validates
+    adding, replacing, removing static routes with various nexthop configurations
+    including IPv4, IPv6, blackhole, and interface-based routes.
+
+Test Intent:
+    - test_static_route_add_del: Adds then removes static routes
+    - test_static_route_add_nexthops: Adds routes with multiple nexthops
+    - test_static_route_add_del_intf: Adds interface-based static routes
+    - test_static_route_add_blackhole: Adds blackhole routes
+    - test_static_route_replace: Replaces existing static routes
+    - test_static_route_del_nonexist: Tests error for deleting non-existent routes
+
+Topology:
+    Supports any topology
+
+Fixtures Used:
+    - ignore_expected_loganalyzer_exceptions: Ignores routeCheck failures during rollback
+    - setup_and_cleanup: Creates checkpoint and handles rollback
+
+Dependencies:
+    - tests.common.gu_utils: GCU utilities for patch operations
+
+Notes:
+    - Tests IPv4 and IPv6 static routes
+    - Supports multiple nexthops per route
+    - Validates blackhole routes
+    - Interface-based routes use Ethernet0
+    - Ignores routeCheck failures on multi-ASIC during convergence
+=============================================================================
+"""
 import pytest
 import logging
 import time

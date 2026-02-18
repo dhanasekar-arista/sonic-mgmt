@@ -1,3 +1,75 @@
+"""
+=============================================================================
+Module: macsec
+File: test_interop_protocol.py
+=============================================================================
+
+Description:
+    This test validates MACsec interoperability with other network protocols.
+    It ensures that MACsec encryption does not break LACP, LLDP, BGP, and SNMP
+    functionality, and that these protocols continue to operate correctly when
+    MACsec is enabled, disabled, and re-enabled on links.
+
+Test Intent:
+    - test_port_channel: Validates LACP (Link Aggregation Control Protocol)
+      interoperability with MACsec. Verifies portchannel is Up initially,
+      removes a member port while MACsec is disabled, confirms portchannel
+      goes Down, re-adds member with MACsec enabled, and verifies portchannel
+      recovers to Up state. Ensures LACP works with MACsec-protected links.
+    - test_lldp: Tests LLDP (Link Layer Discovery Protocol) functionality with
+      MACsec. For each controlled link, verifies LLDP neighbor is discovered
+      with MACsec enabled, remains discovered after MACsec is disabled, and
+      stays discovered after MACsec is re-enabled. Skips portchannel interfaces
+      on broadcom-dnx platforms. Waits for LLDP timeout (120s = 30s interval
+      x 4 multiplier) to confirm neighbor presence.
+    - test_bgp: Validates BGP (Border Gateway Protocol) session maintenance
+      with MACsec. Ensures all BGP sessions are Established initially, verifies
+      sessions remain Established after disabling MACsec (even after holdtime),
+      and confirms sessions stay Established after re-enabling MACsec. Skips
+      portchannel interfaces on broadcom-dnx platforms. Tests BGP resilience
+      to MACsec state changes.
+    - test_snmp: Tests SNMP (Simple Network Management Protocol) functionality
+      across MACsec-protected interfaces. Queries sysDescr OID (.1.3.6.1.2.1.1.1.0)
+      from DUT loopback0 via neighbor to verify SNMP request/response works.
+      Only runs on single ASIC devices. Skips if no Loopback0 IPv4 address.
+
+Topology:
+    t0, t2, t0-sonic topologies with MACsec support required
+
+Fixtures Used:
+    - duthost: DUT host object for test execution
+    - ctrl_links: Dictionary of MACsec-controlled links on the DUT
+    - upstream_links: Upstream link information for BGP testing
+    - profile_name: MACsec profile name for re-enabling MACsec
+    - wait_mka_establish: Waits for MKA session establishment before tests
+    - creds_all_duts: Credentials for all DUTs, used for SNMP access
+
+Dependencies:
+    - tests.common.utilities: For wait_until polling functionality
+    - tests.common.macsec.macsec_helper: For namespace prefix helpers
+    - tests.common.macsec.macsec_config_helper: For MACsec port enable/disable
+    - tests.common.macsec.macsec_platform_helper: For portchannel, LLDP, and
+      STATE_DB operations
+    - tests.common.helpers.snmp_helpers: For SNMP query operations
+
+Notes:
+    - test_port_channel, test_lldp, and test_bgp disable loganalyzer
+    - test_port_channel uses first controlled link for testing
+    - test_port_channel waits up to 90 seconds for portchannel status changes
+    - test_lldp LLDP_TIMEOUT = 120 seconds (30s interval x 4 multiplier)
+    - test_lldp waits 20 seconds for MACsec state changes to settle
+    - test_lldp skips portchannel interfaces on broadcom-dnx platforms
+    - test_bgp uses BGP keepalive and holdtime from running config
+    - test_bgp BGP_TIMEOUT = 90 seconds for session establishment
+    - test_bgp queries STATE_DB for neighbor session state
+    - test_bgp waits for holdtime after disabling MACsec before checking
+    - test_bgp waits for portchannel recovery (5s delay) after enabling MACsec
+    - test_bgp skips portchannel interfaces on broadcom-dnx platforms
+    - test_snmp skips multi-ASIC devices
+    - test_snmp queries Loopback0 IPv4 address as SNMP target
+    - test_snmp queries sysDescr OID for basic SNMP functionality test
+=============================================================================
+"""
 import pytest
 import logging
 import ipaddress

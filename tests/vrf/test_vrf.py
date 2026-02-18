@@ -1,3 +1,57 @@
+"""
+=============================================================================
+Module: vrf
+File: test_vrf.py
+=============================================================================
+
+Description:
+    This comprehensive test suite validates VRF (Virtual Routing and Forwarding)
+    functionality in SONiC, including VRF creation, interface binding, neighbor
+    learning, route leaking, and traffic isolation between VRFs. It tests VRF
+    behavior across config reloads, warm/fast/cold reboots, and various
+    configuration scenarios.
+
+Test Intent:
+    - test_vrf_create: Validates VRF creation in kernel and CONFIG_DB
+    - test_vrf_bind: Tests interface binding to VRFs and proper route updates
+    - test_vrf_fib: Verifies FIB entries are correctly programmed per VRF
+    - test_vrf_neighbor: Tests neighbor learning and table separation per VRF
+    - test_vrf_traffic_test: Validates packet forwarding within VRF boundaries
+    - test_vrf_cleanup: Ensures VRF configuration can be cleanly removed
+    - test_vrf_update_portchannel: Tests VRF binding with portchannel updates
+    - test_vrf_warm_reboot/fast_reboot/cold_reboot: Validates VRF persistence
+      across various reboot types
+    - test_vrf_isolate: Confirms traffic isolation between different VRFs
+
+Topology:
+    t0
+
+Fixtures Used:
+    - setup_vrf: Module-scoped fixture for VRF configuration setup/cleanup
+    - dut_facts: Provides DUT hardware and configuration facts
+    - mg_facts: Minigraph facts for topology information
+    - partial_ptf_runner: Pre-configured PTF test runner
+    - ptf_test_port_map: PTF port mapping fixture
+    - vlan_mac: VLAN MAC address fixture
+    - copy_ptftests_directory: Copies PTF test scripts to PTF host
+    - change_mac_addresses: Changes MAC addresses for testing
+
+Dependencies:
+    - tests.ptf_runner: For running PTF dataplane tests
+    - tests.common.utilities: For wait_until and other utilities
+    - tests.common.reboot: For reboot operations
+    - tests.common.storage_backend.backend_utils: For backend topology handling
+
+Notes:
+    - Creates temporary PortChannel101 and PortChannel102 for testing
+    - Uses Vrf1 (Vlan1000) and Vrf2 (Vlan2000) for dual-VRF scenarios
+    - PTF test port map stored in /root/ptf_test_port_map.json
+    - Module-scoped setup/cleanup ensures VRF config is applied once
+    - Tests validate both IPv4 and IPv6 forwarding in VRF context
+    - Generates neighbor files for PTF testing dynamically
+    - Global variable g_vars stores VRF interface and port information
+=============================================================================
+"""
 import sys
 import time
 import threading
@@ -22,18 +76,6 @@ from tests.ptf_runner import ptf_runner
 from tests.common.utilities import wait_until
 from tests.common.reboot import reboot
 from tests.common.helpers.assertions import pytest_assert
-
-"""
-    During vrf testing, a vrf basic configuration need to be setup before any tests,
-    and cleanup after all tests. Both of the two tasks should be called only once.
-
-    A module-scoped fixture `setup_vrf` is added to accompilsh the setup/cleanup tasks.
-    We want to use ansible_adhoc/tbinfo fixtures during the setup/cleanup stages, but
-        1. Injecting fixtures to xunit-style setup/teardown functions is not support by
-            [now](https://github.com/pytest-dev/pytest/issues/5289).
-        2. Calling a fixture function directly is deprecated.
-    So, we prefer a fixture rather than xunit-style setup/teardown functions.
-"""
 
 pytestmark = [pytest.mark.topology("t0")]
 

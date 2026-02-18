@@ -1,8 +1,50 @@
 """
-    Tests the cpu queue shaper configuration in BRCM platforms
-    is as expected across reboot/warm-reboots.
-    Mellanox and Cisco platforms do not have CPU shaper
-    configurations and are not included in this test.
+Module: tests.cpu_shaper.test_cpu_shaper
+File: test_cpu_shaper.py
+
+Description:
+    This test module validates CPU queue shaper configuration on Broadcom platforms.
+    CPU queue shapers are hardware configurations that rate-limit traffic sent to the
+    CPU to prevent CPU overload. This test verifies that the shaper configuration
+    persists correctly across various system reboot scenarios.
+
+Test Intent:
+    - Validate CPU queue shaper configuration on Broadcom ASIC platforms
+    - Ensure shaper settings persist across different reboot types (cold, warm, fast, soft)
+    - Verify that CPU queues 0 and 7 maintain expected PPS (packets per second) limits of 600
+    - Confirm configuration consistency after critical processes restart
+
+    NOTE: Mellanox and Cisco platforms do not have CPU shaper configurations and are
+    excluded from this test via ASIC-specific pytest markers.
+
+Topology:
+    - t0, t1 topologies (specified via pytest.mark.topology)
+    - Broadcom ASIC only (specified via pytest.mark.asic)
+    - Single DUT selected randomly per hardware SKU using enum_rand_one_per_hwsku_frontend_hostname
+
+Fixtures Used:
+    - duthosts: Collection of all DUT hosts in the testbed
+    - localhost: The local host fixture for orchestrating reboots
+    - enum_rand_one_per_hwsku_frontend_hostname: Selects one random frontend DUT per hardware SKU
+    - request: Pytest request fixture to access command-line options
+
+Dependencies:
+    - tests.common.config_reload: Provides config_reload() for device configuration restoration
+    - tests.common.reboot: Provides reboot() function for various reboot operations
+    - tests.common.platform.processes_utils: Provides wait_critical_processes() for service readiness
+    - cpu_shaper/scripts/get_shaper.c: Broadcom CINT script to query CPU queue shaper settings
+    - bcmcmd: Broadcom command-line tool available in syncd container
+
+Notes:
+    - Test uses loganalyzer disable marker to prevent false positives during reboot
+    - Reboot type is configurable via --cpu_shaper_reboot_type command-line option (default: cold)
+    - The test copies a CINT script to the syncd container to query shaper configuration
+    - Expected configuration: CPU queues 0 and 7 should have 600 PPS max rate
+    - Cleanup is performed in finally block to remove temporary CINT script
+    - Config reload is performed at the end to restore device to clean state
+
+Git History:
+    bcbc14bbb Add a test for verifying cpu queue shaper config (#17299)
 
 """
 

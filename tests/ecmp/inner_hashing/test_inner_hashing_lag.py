@@ -1,7 +1,58 @@
-# Summary: Inner packet hashing test
-# How to run this test: sudo ./run_tests.sh -n <tb name> -i <inventory files>
-#   -u -m group -e --skip_sanity -l info -c ecmp/test_inner_hashing.py --static_config
-# parameter "--static_config" used when already exists hashing configurations and will be executed suitable test
+"""
+=============================================================================
+Module: ecmp.inner_hashing
+File: test_inner_hashing_lag.py
+=============================================================================
+
+Description:
+    Test suite for validating inner packet hashing across LAG (Link Aggregation Group) members.
+    This module tests that dynamic PBH configuration distributes encapsulated traffic evenly
+    across LAG member links based on inner packet headers (VXLAN, NVGRE, IP-in-IP) in addition
+    to outer headers, ensuring proper load balancing on LAG interfaces.
+
+Test Intent:
+    - test_inner_hashing: Verify inner packet hashing distributes traffic evenly across LAG members with dynamic PBH
+
+Topology:
+    - t0: Standard T0 leaf-spine topology with LAG configuration
+
+Fixtures Used:
+    - duthost: DUT host object
+    - ptfhost: PTF host for traffic generation
+    - hash_keys: Hash field configuration for inner packets
+    - outer_ipver: Outer IP version (ipv4/ipv6) parametrized
+    - inner_ipver: Inner IP version (ipv4/ipv6) parametrized
+    - router_mac: DUT router MAC address
+    - vlan_ptf_ports: VLAN member ports on PTF
+    - symmetric_hashing: Symmetric hash enable/disable
+    - lag_mem_ptf_ports_groups: LAG member port groups
+    - get_function_completeness_level: Test completeness level (debug/thorough)
+    - setup_dynamic_pbh: Module-level fixture to add LAG config and configure dynamic PBH
+    - lag_port_map: LAG port mapping
+    - lag_ip_map: LAG IP address mapping
+
+Dependencies:
+    - PTF framework for traffic generation
+    - inner_hash_test.InnerHashTest PTF test module
+    - PBH (Policy-Based Hashing) configuration
+    - LAG configuration on DUT
+    - VXLAN/NVGRE/IP-in-IP encapsulation support
+
+Notes:
+    - Test is marked with @pytest.mark.dynamic_config
+    - Test runs all outer encapsulation formats (VXLAN, NVGRE, IP-in-IP)
+    - Test completeness levels: debug (40 iterations), thorough (120 iterations)
+    - VXLAN port: 13330, NVGRE TNI: 0x4000
+    - PTF queue length: 1000 (PTF_QLEN)
+    - Test validates hash distribution across LAG member links
+    - PBH counters checked after test to ensure rules are hit
+    - Retry mechanism: up to 3 attempts with 2-second delay if test fails
+    - Symmetric hashing: Hash same for bidirectional flows if enabled
+    - LAG members must distribute traffic evenly based on inner headers
+    - Test ensures inner hash fields (not just outer) affect LAG distribution
+
+=============================================================================
+"""
 
 import logging
 import pytest

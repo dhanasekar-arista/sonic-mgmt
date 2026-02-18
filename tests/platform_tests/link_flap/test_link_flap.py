@@ -1,5 +1,49 @@
 """
-Tests the link flap in SONiC.
+=============================================================================
+Module: platform_tests
+File: test_link_flap.py
+=============================================================================
+
+Description:
+    Tests link flap operations in SONiC, validating that repeated interface
+    shutdown/startup cycles don't cause system instability, memory leaks, or
+    excessive CPU utilization in orchagent.
+
+Test Intent:
+    - test_link_flap: Validate link flap stability by toggling interfaces and monitoring:
+      1) Orchagent CPU utilization stays below threshold
+      2) Redis memory doesn't increase excessively
+      3) System memory remains stable
+      4) BGP sessions recover properly after flaps
+
+Topology:
+    Any topology
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - rand_one_dut_hostname: Selects one random DUT
+    - tbinfo: Testbed information
+    - fanouthosts: Fanout switch fixture
+    - get_loop_times: Number of link flap iterations
+    - bgp_sessions_config: BGP session configuration fixture
+
+Dependencies:
+    - link_flap_utils helpers (check_orch_cpu_utilization, build_test_candidates, etc.)
+    - toggle_one_link for interface control
+    - Memory and CPU monitoring utilities
+
+Notes:
+    - Test validates orchagent CPU < orch_cpu_threshold before and after flaps
+    - Default orch_cpu_threshold from CLI option --orch_cpu_threshold
+    - Monitors Redis memory usage to detect memory leaks
+    - Records system memory at start and end
+    - Toggles interfaces on DUT and fanout switches
+    - Validates BGP sessions recover after link flaps
+    - Uses wait_until for asynchronous checks
+    - Loganalyzer disabled (expected error logs during link flaps)
+    - Test candidates built from available ports
+    - Flap iterations controlled by get_loop_times fixture
+=============================================================================
 """
 import logging
 import pytest

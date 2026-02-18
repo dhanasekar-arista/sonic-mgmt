@@ -1,3 +1,50 @@
+"""
+=============================================================================
+Module: ospf
+File: test_ospf_bfd.py
+=============================================================================
+
+Description:
+    This test suite validates OSPF routing protocol integration with Bidirectional
+    Forwarding Detection (BFD) in SONiC. BFD provides fast failure detection for
+    OSPF adjacencies, enabling rapid convergence when links fail. The tests verify
+    OSPF route establishment with BFD enabled and validate that BFD detects link
+    failures quickly, triggering OSPF route removal.
+
+Test Intent:
+    - test_ospf_with_bfd: Verify OSPF establishes neighbors with BFD enabled, routes are learned, and BFD detects link failures causing route removal
+
+Topology:
+    t0, t1, t2 - Supports T0, T1, and T2 topologies including multi-asic configurations
+
+Fixtures Used:
+    - ospf_Bfd_setup: Module-level fixture providing OSPF and BFD configuration including neighbor addresses and ASIC mappings
+    - start_ospfd: Module-level fixture that starts the ospfd daemon in BGP containers (all ASICs for multi-asic)
+    - start_bfdd: Module-level fixture that starts the bfdd daemon in BGP containers (all ASICs for multi-asic)
+    - duthosts: All DUT hosts in the testbed
+    - rand_one_dut_hostname: Randomly selected DUT hostname for testing
+
+Dependencies:
+    - FRRouting (FRR) ospfd and bfdd daemons running in BGP container(s)
+    - vtysh command-line interface for OSPF and BFD configuration
+    - Multi-asic support for distributed systems
+
+Notes:
+    - Both ospfd and bfdd daemons must be started before configuration
+    - For multi-asic systems, daemons are started in each BGP container (bgp0, bgp1, etc.)
+    - OSPF is configured with area 0 and /31 point-to-point neighbor networks
+    - BGP routing is disabled and replaced with OSPF
+    - BFD peers are configured for each OSPF neighbor IP
+    - 'ip ospf bfd' is enabled on each PortChannel interface
+    - BFD provides subsecond failure detection compared to OSPF hello/dead timers
+    - Link failure is simulated by shutting down interfaces
+    - After link failure, BFD detects the failure and OSPF removes the affected routes
+    - Test waits 15 seconds after BFD configuration to allow convergence
+    - Test waits 5 seconds after link shutdown for BFD/OSPF to react
+    - OSPF routes are identified by 'O>' prefix in routing table
+    - Helper functions extract OSPF neighbor information and interface mappings
+=============================================================================
+"""
 import pytest
 import logging
 import time

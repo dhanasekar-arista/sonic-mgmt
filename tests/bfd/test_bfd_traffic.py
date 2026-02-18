@@ -1,3 +1,58 @@
+"""
+=============================================================================
+Module: test_bfd_traffic_route
+File: test_bfd_traffic.py
+=============================================================================
+
+Description:
+    BFD traffic switching validation tests for T2 multi-linecard chassis platforms.
+    Tests verify that traffic correctly switches to alternate paths when BFD detects
+    link failures via portchannel or portchannel member shutdowns. Traffic flow is
+    validated by sending packets from PTF and monitoring interface counters.
+
+Test Intent:
+    - test_bfd_traffic_remote_port_channel_shutdown: Validates traffic switches to
+      alternate path when remote (destination) portchannel is shut down, verifies
+      BFD sessions go down and traffic resumes after portchannel brought back up
+    - test_bfd_traffic_local_port_channel_shutdown: Validates traffic switches to
+      alternate path when local (source) portchannel is shut down, verifies BFD
+      sessions go down and traffic resumes after portchannel brought back up
+    - test_bfd_traffic_remote_port_channel_member_shutdown: Validates traffic switches
+      when remote portchannel member link is shut down (all members down = BFD down)
+    - test_bfd_traffic_local_port_channel_member_shutdown: Validates traffic switches
+      when local portchannel member link is shut down (all members down = BFD down)
+
+Topology:
+    T2 multi-ASIC chassis topology with physical devices
+
+Fixtures Used:
+    - get_src_dst_asic: Class-scoped fixture that randomly selects upstream and downstream
+      DUTs with their frontend ASICs for traffic testing
+    - prepare_traffic_test_variables: Class-scoped parametrized fixture (ipv4/ipv6) that
+      extracts backend portchannels, nexthops, and router MAC for traffic tests
+    - bfd_cleanup_db: Function-scoped cleanup fixture ensuring BFD configs cleared and
+      interfaces restored after test completion
+    - tbinfo: Testbed information for PTF port mapping
+    - ptfadapter: PTF adapter for sending test packets
+
+Dependencies:
+    - tests.bfd.bfd_helpers: Helper functions for traffic generation, interface control,
+      BFD state verification, and portchannel extraction
+    - tests.common.helpers.multi_thread_utils: Thread pool for parallel BFD verification
+    - ptf.testutils: PTF packet generation utilities (simple_ip_packet, simple_ipv6ip_packet)
+
+Notes:
+    - Tests send 10000 packets per batch to reliably identify interface in use via counters
+    - Traffic validation uses interface counters (TX/RX) to determine active backend interface
+    - All tests parametrized for IPv4 and IPv6 via prepare_traffic_test_variables fixture
+    - Tests verify traffic switches to different portchannel after shutdown events
+    - BFD sessions expected to transition: Up -> Down -> Up throughout test lifecycle
+    - 120 second sleep after shutdown to ensure BFD timeout and route withdrawal
+    - Backend interfaces identified by "BP" prefix in interface names
+    - Tests use SafeThreadPoolExecutor for parallel BFD state verification on src/dst
+=============================================================================
+"""
+
 import logging
 import random
 

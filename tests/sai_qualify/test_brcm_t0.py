@@ -1,3 +1,52 @@
+"""
+=============================================================================
+Module: sai_qualify
+File: test_brcm_t0.py
+=============================================================================
+
+Description:
+    This test module runs SAI qualification tests specifically designed for
+    Broadcom chipsets in T0 topology. It validates Broadcom-specific SAI
+    implementation features, data plane behavior, and ASIC-specific functionality
+    using PTF framework test cases tailored for Broadcom hardware.
+
+Test Intent:
+    - test_sai: Executes parametrized Broadcom T0 SAI test cases from TEST_CASE
+      suite, validates Broadcom ASIC-specific SAI behavior, data plane packet
+      processing, and proper integration with Broadcom SDK, then stores results
+      and cleans up test containers
+
+Topology:
+    - Supported: ptf topology
+    - Target: Broadcom chipsets in T0 configuration
+    - Requires saiserver with Broadcom SAI implementation
+
+Fixtures Used:
+    - sai_testbed: SAI test environment setup
+    - sai_test_env_check: Environment validation fixture
+    - creds: Docker registry credentials
+    - duthost: DUT host object (must have Broadcom ASIC)
+    - ptfhost: PTF server for test execution
+    - request: Pytest request metadata
+    - create_sai_test_interface_param: Interface parameters for SAI testing
+
+Dependencies:
+    - cases_brcm_t0: Broadcom T0-specific SAI test case definitions
+    - sai_infra: SAI test infrastructure and execution framework
+    - conftest: Shared fixtures and configuration
+
+Notes:
+    - Tests are Broadcom chipset-specific (not vendor-agnostic)
+    - Sanity checks skipped for SAI-level testing
+    - Loganalyzer disabled during SAI test execution
+    - DUT health checks disabled for SAI testing focus
+    - SAI test container cleaned up after each test case
+    - Test results stored on PTF host for analysis
+    - Test failures trigger container cleanup before reporting
+    - Compatible with Broadcom SDK SAI implementation
+=============================================================================
+"""
+
 import pytest
 import logging
 

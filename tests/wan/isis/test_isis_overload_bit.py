@@ -1,3 +1,22 @@
+"""
+=============================================================================
+Module: wan/isis
+File: test_isis_overload_bit.py
+=============================================================================
+
+Description:
+    Validates ISIS overload bit configuration.
+
+Test Intent:
+    - test_isis_overload_bit: Tests overload bit to prevent transit traffic
+
+Topology:
+    wan-com
+
+Notes:
+    - Overload bit signals router should not be used for transit
+=============================================================================
+"""
 import pytest
 import logging
 import functools

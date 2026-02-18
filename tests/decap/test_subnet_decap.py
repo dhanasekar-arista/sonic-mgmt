@@ -1,3 +1,65 @@
+"""
+Module: tests.decap.test_subnet_decap
+File: test_subnet_decap.py
+Description:
+    This module tests subnet-based IPinIP decapsulation in SONiC. Unlike standard IPinIP
+    decapsulation which uses specific loopback IPs, subnet decapsulation allows packets
+    from an entire source IP subnet to be decapsulated. The test validates both positive
+    (matching subnet) and negative (non-matching subnet) scenarios for IPv4 and IPv6,
+    ensuring packets are correctly decapsulated or forwarded based on source IP matching.
+
+Test Intent:
+    - Validate subnet-based decapsulation using SUBNET_DECAP configuration in CONFIG_DB
+    - Test positive case: packets from configured subnet (20.20.20.0/24, fc01::/120) are decapsulated
+    - Test negative case: packets from non-matching subnet are NOT decapsulated (forwarded normally)
+    - Verify decapsulation works for both IPv4 and IPv6 outer headers
+    - Ensure ARP responder correctly handles test traffic to negative test destinations
+    - Test configuration persistence across config save/reload cycles
+
+Topology:
+    - Supports: t0, t1, dualtor topologies
+    - Traffic flow: PTF (downlink port) -> DUT -> PTF (uplink ports for positive, specific port for negative)
+    - Uses first portchannel found in minigraph for packet injection
+    - Positive test: packet decapsulated and forwarded to upstream ports
+    - Negative test: packet NOT decapsulated, forwarded to specific downstream port
+
+Fixtures Used:
+    - prepare_subnet_decap_config: Configures SUBNET_DECAP table, saves config, reloads DUT
+    - prepare_vlan_subnet_test_port: Identifies PTF ports (source, downstream, upstream)
+    - prepare_negative_ip_port_map: Maps test IPs to target ports for negative tests
+    - setup_arp_responder: Configures ARP responder for negative test destination IPs
+    - rand_selected_dut: Random DUT selected for testing
+    - toggle_all_simulator_ports_to_rand_selected_tor_m: Toggles mux ports (dualtor only)
+
+Dependencies:
+    - CONFIG_DB key: SUBNET_DECAP|subnet_type (fields: status, src_ip, src_ip_v6)
+    - PTF utilities: packet building, sending, verification with masks
+    - ARP responder: Supervisor-managed service on PTF host
+    - Config reload: Uses both 'config save' and minigraph restoration
+    - Dualtor utilities: MUX simulator control for dualtor topologies
+
+Notes:
+    - Test constants:
+        SUBNET_DECAP_SRC_IP_V4 = "20.20.20.0/24"
+        SUBNET_DECAP_SRC_IP_V6 = "fc01::/120"
+        OUTER_DST_IP_V4 = "192.168.0.200"
+        OUTER_DST_IP_V6 = "fc02:1000::200"
+    - Config reload takes ~120 seconds for all processes to stabilize
+    - Test parameterized on IP version (IPv4/IPv6) and stage (positive/negative)
+    - Positive stage: verifies packet is decapsulated (inner packet forwarded upstream)
+    - Negative stage: verifies packet is NOT decapsulated (outer packet forwarded as-is)
+    - TTL/HLIM decremented by 1 in both cases (standard routing behavior)
+    - Uses Mask for flexible packet matching (ignores MAC addresses, checksums)
+    - Skips if no portchannels found in minigraph
+    - Teardown restores original config using minigraph as source
+
+Recent Changes:
+    292415e79 - Fix decap/test_subnet_decap.py::test_vlan_subnet_decap
+    ca0fd8e33 - Fix the hardcoded interface issue in PTF
+    3b6f2918d - Ignore subnet decap test when no portchannels found
+    c15dc8657 - [subnet decap] Send more packets for verification
+    b1dfa03f2 - Add new test for vlan subnet decap
+"""
 import pytest
 import logging
 import json

@@ -1,3 +1,45 @@
+"""
+=============================================================================
+Module: golden_config_infra
+File: test_config_reload_with_rendered_golden_config.py
+=============================================================================
+
+Description:
+    Tests golden configuration infrastructure for config reload operations.
+    Validates rendering golden config from minigraph, applying overrides,
+    and ensuring config reload produces expected configuration state.
+
+Test Intent:
+    - test_config_reload_with_rendered_golden_config: Validates:
+      1. Config reload with minigraph renders golden config correctly
+      2. Golden config override is applied properly
+      3. Running config matches expected state after reload
+      4. Non-user config tables are handled correctly
+
+Topology:
+    Supports any topology (single ASIC only)
+
+Fixtures Used:
+    - setup_env: Backs up config_db and golden_config, restores after test
+    - duthosts: DUT host objects
+    - rand_one_dut_hostname: Randomly selected DUT
+    - tbinfo: Testbed information
+
+Dependencies:
+    - tests.common.config_reload: config_reload, config_reload_minigraph_with_rendered_golden_config_override
+    - tests.common.utilities: backup_config, restore_config, get_running_config,
+      compare_dicts_ignore_list_order, NON_USER_CONFIG_TABLES, update_pfcwd_default_state
+
+Notes:
+    - Log analyzer disabled for these tests
+    - Skips on multi-ASIC platforms
+    - Golden config: /etc/sonic/golden_config_db.json
+    - Config DB: /etc/sonic/config_db.json
+    - Backs up both files before test with _before_override suffix
+    - Updates pfcwd default state after reload
+    - Compares configs ignoring list order differences
+=============================================================================
+"""
 import pytest
 import logging
 import json

@@ -1,5 +1,48 @@
-'''This script is to test the BGP Allow List feature of SONiC.
-'''
+"""
+=============================================================================
+Module: filterleaf
+File: test_filterleaf_with_routemap.py
+=============================================================================
+
+Description:
+    This module tests the BGP Allow List (route-map) feature on filterleaf
+    topology in SONiC. It validates route filtering based on prefix lists,
+    community tags, and default actions, with traffic forwarding verification.
+
+Test Intent:
+    - test_allow_list_with_community_permit_match: Validates routes with matching
+      community are permitted and traffic forwards correctly
+    - test_allow_list_with_community_deny_nomatch: Verifies routes without
+      matching community are denied when default action is deny
+    - test_allow_list_with_community_permit_nomatch: Tests routes without
+      matching community are permitted when default action is permit
+    - Tests validate both IPv4 and IPv6 route filtering and traffic forwarding
+
+Topology:
+    Requires t1-filterleaf-lag topology
+
+Fixtures Used:
+    - setup_exabgp: Sets up ExaBGP for route advertisement
+    - apply_allow_list_config: Applies BGP allow list configuration
+    - setup_iptables: Configures iptables for traffic testing
+    - Various helper fixtures from filterleaf_helpers module
+
+Dependencies:
+    - filterleaf_helpers: Helper functions and constants for filterleaf testing
+    - ptf.testutils: PTF packet utilities
+    - scapy: Packet crafting (Ether, IP, IPv6, Dot1Q)
+    - tests.common.helpers.assertions: pytest_assert
+
+Notes:
+    - Base routes: 172.16.10.0/24 (IPv4), 2000:172:16:10::/64 (IPv6)
+    - ExaBGP ports: 5000 (IPv4), 6000 (IPv6)
+    - Tests use deployment_id 0 with community TEST_COMMUNITY
+    - Allow list supports prefix_v4, prefix_v6, and default_action
+    - Traffic verification uses PTF for packet send/receive
+    - Tests validate FORWARD and DROP actions based on route filtering
+    - VRF_NAME used for VRF-specific route validation
+=============================================================================
+"""
 import logging
 import pytest
 import ipaddress

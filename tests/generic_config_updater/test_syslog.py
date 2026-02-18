@@ -1,3 +1,39 @@
+"""
+=============================================================================
+Module: generic_config_updater
+File: test_syslog.py
+=============================================================================
+
+Description:
+    Tests syslog server configuration using Generic Config Updater. Validates
+    adding, replacing, and removing IPv4 and IPv6 syslog servers with proper
+    verification in running configuration.
+
+Test Intent:
+    - test_syslog_server_add_init_config: Adds initial IPv4/IPv6 syslog servers
+    - test_syslog_server_tc2_add_duplicate: Tests error for duplicate server add
+    - test_syslog_server_tc3_add_remove: Adds then removes syslog servers
+    - test_syslog_server_tc4_replace: Replaces existing syslog server
+    - test_syslog_server_tc5_remove: Removes syslog servers
+
+Topology:
+    Supports any topology
+
+Fixtures Used:
+    - syslog_module_cleanup: Module-level syslog cleanup
+    - syslog_test_cleanup: Function-level syslog cleanup
+    - setup_env: Creates checkpoint for rollback
+
+Dependencies:
+    - tests.common.gu_utils: GCU utilities for patch operations
+
+Notes:
+    - Dummy IPv4 server: 10.11.0.5
+    - Dummy IPv6 server: cc98:2008::1
+    - Replacement servers: 10.11.0.6 (v4), cc98:2008::2 (v6)
+    - Validates via "show runningconfiguration syslog"
+=============================================================================
+"""
 import logging
 import pytest
 import time

@@ -1,3 +1,61 @@
+"""
+Module: tests.dash
+File: test_plnsg.py
+Description:
+    DASH PrivateLink Network Security Group (PL NSG) test suite for SmartSwitch topology.
+    This module validates bi-directional traffic transformation with NSG-specific tunnel
+    configurations and VXLAN UDP source port range validation for PrivateLink scenarios.
+
+Test Intent:
+    - Validate PrivateLink NSG outbound traffic transformation (VM -> PE)
+    - Verify PrivateLink NSG inbound traffic transformation (PE -> VM)
+    - Test VXLAN UDP source port range compliance for return traffic
+    - Ensure proper encapsulation with NSG-specific tunnel endpoints
+    - Validate single-endpoint tunnel configuration (multi-endpoint not yet supported)
+
+Topology:
+    - smartswitch: SmartSwitch topology with DPU-NPU architecture
+    - Requires NPU static routes and DPU-NPU dataplane setup
+    - Traffic flows: VM <-> DPU <-> PE with NSG tunnel endpoints
+
+Fixtures Used:
+    - localhost: Ansible localhost for configuration management
+    - duthost: Device Under Test (NPU) host object
+    - ptfhost: PTF (Packet Test Framework) host
+    - ptfadapter: PTF adapter for packet injection/verification
+    - dpuhosts: List of DPU host objects
+    - dpu_index: Index of DPU to use for testing
+    - dash_pl_config: PrivateLink DASH configuration
+    - skip_config: Flag to skip configuration application
+    - single_endpoint: Parameterized fixture (currently only True supported)
+    - set_vxlan_udp_sport_range: Fixture to configure VXLAN UDP source port range
+    - setup_npu_dpu: Combined fixture for NPU and DPU setup
+    - config_setup_teardown: Main setup/teardown with NSG-specific DASH configs
+
+Dependencies:
+    - configs.privatelink_config: PrivateLink configuration constants
+    - constants: DASH test constants (ports, IPs, VXLAN parameters)
+    - gnmi_utils: gNMI utilities for protobuf message application
+    - packets: Packet generation (inbound_pl_packets, plnsg_packets)
+    - test_fnic: Shared utility (verify_tunnel_packets)
+    - tests.common.config_reload: Configuration reload utilities
+
+Notes:
+    - Currently only supports single-endpoint configuration
+    - Multi-endpoint configuration skipped: "Multiple tunnel endpoints not yet supported for PL NSG"
+    - VXLAN UDP source port validated to be in range [BASE_SRC_PORT, BASE_SRC_PORT + 2^MASK - 1]
+    - Tunnel endpoints use TUNNEL3_CONFIG for single-endpoint (TUNNEL4_CONFIG for multi)
+    - NSG-specific VNET mapping: PE_PLNSG_SINGLE_ENDPOINT_VNET_MAPPING_CONFIG
+    - Inbound routing not implemented in Pensando SAI (route rules conditionally applied)
+    - Config reload used for cleanup due to route rule removal bug
+    - Related GitHub issue: https://github.com/sonic-net/sonic-buildimage/issues/23590
+    - Return packet payload updated to include test metadata
+    - VXLAN sport range enforced: VXLAN_UDP_BASE_SRC_PORT with VXLAN_UDP_SRC_PORT_MASK
+
+Git History (last 1 commit):
+    12abd5cea [dash] Add tests to cover PLNSG, FNIC, trusted VNI, return path ECMP (#19700)
+"""
+
 import logging
 import configs.privatelink_config as pl
 import ptf.testutils as testutils

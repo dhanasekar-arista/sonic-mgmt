@@ -1,3 +1,49 @@
+"""
+=============================================================================
+Module: kubesonic
+File: test_k8s_join_disjoin.py
+=============================================================================
+
+Description:
+    This comprehensive test module validates KubeSonic functionality, which
+    enables SONiC switches to join/disjoin Kubernetes clusters. It tests
+    minikube setup, DaemonSet deployment, and various join/disjoin scenarios
+    including node labeling and certificate management.
+
+Test Intent:
+    - test_setup_k8s_minikube_with_vmhost: Sets up minikube on VM host for
+      testing KubeSonic functionality
+    - test_k8s_join_disjoin: Tests basic join and disjoin operations to/from
+      Kubernetes master
+    - test_k8s_join_with_label: Validates joining with node labels and
+      DaemonSet pod deployment based on labels
+    - test_k8s_disjoin_and_check_kube_proxy_removed: Ensures kube-proxy pods
+      are cleaned up after disjoin operation
+
+Topology:
+    - any: Works with any topology
+
+Fixtures Used:
+    - duthost: DUT host for KubeSonic operations
+    - vmhost: VM host for running minikube cluster
+    - vmhost_param: VM host connection parameters
+
+Dependencies:
+    - tests.common.utilities: Image type detection
+    - tests.common.helpers.assertions: Test assertion utilities
+    - Minikube: Kubernetes cluster running on VM host
+    - kubectl: Kubernetes command-line tool
+
+Notes:
+    - Log analyzer is disabled for these tests
+    - Uses minikube v1.34.0 and Kubernetes v1.22.2
+    - Tests certificate management for secure cluster join
+    - Validates DaemonSet deployment with node labels
+    - Includes cleanup of kube-proxy after disjoin
+    - Minikube setup timeout: 600 seconds
+    - Certificate backup and restoration handled automatically
+=============================================================================
+"""
 import logging
 import pytest
 import time

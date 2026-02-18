@@ -1,5 +1,47 @@
 """
-Test SNMPv2MIB in SONiC.
+=============================================================================
+Module: snmp
+File: test_snmp_v2mib.py
+=============================================================================
+
+Description:
+    This test module validates SNMPv2-MIB standard objects on SONiC switches,
+    verifying system identification MIB variables (sysName, sysDescr, sysLocation,
+    sysContact) are correctly populated and accessible via SNMP v2c queries.
+
+Test Intent:
+    - test_snmp_v2mib: Validates SNMPv2-MIB system group objects by verifying
+      sysName matches hostname, sysLocation matches snmp.yml configuration,
+      sysContact matches snmpd.conf setting, and sysDescr contains expected
+      system information (kernel version, HWSKU, SONiC OS version, Debian version)
+
+Topology:
+    - Supported: any topology
+    - Works across all device types and configurations
+
+Fixtures Used:
+    - duthosts: All DUT hosts in testbed
+    - enum_rand_one_per_hwsku_hostname: Randomly selected DUT for testing
+    - localhost: Local connection for SNMP queries
+    - creds_all_duts: SNMP community string credentials
+
+Dependencies:
+    - tests.common.helpers.snmp_helpers: SNMP fact gathering via snmpwalk
+    - SNMPv2-MIB: Standard SNMP system group (RFC 3418)
+
+Notes:
+    - SNMP version: v2c (community-based)
+    - MIB objects tested:
+      - sysName (1.3.6.1.2.1.1.5): System hostname
+      - sysDescr (1.3.6.1.2.1.1.1): System description with OS details
+      - sysLocation (1.3.6.1.2.1.1.6): Physical location from snmp.yml
+      - sysContact (1.3.6.1.2.1.1.4): Admin contact from snmpd.conf
+    - sysContact extracted from /etc/snmp/snmpd.conf in snmp container
+    - sysLocation extracted from /etc/sonic/snmp.yml configuration
+    - sysDescr validation includes: kernel version, HWSKU, SONiC OS version, Debian version
+    - Debian version read from /etc/debian_version
+    - All system values must be present in sysDescr string
+=============================================================================
 """
 
 import pytest

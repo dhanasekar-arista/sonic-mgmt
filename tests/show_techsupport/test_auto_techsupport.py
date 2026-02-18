@@ -1,3 +1,58 @@
+"""
+=============================================================================
+Module: show_techsupport
+File: test_auto_techsupport.py
+=============================================================================
+
+Description:
+    This test module validates the auto-techsupport feature on SONiC switches.
+    Auto-techsupport automatically generates techsupport files when critical
+    events occur (core dumps, daemon crashes). Tests verify rate limiting,
+    file count limits, memory threshold enforcement, and proper cleanup of
+    old techsupport files.
+
+Test Intent:
+    - test_auto_techsupport_enable_disable: Validates feature enable/disable functionality
+    - test_auto_techsupport_rate_limit: Tests rate limiting prevents excessive generation
+    - test_auto_techsupport_max_file_limit: Verifies max techsupport file count enforcement
+    - test_auto_techsupport_max_core_limit: Tests max core dump file count limits
+    - test_auto_techsupport_memory_threshold: Validates generation blocks when memory low
+    - test_auto_techsupport_since_option: Tests time-based filtering with --since
+    - test_auto_techsupport_cleanup: Verifies old files are cleaned up per limits
+
+Topology:
+    - Supported: any topology
+    - Requires writable storage for techsupport file generation
+
+Fixtures Used:
+    - cleanup_list: Fixture for test cleanup operations
+    - duthosts: All DUT hosts in testbed
+    - enum_rand_one_per_hwsku_hostname: Randomly selected DUT
+    - rand_one_dut_hostname: Random DUT selection
+
+Dependencies:
+    - tests.common.multibranch.cli: SONiC CLI interface for config operations
+    - tests.common.helpers.dut_utils: Techsupport file management utilities
+    - tests.common.plugins.loganalyzer: Log rotation context management
+    - allure: Test reporting framework
+
+Notes:
+    - Default state: enabled
+    - Default global rate limit: 180 seconds
+    - Default per-feature rate limit: 600 seconds
+    - Default max techsupport files: 10
+    - Default max core dump files: 5
+    - Default memory threshold: 10.0% available
+    - Default --since: '2 days ago'
+    - KB size constant: 1000 (matches shutil.disk_usage)
+    - Test triggers events via SAI call failures (simulated crashes)
+    - Redis used to track auto-techsupport history
+    - Tests verify cleanup of old files when limits exceeded
+    - Memory threshold test validates generation blocking when low memory
+    - Rate limit tests ensure debouncing of rapid consecutive events
+=============================================================================
+"""
+
 import pytest
 import time
 import logging

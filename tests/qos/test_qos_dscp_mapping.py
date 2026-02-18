@@ -1,5 +1,54 @@
 """
-Test cases for testing DSCP to Queue mapping for IP-IP packets in SONiC.
+=============================================================================
+Module: qos
+File: test_qos_dscp_mapping.py
+=============================================================================
+
+Description:
+    Tests DSCP (Differentiated Services Code Point) to queue mapping for
+    IP-in-IP encapsulated packets in SONiC. Validates both uniform and pipe
+    DSCP modes for tunnel QoS behavior on T0 and T1 topologies.
+
+Test Intent:
+    - test_dscp_to_queue_during_playback: Tests DSCP to queue mapping by
+      sending IP-in-IP packets with various inner/outer DSCP values and
+      verifying packets egress on expected queues based on configured mapping
+      mode (uniform: uses inner DSCP, pipe: uses outer DSCP)
+    - test_dscp_to_queue_update: Validates DSCP to queue mapping updates
+      dynamically when configuration changes and verifies new mappings take
+      effect immediately
+
+Topology:
+    t0, t1 topologies
+
+Fixtures Used:
+    - dscp_mode: Parameterized fixture with values ["uniform", "pipe"]
+    - completeness_level: Test completeness level from pytest config
+    - route_config: Module-scoped fixture that announces inner destination IP
+      routes via exabgp on upstream VMs and withdraws them after testing
+    - dscp_config: Function-scoped fixture that sets up DSCP to TC map to
+      AZURE mapping type and applies DSCP configuration
+    - dut_qos_maps_module: Module-scoped DUT QoS maps
+    - toggle_all_simulator_ports_to_rand_selected_tor: For dualtor testing
+
+Dependencies:
+    - tests.common.helpers.ptf_tests_helper: Downstream/upstream link helpers
+    - tests.qos.qos_helpers: ExaBGP port and route announcement utilities
+    - tests.common.utilities: IP extraction, DSCP/queue mapping utilities
+    - PTF scapy: Packet crafting and verification
+
+Notes:
+    - Default DSCP: 4, TTL: 64, ECN: 1, PKT_COUNT: 500
+    - Uses IP-in-IP encapsulation for testing tunnel QoS
+    - Dummy IPs: outer src 8.8.8.8, inner src 9.9.9.9
+    - Inner dst IPs: 10.10.10.1, 10.10.10.2, etc.
+    - Uses exabgp starting at port 5000 (BASE_EXABGP_PORT)
+    - Uniform mode: inner DSCP determines queue
+    - Pipe mode: outer DSCP determines queue
+    - Announces routes before test, withdraws after
+    - Uses tabulate for output formatting
+    - Tracks packet egress success in global lists
+=============================================================================
 """
 import time
 import logging

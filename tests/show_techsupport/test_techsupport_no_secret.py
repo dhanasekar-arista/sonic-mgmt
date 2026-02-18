@@ -1,3 +1,47 @@
+"""
+=============================================================================
+Module: show_techsupport
+File: test_techsupport_no_secret.py
+=============================================================================
+
+Description:
+    This test module validates that sensitive information (passwords, secrets)
+    is properly redacted from techsupport output when using the appropriate
+    options. Tests ensure TACACS and RADIUS passwords are not exposed in
+    techsupport tarballs, protecting security credentials during support
+    operations.
+
+Test Intent:
+    - test_techsupport_no_secret_command: Validates that TACACS and RADIUS
+      passwords are redacted when generating techsupport with security-conscious
+      options, ensuring sensitive credentials are not leaked in diagnostic files
+
+Topology:
+    - Supported: any topology
+    - Requires SONiC image 202112 or newer (test skipped on older versions)
+
+Fixtures Used:
+    - duthosts: All DUT hosts in testbed
+    - enum_rand_one_per_hwsku_hostname: Randomly selected DUT
+    - creds_all_duts: Credentials for all DUTs including TACACS/RADIUS passkeys
+    - check_image_version: Skips test on older SONiC versions (pre-202112)
+    - setup_password: Configures and restores TACACS/RADIUS passwords
+
+Dependencies:
+    - tests.common.utilities: Release version checking and config deletion
+
+Notes:
+    - Test skipped on SONiC versions older than 202112 (feature not available)
+    - TACACS passkey configured via 'config tacacs passkey' command
+    - RADIUS passkey configured via 'config radius passkey' command
+    - Test RADIUS server address: 1.2.3.4 (temporary test configuration)
+    - Fixture automatically backs up and restores original password configuration
+    - Cleanup deletes TACPLUS and RADIUS config if no backup exists
+    - Validates passwords are not present in techsupport tarball content
+    - Security-critical test for production deployments
+=============================================================================
+"""
+
 import pytest
 import logging
 from tests.common.helpers.assertions import pytest_assert

@@ -1,3 +1,43 @@
+"""
+=============================================================================
+Module: vlan
+File: test_secondary_subnet.py
+=============================================================================
+
+Description:
+    This test suite validates the secondary subnet functionality on VLAN
+    interfaces in SONiC. It tests the ability to add, verify, and remove
+    secondary IP addresses on VLAN interfaces, ensuring proper configuration
+    in both the CLI output and Redis database.
+
+Test Intent:
+    - test_existing_secondary_subnet: Verifies that any existing secondary
+      subnets on VLAN interfaces are correctly configured and stored in the
+      system (skips if no secondary subnet exists).
+    - test_secondary_subnet: Tests the complete lifecycle of secondary IP
+      addresses - adds a secondary IP to a VLAN interface, verifies it appears
+      in CLI and Redis, removes it, and confirms complete removal.
+
+Topology:
+    t0, m0
+
+Fixtures Used:
+    - duthost: DUT host object for executing commands and queries
+    - tbinfo: Testbed information for topology-specific configuration
+
+Dependencies:
+    - tests.common.helpers.assertions: For pytest assertions
+    - tests.common.helpers.dut_ports: For VLAN and secondary subnet utilities
+
+Notes:
+    - Secondary IP addresses must be configured with the --secondary flag
+    - The test verifies both "show ip interface" output and Redis database entries
+    - Redis database (db 4) stores secondary IP info with "secondary": "true" field
+    - IPv6 secondary subnets are treated as configuration errors
+    - Test uses fixed secondary IP 66.66.66.66/23 for the add/remove test
+    - Cleanup removes running config entries to prevent persistence
+=============================================================================
+"""
 import logging
 import pytest
 import time

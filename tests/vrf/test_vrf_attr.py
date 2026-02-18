@@ -1,3 +1,52 @@
+"""
+=============================================================================
+Module: vrf
+File: test_vrf_attr.py
+=============================================================================
+
+Description:
+    This test suite validates VRF-specific attributes including custom source
+    MAC addresses and TTL actions. It tests that VRFs can have different router
+    MACs and that TTL/TTL actions (uniform/pipe mode) work correctly in VRF
+    forwarding scenarios.
+
+Test Intent:
+    - TestVrfAttrSrcMac.test_vrf_src_mac_cfg: Verifies custom src_mac is
+      correctly stored in CONFIG_DB for VRF
+    - TestVrfAttrSrcMac.test_vrf1_neigh_with_default_router_mac: Confirms
+      packets with default router MAC are dropped for VRF with custom MAC
+    - TestVrfAttrSrcMac.test_vrf1_neigh_with_new_router_mac: Validates
+      packets with new router MAC are forwarded correctly in custom VRF
+    - TestVrfAttrSrcMac.test_vrf2_neigh_with_default_router_mac: Ensures
+      VRF without custom MAC continues using default router MAC
+    - TestVrfAttrTTL tests: Validate TTL action configuration and behavior
+      in uniform and pipe modes
+
+Topology:
+    t0
+
+Fixtures Used:
+    - setup_vrf: Module-scoped VRF configuration setup from test_vrf
+    - dut_facts: DUT facts fixture from test_vrf
+    - partial_ptf_runner: PTF test runner with common parameters
+    - setup_vrf_attr_src_mac: Class-scoped fixture for src_mac testing
+    - setup_vrf_attr_ttl: Class-scoped fixture for TTL action testing
+    - copy_ptftests_directory: Copies PTF test scripts to PTF host
+
+Dependencies:
+    - test_vrf: Imports global variables and shared fixtures
+    - tests.ptf_runner: For running PTF test scripts
+    - tests.common.storage_backend.backend_utils: For backend topology skips
+
+Notes:
+    - Custom router MAC for Vrf1: 00:12:34:56:78:9a
+    - Tests validate src_mac attribute in CONFIG_DB VRF table
+    - PTF tests verify packet forwarding with different router MACs
+    - TTL action tests validate uniform vs pipe mode behavior
+    - Cleanup restores original router MAC and VRF configuration
+    - Generates neighbor files for each VRF for PTF testing
+=============================================================================
+"""
 import pytest
 
 from test_vrf import g_vars

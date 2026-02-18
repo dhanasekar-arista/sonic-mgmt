@@ -1,11 +1,47 @@
 """
-Check daemon status inside PMON container. Each daemon status is checked under the conditions below in this script:
-* Daemon Running Status
-* Daemon Stop status
-* Daemon Restart status
+=============================================================================
+Module: platform_tests
+File: test_fancontrol.py
+=============================================================================
 
-This script is to cover the test case in the SONiC platform daemon and service test plan:
-https://github.com/sonic-net/sonic-mgmt/blob/master/docs/testplan/PMON-Services-Daemons-test-plan.md
+Description:
+    Tests for fancontrol daemon in the PMON container on supervisor nodes. Validates
+    daemon lifecycle management including running, stop, restart states, and recovery
+    from termination signals. Controls fan speed based on thermal conditions.
+
+Test Intent:
+    - test_fancontrol_running_status: Verify fancontrol is running after PMON start
+    - test_fancontrol_stop_and_start_status: Validate manual stop/start operations
+    - test_fancontrol_stop_and_restart_status: Test stop followed by restart
+    - test_kill_fancontrol_sig_term: Verify fancontrol restarts after SIGTERM
+    - test_kill_fancontrol_sig_kill: Validate fancontrol restarts after SIGKILL
+
+Topology:
+    Any topology - runs on supervisor nodes
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - enum_supervisor_dut_hostname: Selects supervisor DUT
+    - setup: Module-scoped autofixture validating fancontrol enabled status
+    - teardown_module: Module-scoped autofixture for cleanup
+
+Dependencies:
+    - fancontrol supervisor task in pmon container
+    - check_pmon_daemon_enable_status helper
+    - check_critical_processes validator
+
+Notes:
+    - Test only runs on supervisor nodes
+    - Test skips if fancontrol not enabled on platform
+    - Expected statuses: RUNNING, STOPPED, EXITED
+    - Signal constants: SIG_TERM (-15), SIG_KILL (-9)
+    - Daemon should auto-restart after kill signals
+    - Uses supervisorctl for daemon lifecycle control
+    - fancontrol manages fan speed based on temperature thresholds
+    - Loganalyzer disabled (expected error logs during daemon restarts)
+    - Sanity check skipped for this test suite
+    - Test plan: https://github.com/sonic-net/sonic-mgmt/blob/master/docs/testplan/PMON-Services-Daemons-test-plan.md
+=============================================================================
 """
 import logging
 import time

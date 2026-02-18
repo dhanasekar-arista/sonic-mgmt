@@ -1,7 +1,56 @@
 """
-This test file uses python and validates various test cases that Monit is able
-to correctly handle the recovery actions when a container exceeds the memory
-threshold.
+=============================================================================
+Module: memory_checker
+File: test_memory_checker.py
+=============================================================================
+
+Description:
+    This test validates that Monit service correctly monitors container memory
+    usage and performs appropriate recovery actions when containers exceed
+    memory thresholds. Tests cover alert generation, container restart actions,
+    and Monit service restart scenarios for memory violations.
+
+Test Intent:
+    - test_memory_checker: Validates end-to-end memory monitoring workflow.
+      Customizes Monit configuration with shorter intervals and lower memory
+      thresholds for specific containers, triggers high memory usage via stress
+      utility, verifies Monit detects memory violation and generates syslog
+      alerts, confirms container is restarted as recovery action, and validates
+      container recovers to running state within expected timeframe.
+
+Topology:
+    any topology
+
+Fixtures Used:
+    - duthosts: Provides list of DUT hosts for testing
+    - enum_rand_one_per_hwsku_hostname: Selects one random DUT per hardware SKU
+    - creds: Device credentials for authentication
+
+Dependencies:
+    - tests.common.utilities: For wait_until polling functionality
+    - tests.common.helpers.assertions: For pytest assertions and requirements
+    - tests.common.helpers.dut_utils: For container state checking
+    - tests.common.plugins.loganalyzer.loganalyzer: For syslog message analysis
+
+Notes:
+    - Disables loganalyzer for all tests in this module
+    - CONTAINER_STOP_THRESHOLD_SECS = 200 seconds
+    - CONTAINER_RESTART_THRESHOLD_SECS = 180 seconds
+    - CONTAINER_CHECK_INTERVAL_SECS = 1 second
+    - MONIT_RESTART_THRESHOLD_SECS = 320 seconds
+    - MONIT_CHECK_INTERVAL_SECS = 5 seconds
+    - WAITING_SYSLOG_MSG_SECS = 30 seconds
+    - MONIT_MEMORY_CHECK_TIMEOUT = 700 seconds
+    - Test customizes Monit daemon cycle interval, start delay, and fail cycles
+    - Backs up original Monit configuration before modifications
+    - Restores original Monit configuration after test completion
+    - Uses stress utility to consume container memory and trigger alerts
+    - Expected syslog message format: "restart_service" for memory violations
+    - Monit configuration files located in /etc/monit/
+    - Test supports both single-container and multi-ASIC configurations
+    - Container restart verified by checking container state and process list
+    - LogAnalyzer used to validate expected syslog messages appear
+=============================================================================
 """
 import dateutil.parser
 import logging

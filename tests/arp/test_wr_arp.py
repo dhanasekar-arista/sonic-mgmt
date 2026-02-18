@@ -1,3 +1,47 @@
+"""
+=============================================================================
+Module: test_wr_arp
+File: test_wr_arp.py
+=============================================================================
+
+Description:
+    This module tests the Control Plane Assistant (CPA) feature during Warm Reboot.
+    It validates that ARP functionality remains available during warm reboot by
+    continuously sending ARP requests to VLAN member ports and verifying ARP replies
+    are received throughout the reboot process, ensuring minimal control plane disruption.
+
+Test Intent:
+    - test_wr_arp: Basic warm reboot ARP test that starts Ferret server (Python-based
+      ARP responder), initiates warm reboot, and continuously verifies ARP reply
+      availability. Fails if no ARP replies received for >25 seconds on any VLAN port
+    - test_wr_arp_advance: Advanced warm reboot test with configurable duration and
+      additional parameters for extended validation of ARP behavior during warm reboot
+
+Topology:
+    t0 (ToR topology with VLAN interfaces)
+
+Fixtures Used:
+    - setupFerretFixture: Class-scoped fixture to set up Ferret ARP server on PTF
+    - clean_dut: Clears ARP cache on DUT after test completion
+    - setupRouteToPtfhostFixture: Configures static route to PTF host for test traffic
+    - warmRebootSystemFlag: Ensures warm-reboot system flag is set to false after test
+
+Dependencies:
+    - tests.common.fixtures.ptfhost_utils: PTF directory setup, MAC changes, IP removal
+    - tests.common.storage_backend.backend_utils: Backend topology skip logic
+    - tests.ptf_runner: PTF test execution framework
+    - tests.common.arp_utils: Ferret setup/teardown, route configuration, testWrArp
+
+Notes:
+    - Test ensures control plane availability during warm reboot critical for production
+    - Ferret server implemented in Python provides ARP responder functionality on PTF
+    - 25-second timeout threshold for ARP reply loss indicates control plane failure
+    - Warm reboot flag must be reset to false to prevent unintended warm reboot behavior
+    - Log analyzer disabled due to expected log messages during warm reboot
+    - Advanced test supports configurable test duration via --test_duration parameter
+=============================================================================
+"""
+
 import logging
 import pytest
 

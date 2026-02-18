@@ -1,9 +1,53 @@
 """
-Tests the continuous link flap in SONiC.
+=============================================================================
+Module: platform_tests
+File: test_cont_link_flap.py
+=============================================================================
 
-Parameters:
-    --orch_cpu_threshold <port> (int): Which port you want the test to send traffic
-        to. Default is 3.
+Description:
+    Tests continuous link flap operations in SONiC, validating system stability
+    during sustained interface flapping. Monitors memory usage (Redis, FRR daemons,
+    system), CPU utilization, and BGP route convergence under link flap stress.
+
+Test Intent:
+    - test_cont_link_flap: Validate continuous link flap stability by:
+      1) Flapping all interfaces repeatedly
+      2) Monitoring orchagent CPU utilization
+      3) Tracking Redis memory for leaks
+      4) Monitoring FRR daemon memory (BGP, Zebra)
+      5) Validating system memory stability
+      6) Verifying BGP route recovery
+
+Topology:
+    Any topology
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - rand_one_dut_hostname: Selects one random DUT
+    - tbinfo: Testbed information
+    - fanouthosts: Fanout switch fixture
+    - get_loop_times: Number of link flap iterations
+
+Dependencies:
+    - link_flap_utils helpers (check_orch_cpu_utilization, check_bgp_routes, etc.)
+    - port_toggle for interface control
+    - EosHost/SonicHost for fanout interaction
+    - Memory and CPU monitoring utilities
+
+Notes:
+    - CLI parameter --orch_cpu_threshold sets orchagent CPU limit (default: 3%)
+    - Continuous flapping stresses system more than single flaps
+    - Monitors memory growth across iterations
+    - FRR daemon memory parsed from vtysh output
+    - Tracks used ordinary blocks, small blocks, and holding block headers
+    - Validates BGP routes converge after flaps
+    - Calculates memory increase percentage vs initial baseline
+    - Loganalyzer disabled (expected error logs during flaps)
+    - Route check disabled (routes flap during test)
+    - Test candidate ports built from available interfaces
+    - Flap delay and iterations configurable
+    - Validates memory doesn't grow beyond acceptable threshold
+=============================================================================
 """
 
 import logging

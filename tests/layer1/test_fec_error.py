@@ -1,3 +1,48 @@
+"""
+=============================================================================
+Module: layer1
+File: test_fec_error.py
+=============================================================================
+
+Description:
+    This test validates Forward Error Correction (FEC) statistics and counters
+    on SONiC devices. It verifies that FEC counters are properly reported,
+    formatted correctly, and that no uncorrectable FEC errors are present on
+    operational interfaces with supported high-speed configurations.
+
+Test Intent:
+    - test_verify_fec_stats_counters: Validates FEC statistics counters for
+      interfaces operating at supported speeds (50G-1600G). Checks that FEC
+      correctable, uncorrectable, and symbol error counters are valid integers.
+      Ensures no uncorrectable FEC errors exist. Validates FEC BER (Bit Error
+      Rate) fields, observed FLR (Frame Loss Ratio), and predicted FLR values
+      are properly formatted. Verifies logical consistency between FEC counters
+      (correctable errors should not exceed symbol errors).
+
+Topology:
+    any topology
+
+Fixtures Used:
+    - duthosts: Provides list of DUT hosts for testing
+    - enum_rand_one_per_hwsku_frontend_hostname: Selects one random frontend
+      DUT per hardware SKU to ensure diverse platform testing
+
+Dependencies:
+    - tests.common.platform.interface_utils: Provides get_fec_eligible_interfaces
+      to identify interfaces suitable for FEC testing
+
+Notes:
+    - Supported platforms: mlnx_msn, 8101_32fh, 8111_32eh, arista, x86_64-nvidia,
+      x86_64-88_lc0_36fh_m-r0, x86_64-nexthop_4010-r0, marvell
+    - Supported speeds: 50G, 100G, 200G, 400G, 800G, 1600G
+    - Test skips if no FEC-eligible interfaces are found
+    - Pre-FEC and Post-FEC BER fields may not be available on all platforms
+    - FLR(O) observed and FLR(P) predicted fields are optional
+    - Predicted FLR format: "0" or scientific notation with accuracy percentage
+      (e.g., "7.81e-10 (89%)")
+    - Disables log analyzer to prevent interference with error counter validation
+=============================================================================
+"""
 import logging
 import pytest
 import re

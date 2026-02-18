@@ -1,3 +1,45 @@
+"""
+=============================================================================
+Module: ixia/pfcwd
+File: test_pfcwd_m2o.py
+=============================================================================
+
+Description:
+    This test module validates PFC watchdog functionality under many-to-one
+    traffic patterns. It tests PFCWD's ability to detect and recover from
+    PFC storms when multiple ingress ports send traffic to a single egress port.
+
+Test Intent:
+    - test_pfcwd_many_to_one: Validates PFC watchdog detection and recovery
+      under many-to-one traffic pattern with parametrized testing for both
+      triggered (storm detected) and non-triggered (normal operation) scenarios
+
+Topology:
+    - tgen: Requires IXIA traffic generator topology
+
+Fixtures Used:
+    - ixia_api: IXIA session for traffic generation
+    - ixia_testbed_config: Testbed and port configuration
+    - conn_graph_facts: DUT-to-IXIA connection topology
+    - fanout_graph_facts: Fanout switch information
+    - rand_one_dut_lossless_prio: Random lossless priority for testing
+    - lossy_prio_list: List of lossy priorities
+    - prio_dscp_map: Priority to DSCP mapping
+    - setup_cgm_alpha_cisco: Cisco CGM alpha configuration
+    - trigger_pfcwd: Parametrized boolean for storm triggering
+
+Dependencies:
+    - files.pfcwd_multi_node_helper: Multi-node PFCWD test implementation
+    - files.helper: PFCWD test skip logic
+
+Notes:
+    - Tests both storm detection (trigger_pfcwd=True) and normal operation
+    - Many-to-one pattern stresses single egress port with multiple senders
+    - Common real-world traffic pattern (e.g., server-to-uplink)
+    - Validates PFCWD properly handles port-level storms
+    - Some platforms may skip tests based on capability
+=============================================================================
+"""
 import pytest
 
 from tests.common.helpers.assertions import pytest_require

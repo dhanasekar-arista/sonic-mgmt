@@ -1,3 +1,51 @@
+"""
+=============================================================================
+Module: sai_qualify
+File: test_sai_ptf.py
+=============================================================================
+
+Description:
+    This test module runs general SAI qualification tests using the PTF framework.
+    It executes a comprehensive suite of SAI test cases to validate SAI implementation
+    correctness, data plane functionality, and adherence to SAI specifications
+    without requiring warm reboot or special scenarios. This is the baseline SAI
+    qualification test suite.
+
+Test Intent:
+    - test_sai: Executes parametrized SAI test cases from the TEST_CASE suite,
+      validates SAI API behavior, data plane packet processing, and proper SAI
+      object management, then stores test results and cleans up test containers
+
+Topology:
+    - Supported: ptf topology
+    - Requires saiserver running on DUT
+    - PTF framework for SAI test execution
+
+Fixtures Used:
+    - sai_testbed: Prepares SAI test environment
+    - sai_test_env_check: Validates environment readiness
+    - creds: Docker registry credentials
+    - duthost: DUT host object
+    - ptfhost: PTF server for test execution
+    - request: Pytest request metadata
+    - create_sai_test_interface_param: Interface parameters for SAI testing
+
+Dependencies:
+    - cases_sai_ptf: SAI PTF test case definitions
+    - sai_infra: SAI test infrastructure and execution framework
+    - conftest: Shared fixtures and configuration
+
+Notes:
+    - Sanity checks are skipped for SAI-specific validation
+    - Loganalyzer disabled to avoid interference with SAI testing
+    - DUT health checks skipped during SAI test execution
+    - SAI test container cleaned up after each test case
+    - Test results stored on PTF host for analysis
+    - Container lifecycle managed per test to ensure clean state
+    - Test failures trigger container cleanup before reporting
+=============================================================================
+"""
+
 import pytest
 import logging
 

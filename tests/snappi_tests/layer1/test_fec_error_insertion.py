@@ -1,20 +1,64 @@
+"""
+=============================================================================
+Module: snappi_tests/layer1
+File: test_fec_error_insertion.py
+=============================================================================
+
+Description:
+    This test validates FEC (Forward Error Correction) error handling on SONiC
+    devices using Snappi/IxNetwork traffic generator. It injects various types
+    of FEC errors on transmit ports and verifies that the DUT correctly detects
+    errors, handles link state changes, and experiences expected packet loss
+    patterns based on the error type.
+
+Test Intent:
+    - test_fec_error_injection: Tests multiple FEC error injection scenarios
+      including codeWords, laneMarkers, minConsecutiveUncorrectableWithLossOfLink,
+      and maxConsecutiveUncorrectableWithoutLossOfLink. Validates that certain
+      error types (codeWords, laneMarkers, minConsecutive) cause link down and
+      packet drop, while others (maxConsecutive) cause packet drop without link
+      loss. Verifies that links recover and traffic resumes after error injection
+      stops. Ensures proper FEC error detection and handling across different
+      high-speed modes (200G, 400G, 800G).
+
+Topology:
+    NUT (Network Under Test) topology with Snappi traffic generator
+
+Fixtures Used:
+    - duthosts: Provides list of DUT hosts for testing
+    - snappi_api: Snappi API interface for traffic generation and control
+    - get_snappi_ports: Retrieves Snappi port configuration
+    - fanout_graph_facts_multidut: Provides fanout graph facts for multi-DUT setup
+    - set_primary_chassis: Sets the primary chassis for testing
+    - create_snappi_config: Creates Snappi configuration for the test
+
+Dependencies:
+    - tests.snappi_tests.dataplane.imports: Core Snappi test utilities
+    - snappi_tests.dataplane.files.helper: Helper functions for BGP, traffic,
+      and configuration management
+
+Notes:
+    - Requires at least two front panel ports
+    - Parameterized for different fanout configurations (fanout_per_port=2 means
+      2x400G on 800G port, 4 means 4x200G, 8 means 8x100G)
+    - Not supported for 8x100G speed mode
+    - FEC error types tested: codeWords, laneMarkers,
+      minConsecutiveUncorrectableWithLossOfLink,
+      maxConsecutiveUncorrectableWithoutLossOfLink
+    - codeWords error sets PerCodeword=16 for testing
+    - Uses BGP protocol for IPv6 traffic flows
+    - Default parameters: 20% frame rate, 1024 byte frames
+    - Waits 15 seconds for error insertion to take effect
+    - Waits 20 seconds for error insertion to stop and links to recover
+    - Uses finally block to ensure FEC error insertion is stopped even on failure
+=============================================================================
+"""
 from tests.snappi_tests.dataplane.imports import pytest, SnappiTestParams, wait_for_arp, wait, pytest_assert
 from snappi_tests.dataplane.files.helper import get_duthost_bgp_details, create_snappi_config, \
     get_fanout_port_groups, set_primary_chassis, create_traffic_items, start_stop, get_stats    # noqa: F401, F405
 import logging
 pytestmark = [pytest.mark.topology("nut")]
 logger = logging.getLogger(__name__)  # noqa: F405
-
-"""
-    The following FEC ErrorTypes are the options available for AresOneM in 800G, 400G and 200G speed modes in IxNetwork
-    with which the Ports go down when the error is injected or there is packet drop.
-    example:
-        For codeWords, laneMarkers, minConsecutiveUncorrectableWithLossOfLink link goes down and there is packet drop
-        For maxConsecutiveUncorrectableWithoutLossOfLink link does not go down and there is packet drop
-
-    # Note: Need atleast two front panel ports for this test
-
-"""
 ErrorTypes = [
     "codeWords",
     "laneMarkers",

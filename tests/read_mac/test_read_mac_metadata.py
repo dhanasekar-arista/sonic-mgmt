@@ -1,3 +1,50 @@
+"""
+=============================================================================
+Module: read_mac
+File: test_read_mac_metadata.py
+=============================================================================
+
+Description:
+    This test validates that MAC address metadata remains valid and properly
+    formatted after repeatedly installing different SONiC images. It ensures
+    MAC addresses are correctly preserved across image upgrades and interface
+    configurations maintain proper MTU settings.
+
+Test Intent:
+    - test_read_mac_metadata: Downloads two different SONiC images, then
+      iteratively installs them alternately on the DUT. After each installation
+      and reboot, verifies that MAC address in DEVICE_METADATA matches the
+      expected format (XX:XX:XX:XX:XX:XX), checks no "can't parse mac address
+      'None'" errors appear in syslog, validates all interfaces are UP, and
+      confirms MTU is set to 9100 on all active ports and portchannels.
+
+Topology:
+    any topology
+
+Fixtures Used:
+    - cleanup_read_mac: Function-scoped fixture that restores the original
+      image if changed, removes temporary image files, and restores minigraph
+      from backup if it was modified during testing
+
+Dependencies:
+    - tests.common.reboot: Reboot DUT and wait for startup
+    - tests.common.config_reload: Apply minigraph configuration
+    - tests.common.plugins.loganalyzer.loganalyzer.LogAnalyzer: Syslog parsing
+    - check_interfaces: Fixture to validate interface status
+
+Notes:
+    - Requires --image1 and --image2 command-line options (URLs to SONiC images)
+    - Accepts optional --iteration parameter (default: 1) for number of cycles
+    - Accepts optional --minigraph1 and --minigraph2 for topology configs
+    - Backs up existing minigraph.xml before testing if provided
+    - Downloads images to /tmp on localhost before transferring to DUT
+    - Uses LogAnalyzer to detect MAC parsing errors in syslog
+    - Removes old images after each iteration to free disk space
+    - Validates MAC format using regex: [0-9a-fA-F:]{17}
+    - Checks MTU == 9100 on all admin_status=up ports/portchannels
+    - Waits up to 300s for critical services to fully start after reboot
+=============================================================================
+"""
 import pytest
 import logging
 

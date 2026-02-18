@@ -1,3 +1,51 @@
+"""
+=============================================================================
+Module: srv6
+File: test_srv6_static_config.py
+=============================================================================
+
+Description:
+    This test module validates static SRv6 configuration on SONiC switches via
+    CONFIG_DB manipulation. It tests locator and MY_SID configuration through
+    direct database entries, verifying that bgpcfgd correctly generates FRR
+    configuration and programs APPL_DB with SRv6 endpoint behavior settings.
+
+Test Intent:
+    - test_uN_config: Validates static SRv6 configuration by adding locator and
+      uN (endpoint with next-header decapsulation) SID entries to CONFIG_DB,
+      verifying bgpcfgd generates correct FRR configuration, and confirming
+      APPL_DB is properly programmed with SID behavior information
+
+Topology:
+    - Supported: t0, t1
+    - Works on both single-ASIC and multi-ASIC platforms
+
+Fixtures Used:
+    - duthosts: All DUT hosts in testbed
+    - enum_frontend_dut_hostname: Frontend DUT selection
+    - enum_rand_one_asic_index: Random ASIC instance selection for multi-ASIC
+
+Dependencies:
+    - srv6_utils: SRv6 validation utilities for APPL_DB verification
+    - tests.common.utilities: Wait and retry utilities
+    - bgpcfgd: BGP configuration daemon for FRR config generation
+
+Notes:
+    - Configuration tables used:
+      - SRV6_MY_LOCATORS: Locator prefix and function length
+      - SRV6_MY_SIDS: SID action and behavior parameters
+    - Test locator: fcbb:bbbb:1:: with func_len 0
+    - Test SID: fcbb:bbbb:1::/48 with uN behavior
+    - SID parameters: action=uN, decap_dscp_mode=pipe
+    - Wait time between operations: 5 seconds
+    - FRR config verification includes "locator loc1" and "behavior uN" clauses
+    - APPL_DB verification timeout: 60 seconds with 2-second polling
+    - Multi-ASIC: uses namespace-specific sonic-db-cli and vtysh commands
+    - uN behavior: decapsulates outer IPv6 header, forwards based on inner header
+    - DSCP mode pipe: copies DSCP from inner header to outer after decapsulation
+=============================================================================
+"""
+
 import time
 import pytest
 from tests.common.utilities import wait_until

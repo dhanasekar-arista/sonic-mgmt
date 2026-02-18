@@ -1,8 +1,48 @@
+"""
+=============================================================================
+Module: vxlan
+File: test_vxlan_route_advertisement.py
+=============================================================================
+
+Description:
+    This test suite validates VXLAN ECMP route advertisement functionality.
+    It verifies that VNET routes are correctly advertised to BGP neighbors
+    and that route advertisements update properly when routes are added,
+    modified, or removed.
+
+Test Intent:
+    - test_route_advertisement: Validates that VNET routes are correctly
+      advertised to BGP neighbors via "show ip bgp neighbor advertised-routes"
+
+Topology:
+    t1, vs (supports t1, t1-64-lag, t1-56-lag, t1-lag, virtual switch)
+
+Fixtures Used:
+    - encap_type: Parametrized fixture for encapsulation type (v4_in_v4, v6_in_v4)
+    - setUp: Module-scoped fixture for VXLAN configuration
+    - _ignore_route_sync_errlogs: Auto-use fixture to ignore expected errors
+    - duthosts: Multi-DUT fixture
+    - rand_one_dut_hostname: Random DUT selection
+    - minigraph_facts: Minigraph information
+    - tbinfo: Testbed information
+
+Dependencies:
+    - tests.common.helpers.assertions: For pytest assertions
+    - tests.common.vxlan_ecmp_utils: For VXLAN ECMP utilities
+
+Notes:
+    - Supported encap types: v4_in_v4, v6_in_v4
+    - Destination prefix: 150
+    - Nexthop prefix: 100
+    - Wait time between operations: 2 seconds
+    - Extra wait time for BGP: 5 seconds
+    - Validates BGP route advertisement via CLI output
+    - Ignores expected route sync and VNET error logs
+    - Supports both physical and virtual (vs) platforms
+    - Tests route advertisement after VNET route creation
+=============================================================================
+"""
 #! /usr/bin/env python3
-'''
-    These tests check the Vxlan ecmp Route advertisement. Further details are
-    provided with each test.
-'''
 
 import time
 import logging

@@ -1,3 +1,52 @@
+"""
+=============================================================================
+Module: fdb
+File: test_fdb_flush.py
+=============================================================================
+
+Description:
+    This module tests FDB flush operations in SONiC switches. It validates
+    that FDB entries can be properly added, removed, and flushed using various
+    methods including swssconfig for static entries and sonic-clear for dynamic
+    entries, while ensuring system stability with no core dumps.
+
+Test Intent:
+    - test_fdb_flush: Validates multiple FDB flush scenarios including dynamic
+      entry flush, static entry flush, per-interface flush, and mixed flush
+      operations. Ensures no core files are generated after FDB operations
+      including swssconfig add/remove, sonic-clear fdb all, packet-based
+      dynamic FDB creation, and interface shutdown/startup.
+
+Topology:
+    Supports t0, m0, and mx topologies
+
+Fixtures Used:
+    - copy_ptftests_directory: Copies PTF test scripts to PTF host
+    - ptfhost: PTF host for traffic generation
+    - duthosts: DUT host objects
+    - rand_one_dut_hostname: Randomly selected DUT for testing
+    - tbinfo: Testbed information
+
+Dependencies:
+    - tests.common.helpers.assertions: pytest_assert for validations
+    - tests.common.fixtures.ptfhost_utils: PTF utilities
+    - tests.ptf_runner: PTF test execution framework
+    - .utils: fdb_cleanup utility for FDB table cleanup
+
+Notes:
+    - Test validates four flush types: dynamic, static, interface, mix
+    - Uses dummy MAC prefix "00:11:22:33:55" for test entries
+    - Static FDB entries added via swssconfig with JSON configuration
+    - Dynamic FDB entries created by sending packets
+    - FDB info stored in /tmp/fdb_info.txt on DUT
+    - JSON config files: fdb_set_test.json and fdb_del_test.json
+    - Working directory: /etc/sonic/ on DUT
+    - Test verifies no new core files generated after operations
+    - Interface flush tests shutdown/startup to validate FDB cleanup
+    - Mix flush tests combination of static and dynamic entry operations
+    - Cleanup ensures FDB table is flushed before test execution
+=============================================================================
+"""
 import logging
 import pytest
 import json

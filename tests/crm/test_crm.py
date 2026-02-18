@@ -1,3 +1,59 @@
+"""
+Module: tests.crm.test_crm
+File: test_crm.py
+
+Description:
+    Comprehensive test suite for SONiC Critical Resource Monitoring (CRM) functionality.
+    This module validates CRM counter accuracy, threshold alerting mechanisms, and resource
+    tracking for various networking resources including routes, neighbors, nexthops, nexthop
+    groups, ACL entries/counters, and FDB entries across multiple platforms and topologies.
+
+Test Intent:
+    - Verify CRM counter accuracy when resources are added and removed
+    - Validate CRM threshold mechanisms (high/low watermark) and syslog alerts
+    - Test resource tracking for: IPv4/IPv6 routes, neighbors, nexthops, nexthop groups,
+      ACL entries, ACL counters, and FDB entries
+    - Ensure platform-specific behaviors are handled correctly (Cisco, Mellanox, Marvell)
+    - Validate CRM counter updates occur within expected timeframes
+    - Test resource scaling by populating resources to trigger percentage thresholds
+
+Topology:
+    Supported topologies: any (t0, t1, m0, mx, m1, etc.)
+    - Tests require frontend DUTs with operational interfaces
+    - Some tests require specific interface types (routed ports, port channels)
+    - IPv6-only topologies skip IPv4-specific tests automatically
+
+Fixtures Used:
+    - duthosts: Access to all DUTs in testbed
+    - enum_rand_one_per_hwsku_frontend_hostname: Random frontend DUT selection per SKU
+    - enum_frontend_asic_index: ASIC instance selection for multi-ASIC platforms
+    - crm_interface: Module fixture providing two operational DUT interfaces
+    - disable_route_checker: Disables route consistency checker during route tests
+    - disable_fdb_aging: Disables FDB aging during FDB tests
+    - handle_default_acl_rules: Manages DATAACL rules during ACL tests
+    - collector: Shared data structure for passing state between test stages
+    - loganalyzer: Captures and validates syslog messages for threshold violations
+    - tbinfo: Testbed topology information
+
+Dependencies:
+    - CRM daemon running and functional on DUT
+    - Redis COUNTERS_DB and CONFIG_DB accessible
+    - LogAnalyzer for syslog validation
+    - Jinja2 for command template rendering
+    - Platform-specific modules: cisco_data, mellanox_data
+    - ACL loader functionality
+    - SWSS (Switch State Service) container operational
+
+Notes:
+    - Tests use adaptive polling with wait_until for counter stabilization
+    - Platform-specific tolerances and behaviors (Cisco-8000, Mellanox, Marvell)
+    - Route counter updates may take up to 15 seconds (ROUTE_COUNTER_POLL_TIMEOUT)
+    - VS/KVM platforms skip threshold verification (ASIC DB not applicable)
+    - Batched configuration for large-scale operations to avoid kernel limits
+    - Cleanup commands stored in RESTORE_CMDS for teardown
+    - History includes optimizations for SN4700, DNX platforms, IPv6-only topologies
+"""
+
 import pytest
 import time
 import json

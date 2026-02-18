@@ -1,3 +1,38 @@
+"""
+=============================================================================
+Module: k8s
+File: test_disable_flag.py
+=============================================================================
+
+Description:
+    This test module validates the Kubernetes server disable flag functionality
+    in SONiC. It tests the ability to enable/disable DUT connection to
+    Kubernetes master and verifies proper state transitions.
+
+Test Intent:
+    - test_disable_flag: Validates that the kube server disable flag correctly
+      controls DUT connection to Kubernetes master, testing transitions from
+      connected -> disabled -> enabled states and verifying state changes
+
+Topology:
+    - any: Works with any topology
+
+Fixtures Used:
+    - duthost: DUT host object for configuration
+    - k8scluster: Kubernetes cluster fixture providing master VIP
+
+Dependencies:
+    - k8s_test_utilities: Kubernetes test helper functions
+    - tests.common.helpers.assertions: Test assertion utilities
+
+Notes:
+    - Tests 'config kube server disable on/off' commands
+    - Validates server connection status changes appropriately
+    - Uses polling to wait for status transitions
+    - Ensures DUT properly disconnects when disabled
+    - Verifies automatic reconnection when re-enabled
+=============================================================================
+"""
 import pytest
 import k8s_test_utilities as ku
 

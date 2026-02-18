@@ -1,5 +1,71 @@
 """
-Test the auto-restart feature of containers
+=============================================================================
+Module: test_container_autorestart
+File: test_container_autorestart.py
+=============================================================================
+
+Description:
+    This module tests the auto-restart feature of SONiC containers to ensure
+    that critical processes are properly monitored and containers are
+    automatically restarted when critical processes fail. It validates that
+    non-critical processes can be killed without triggering a container
+    restart, while killing critical processes results in container restart.
+
+Test Intent:
+    - test_containers_autorestart: Validates the container auto-restart
+      mechanism by killing critical and non-critical processes. Ensures that
+      killing a non-critical process (rsyslogd) does not trigger container
+      restart, while killing critical processes causes the container to stop
+      and automatically restart. Verifies that all critical processes are
+      running and BGP sessions are established after the restart cycle.
+
+Topology:
+    any - This test is topology-agnostic and runs on any supported topology
+
+Fixtures Used:
+    - config_reload_after_tests (module, autouse): Module-scoped fixture that
+      enables autorestart for all features before testing and performs a config
+      reload after tests complete to restore original state. Handles special
+      dhcp_server setup for mx topology.
+    - ignore_expected_loganalyzer_exception (autouse): Function-scoped fixture
+      that configures loganalyzer to ignore expected error/warning messages
+      during autorestart testing (e.g., monit errors, syncd warnings, teamd
+      errors).
+    - duthosts: Collection of all DUT hosts in the testbed
+    - enum_rand_one_per_hwsku_hostname: Parametrized fixture providing one
+      random DUT hostname per hardware SKU
+    - enum_rand_one_asic_index: Parametrized fixture providing one random ASIC
+      index for multi-ASIC devices
+    - enum_dut_feature: Parametrized fixture providing each feature/container
+      to test
+    - tbinfo: Testbed information including topology type
+    - loganalyzer: Log analyzer fixture for filtering expected error messages
+
+Dependencies:
+    Key imports and helper modules:
+    - tests.common.utilities.wait_until: Polling utility for state verification
+    - tests.common.helpers.assertions: pytest_assert and pytest_require
+    - tests.common.config_reload: Config reload functionality
+    - tests.common.helpers.dut_utils.get_disabled_container_list: Get disabled
+      containers
+    - DutHost methods: get_feature_status, all_critical_process_status,
+      get_critical_group_and_process_lists, get_bgp_neighbors_per_asic,
+      check_bgp_session_state_all_asics
+
+Notes:
+    - Skips testing for database, acms containers, radv (on non-T0), and
+      disabled containers
+    - Uses 'rsyslogd' as the standard non-critical process for testing across
+      all containers
+    - Handles start-limit-hit scenarios by clearing the failed flag and
+      restarting containers
+    - Post-check timeouts are higher for T2 chassis (600s vs 360s)
+    - Known issue on Cisco-8000 T2 chassis: BGP sessions may fail after teamd
+      auto-restart (marked as xfail)
+    - Skips gnmi container testing in 202412 release
+    - Currently tests only one critical process per container (extended mode
+      commented out)
+=============================================================================
 """
 import logging
 import re

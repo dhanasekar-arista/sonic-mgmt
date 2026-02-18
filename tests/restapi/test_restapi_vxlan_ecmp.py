@@ -1,3 +1,54 @@
+"""
+=============================================================================
+Module: restapi
+File: test_restapi_vxlan_ecmp.py
+=============================================================================
+
+Description:
+    Tests REST API operations for VxLAN ECMP (Equal-Cost Multi-Path) route
+    management in SONiC VNET. Validates adding, retrieving, and deleting
+    VxLAN tunnel routes with multiple next-hops through REST API.
+
+Test Intent:
+    - test_vxlan_ecmp_multirequest: Stress tests REST API by repeatedly adding
+      and deleting VxLAN routes with ECMP next-hops. Test sequence:
+      1. Add 2 initial routes (A, B)
+      2. Loop 10 times:
+         - Verify routes A, B exist
+         - Add 3 more routes (C, D, E) with ECMP next-hops
+         - Verify all 5 routes (A, B, C, D, E) exist
+         - Delete routes C, D, E
+      3. Delete initial routes A, B
+      4. Verify all routes deleted
+      This emulates common production scenarios with frequent route updates.
+
+Topology:
+    t0, t1 topologies
+
+Fixtures Used:
+    - construct_url: REST API base URL fixture
+    - vlan_members: VLAN member configuration fixture
+    - duthost: DUT host instance for CLI verification
+
+Dependencies:
+    - restapi_operations.Restapi: REST API operation wrapper class
+    - tests.common.utilities.wait_until: Polling utility for route verification
+
+Notes:
+    - Disables loganalyzer for these tests
+    - Uses client certificate: restapiclient.crt with key restapiclient.key
+    - ROUTES_DATA contains 5 test routes with ECMP next-hops
+    - Each route has comma-separated next-hops (e.g., "100.78.60.37,100.78.61.37")
+    - IP prefixes: 10.1.0.1/32 through 10.1.0.5/32
+    - Initial routes: routes 0 and 4 (10.1.0.1/32 and 10.1.0.5/32)
+    - Additional routes: routes 1, 2, 3 (10.1.0.2/32, 10.1.0.3/32, 10.1.0.4/32)
+    - Uses "show vnet routes tunnel" to verify route installation
+    - Uses "show vnet alias" to map VNET alias to VNET name
+    - get_vnet_name() retrieves VNET name from alias
+    - get_vnet_routes() parses CLI output to list format for comparison
+    - Tests both single route operations and batch operations
+=============================================================================
+"""
 import pytest
 import logging
 import json

@@ -1,23 +1,57 @@
-"""SAI thrift-based tests for the QoS feature in SONiC.
+"""
+=============================================================================
+Module: qos
+File: test_qos_sai.py
+=============================================================================
 
-This set of test cases verifies QoS, buffer behavior, and buffer drop counter behavior. These are dataplane
-tests that depend on the SAI thrift library in order to pause ports/queues and read buffer drop counters as well
-as generic drop counters.
+Description:
+    SAI thrift-based comprehensive QoS test suite for SONiC. Validates QoS
+    behavior, buffer management, drop counters, WRED, ECN, PFC, lossy/lossless
+    traffic, headroom, and various buffer pool scenarios using SAI APIs.
 
-Parameters:
-    --ptf_portmap <filename> (str): file name of port index to DUT interface alias map. Default is None.
-        In case a filename is not provided, a file containing a port indices to aliases map will be generated.
+Test Intent:
+    - testQosSaiDscpQueueMapping: Validates DSCP to queue mapping
+    - testQosSaiLossyQueue: Tests lossy queue behavior and packet drops
+    - testQosSaiLosslessQueue: Verifies lossless queue with PFC
+    - testQosSaiDwrr: Tests Deficit Weighted Round Robin scheduling
+    - testQosSaiFillBufferDrop: Validates buffer drop when queues fill
+    - testQosSaiSharedPoolSize: Tests shared pool buffer allocation
+    - testQosSaiHeadroomPoolSize: Validates headroom pool sizing
+    - testQosSaiWatermark: Tests watermark counter accuracy
+    - testQosSaiPfcStorm: Validates PFC storm handling
+    - testQosSaiPfcXon: Tests PFC XON behavior
+    - testQosSaiPfcXonLimit: Validates PFC XON threshold limits
+    - testQosSaiSurplus: Tests surplus buffer handling
+    - testQosSaiDscpToPgMapping: Validates DSCP to PG mapping for tunnels
 
-    --disable_test (bool): Disables experimental QoS SAI test cases. Default is True.
+Topology:
+    any topology
 
-    --qos_swap_syncd (bool): Used to install the RPC syncd image before running the tests. Default is True.
+Fixtures Used:
+    - ignore_expected_loganalyzer_exception: Autouse fixture ignoring known
+      errors (syncd MAC update, lldp socket, memory threshold on 7050QX)
+    - check_skip_shared_res_test: Skips shared resource tests if unsupported
+    - dut_qos_maps: DUT QoS mapping configuration
+    - separated_dscp_to_tc_map_on_uplink: Separated DSCP maps for uplinks
+    - load_dscp_to_pg_map: DSCP to PG mapping loader
+    - swap_syncd: Swaps to RPC syncd image
 
-    --qos_dst_ports (list) Indices of available DUT test ports to serve as destination ports. Note: This is not port
-        index on DUT, rather an index into filtered (excludes lag member ports) DUT ports. Plan is to randomize port
-        selection. Default is [0, 1, 3].
+Dependencies:
+    - tests.qos.qos_sai_base.QosSaiBase: Base class with SAI helper methods
+    - SAI thrift library: For port/queue pause and counter operations
+    - tests.common.helpers.pfc_storm.PFCStorm: PFC storm generation
+    - tests.common.helpers.pfcwd_helper: PFCwd timer/port configuration
 
-    --qos_src_ports (list) Indices of available DUT test ports to serve as source port. Similar note as in
-        qos_dst_ports applies. Default is [2].
+Notes:
+    - Requires RPC syncd (--qos_swap_syncd=True by default)
+    - Can disable experimental tests with --disable_test
+    - Default dst ports: [0, 1, 3], src ports: [2]
+    - Uses PTF port mapping mode: 'use_orig_interface'
+    - Dummy IPs for tunnel tests: outer 8.8.8.8, inner 9.9.9.9->10.10.10.10
+    - Supports dualtor with tunnel_qos_remap
+    - Uses tabulate for formatted output
+    - Ignores switch MAC update errors and lldp socket errors
+=============================================================================
 """
 
 import logging

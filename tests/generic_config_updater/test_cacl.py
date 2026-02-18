@@ -1,3 +1,38 @@
+"""
+=============================================================================
+Module: generic_config_updater
+File: test_cacl.py
+=============================================================================
+
+Description:
+    Tests control plane ACL (CACL) configuration using Generic Config Updater.
+    Validates adding, replacing, and removing ACL tables and rules for control
+    plane services like NTP, SNMP, and SSH.
+
+Test Intent:
+    - test_cacl_table_add_del: Adds then removes ACL tables
+    - test_cacl_rule_add_del: Adds then removes ACL rules
+    - test_cacl_table_update: Updates existing ACL table configuration
+    - test_cacl_rule_update: Updates ACL rule configuration
+
+Topology:
+    Supports t0, m0, mx, m1, t1, t2, lt2, ft2 topologies
+
+Fixtures Used:
+    - setup_env: Creates checkpoint for rollback
+
+Dependencies:
+    - tests.common.gu_utils: GCU utilities for patch operations
+    - tests.common.utilities: wait_until for polling
+    - tests.common.config_reload: config_reload utility
+
+Notes:
+    - Tests CTRLPLANE ACL type tables (NTP_ACL, SNMP_ACL, SSH_ONLY)
+    - Validates ACL binding to services (NTP, SNMP, SSH)
+    - Stage: ingress for all control plane ACLs
+    - Uses difflib for configuration comparison
+=============================================================================
+"""
 import logging
 import pytest
 import time

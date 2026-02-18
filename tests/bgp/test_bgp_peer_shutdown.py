@@ -1,4 +1,47 @@
-"""Check if BGP session is shutdown correctly."""
+"""
+=============================================================================
+Module: bgp
+File: test_bgp_peer_shutdown.py
+=============================================================================
+
+Description:
+    Tests BGP peer shutdown functionality to ensure sessions are torn down
+    gracefully with proper BGP NOTIFICATION messages. Validates that shutdown
+    and startup operations work correctly with appropriate BGP protocol behavior.
+
+Test Intent:
+    - test_bgp_neigh_admin_shutdown: Verifies BGP neighbor administrative shutdown
+      sends proper NOTIFICATION messages and tears down session correctly
+    - test_bgp_startup_shutdown: Tests BGP startup and shutdown commands ensure
+      proper session state transitions with BGP NOTIFICATION handling
+
+Topology:
+    t0, t1, t2, m1, lt2, ft2
+
+Fixtures Used:
+    - common_setup_teardown: Sets up test BGP neighbors and PTF configuration
+    - is_dualtor: Dual-ToR topology detection
+    - is_quagga: Quagga BGP implementation detection
+    - setup_interfaces: Interface configuration for test peers
+    - ptfhost: PTF host for exabgp and packet capture
+
+Dependencies:
+    - tests.bgp.bgp_helpers: BGP packet capture utilities
+    - tests.common.helpers.bgp.BGPNeighbor: BGP neighbor management
+    - tests.common.helpers.constants.DEFAULT_NAMESPACE
+    - tests.common.utilities: wait_until, delete_running_config, is_ipv6_only_topology
+    - scapy: Packet capture and analysis
+
+Notes:
+    - Captures and analyzes BGP NOTIFICATION messages via tcpdump
+    - Tests both IPv4 and IPv6 BGP sessions
+    - Validates NOTIFICATION cease code (6) for admin shutdown
+    - Supports confederated ASN configurations
+    - Uses exabgp on PTF for establishing test BGP sessions
+    - Performs multiple iterations to ensure consistency
+    - Cleans up test neighbors after completion
+=============================================================================
+"""
 
 import logging
 import os

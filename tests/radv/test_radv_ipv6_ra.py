@@ -1,3 +1,50 @@
+"""
+=============================================================================
+Module: radv
+File: test_radv_ipv6_ra.py
+=============================================================================
+
+Description:
+    Tests IPv6 Router Advertisement (RA) functionality provided by the RADVd
+    daemon in SONiC. Validates periodic RA transmission, solicited RA responses,
+    and RA content for VLAN interfaces on virtual switch platforms.
+
+Test Intent:
+    - test_radv_periodic_ra: Verifies that RADVd sends periodic unsolicited
+      Router Advertisements at configured intervals (MinRtrAdvInterval=3s,
+      MaxRtrAdvInterval=4s) on all VLAN interfaces
+    - test_radv_solicited_ra: Validates that RADVd responds to Router
+      Solicitation (RS) messages from clients with immediate Router
+      Advertisement responses containing correct prefix and link-local address
+
+Topology:
+    t0, m0, mx topologies (virtual switch only)
+
+Fixtures Used:
+    - radv_test_setup: Module-scoped autouse fixture that collects downlink
+      VLAN interface info, PTF port mappings, and IPv6 link-local addresses
+      for DUT VLAN interfaces and connected PTF ports
+    - dut_update_radv_periodic_ra_interval: Function-scoped fixture that
+      backs up radvd.conf, updates MinRtrAdvInterval to 3s and MaxRtrAdvInterval
+      to 4s, restarts RADVd, then restores original config after test
+
+Dependencies:
+    - tests.ptf_runner.ptf_runner: Executes PTF tests for RA verification
+    - tests.common.dualtor: Dualtor mock and mux simulator for dualtor testing
+    - ipaddress module: IPv6 address validation and manipulation
+
+Notes:
+    - Only runs on device_type='vs' (virtual switch)
+    - RADVd config file: /etc/radvd.conf (inside radv container)
+    - Backup config: /tmp/radvd.conf
+    - Default test intervals: MinRtrAdvInterval=3s, MaxRtrAdvInterval=4s
+    - Collects link-local IPv6 addresses from DUT VLAN interfaces
+    - PTF test script: radv_ipv6_ra.IPv6RATest (in ptftests directory)
+    - Validates RA contains correct source/dest addresses and prefix info
+    - Sends Router Solicitation from PTF to trigger solicited RA
+    - Restarts RADVd after config update to apply new intervals
+=============================================================================
+"""
 import ipaddress
 import logging
 

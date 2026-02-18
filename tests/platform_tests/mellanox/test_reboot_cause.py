@@ -1,3 +1,39 @@
+"""
+=============================================================================
+Module: platform_tests
+File: test_reboot_cause.py
+=============================================================================
+
+Description:
+    Mellanox-specific test validating reboot cause detection from BIOS and ASIC
+    reset sources. Uses RebootCauseMocker to simulate different reboot types and
+    verifies determine-reboot-cause service reports correct cause.
+
+Test Intent:
+    - test_reboot_cause: Verify reboot cause detection for BIOS and ASIC reset types
+
+Topology:
+    Any topology - Mellanox platforms only
+
+Fixtures Used:
+    - rand_selected_dut: Randomly selected DUT
+    - mocker_factory: Creates RebootCauseMocker for simulating reboot causes
+
+Dependencies:
+    - RebootCauseMocker for simulating reset conditions
+    - determine-reboot-cause systemd service
+    - check_reboot_cause helper function
+
+Notes:
+    - Test only runs on Mellanox ASIC platforms
+    - Parametrized test covering REBOOT_TYPE_BIOS and REBOOT_TYPE_ASIC
+    - Mocks hardware reset registers to simulate reboot causes
+    - Restarts determine-reboot-cause service to trigger detection
+    - Validates reboot cause matches expected type
+    - Allure test reporting integration with step-by-step tracking
+    - Does not perform actual system reboot (uses mocking)
+=============================================================================
+"""
 import allure
 import logging
 import pytest

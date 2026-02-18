@@ -1,5 +1,48 @@
 """
-On SONiC device reboot, tests the link down on fanout switches for T2 chassis Supervisor
+=============================================================================
+Module: platform_tests
+File: test_link_down_sup.py
+=============================================================================
+
+Description:
+    T2 chassis supervisor reboot test validating that fanout switch links properly
+    go down when supervisor reboots, then come back up when supervisor and line cards
+    recover. Ensures proper link state synchronization across chassis.
+
+Test Intent:
+    - test_link_down_on_sup_reboot: Verify fanout links go down on supervisor reboot
+      and come back up after supervisor and all line cards recover
+
+Topology:
+    T2 modular chassis topology
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - enum_supervisor_dut_hostname: Selects supervisor DUT
+    - localhost: Localhost connection
+    - conn_graph_facts: Connection graph for fanout mapping
+    - fanouthosts: Fanout switch fixture
+    - xcvr_skip_list: Transceiver skip list
+
+Dependencies:
+    - SafeThreadPoolExecutor for parallel link status checks
+    - reboot and wait_for_startup for reboot operations
+    - get_max_to_reboot for timeout calculation
+    - check_interfaces_and_services_all_lcs for line card validation
+    - fanout_hosts_and_ports for fanout mapping
+    - link_status_on_host for link status validation
+
+Notes:
+    - Test skips on single-host DUT (requires multi-DUT T2 chassis)
+    - Loganalyzer disabled (expected error logs during supervisor reboot)
+    - Validates all fanout links down after supervisor reboot
+    - Waits for supervisor recovery
+    - Validates all line cards recover and services healthy
+    - Confirms all fanout links back up after full recovery
+    - Uses parallel execution for efficiency on multi-host validation
+    - max_time_to_reboot calculated from platform reboot control
+    - Verifies link status across all frontend nodes and fanouts
+=============================================================================
 """
 import logging
 import pytest

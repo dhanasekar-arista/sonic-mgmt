@@ -1,3 +1,58 @@
+"""
+=============================================================================
+Module: Dual ToR Server Load Balancer (SLB) BGP Route Test
+File: test_orchagent_slb.py
+=============================================================================
+
+Description:
+    This test validates BGP route announcement and withdrawal from SLB (Server Load
+    Balancer) to dual ToR devices via Loopback3 interface. It verifies that routes
+    announced from SLB are correctly installed, traffic is properly forwarded based
+    on mux state (direct to server on active, tunneled on standby), and routes are
+    properly removed upon withdrawal.
+
+Test Intent:
+    - test_orchagent_slb: Comprehensive test that validates SLB BGP functionality:
+      1. Establishes BGP sessions from SLB to both ToRs via Loopback3
+      2. Announces routes and verifies installation in routing tables
+      3. Validates traffic forwarding (direct on active, tunnel on standby)
+      4. Withdraws routes and verifies removal from routing tables
+      5. Tests mux state transitions and verifies traffic behavior changes
+      6. Validates BGP session teardown and route persistence
+
+Topology:
+    dualtor - Requires dual ToR topology
+
+Fixtures Used:
+    - bgp_neighbors: BGP neighbor objects for upper and lower ToR
+    - constants: Test constants including route prefix, nexthop, and timing values
+    - force_active_tor: Forces specific ToR to be active
+    - upper_tor_host: Upper ToR device host object
+    - lower_tor_host: Lower ToR device host object
+    - ptfadapter: PTF adapter for traffic testing
+    - ptfhost: PTF host for running BGP services
+    - setup_interfaces: Configures BGP session interfaces
+    - toggle_all_simulator_ports_to_upper_tor: Sets mux simulator to upper ToR
+    - tunnel_traffic_monitor: Monitors tunnel traffic
+    - save_slb_exabgp_logfiles: Saves ExaBGP log files for debugging
+    - ip_version: Parametrized for IPv4/IPv6 testing
+
+Dependencies:
+    - tests.common.dualtor.dual_tor_utils: Dual ToR utility functions
+    - tests.common.dualtor.mux_simulator_control: Mux simulator control
+    - tests.common.dualtor.server_traffic_utils: Server traffic monitoring
+    - tests.common.dualtor.tunnel_traffic_utils: Tunnel traffic monitoring
+
+Notes:
+    - Test uses parametrized Loopback3 interface for BGP peering
+    - Announced routes: 10.10.100.0/27 (IPv4) or fc00:10::/64 (IPv6)
+    - BGP session establishment wait time: 30 seconds
+    - BGP update propagation wait time: 10 seconds
+    - Mux state change wait time: 5 seconds
+    - ExaBGP logs saved to test log directory for troubleshooting
+    - Properly cleans up BGP sessions and routes in finally block
+=============================================================================
+"""
 import ipaddress
 import logging
 import os.path

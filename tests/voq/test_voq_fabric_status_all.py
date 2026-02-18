@@ -1,3 +1,41 @@
+"""
+=============================================================================
+Module: voq
+File: test_voq_fabric_status_all.py
+=============================================================================
+
+Description:
+    This test validates fabric link status across all linecards and fabric
+    cards in a VOQ chassis system. It compares CLI output against reference
+    data to ensure all fabric links are correctly detected and reported.
+
+Test Intent:
+    - test_fabric_status_all_linecards: Validates "show fabric status all"
+      output on each linecard matches expected reference data for link status,
+      verifying link count and status accuracy
+
+Topology:
+    t2 (VOQ chassis topology)
+
+Fixtures Used:
+    - duthosts: Multi-DUT fixture for chassis systems
+    - enum_frontend_dut_hostname: Enumerates frontend DUTs (linecards)
+    - refData: Loads reference YAML data for linecard-fabric combinations
+    - fabricSlots: Provides list of installed fabric card slot numbers
+
+Dependencies:
+    - tests.common.helpers.assertions: For pytest assertions
+    - yaml: For parsing reference data files
+
+Notes:
+    - Requires reference data files in voq/fabric_data/ directory
+    - Reference files named as: <LC_SKU>_<FABRIC_SKU>_LC<slot>.yaml
+    - Validates fabric status on modular chassis systems
+    - Compares CLI output against pre-defined expected values
+    - Test errors out (not fails) if reference data is missing
+    - Supports multi-ASIC linecard configurations
+=============================================================================
+"""
 from tests.common.helpers.assertions import pytest_assert
 import logging
 import pytest

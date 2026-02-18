@@ -1,3 +1,39 @@
+"""
+=============================================================================
+Module: bgp
+File: test_bgp_command.py
+=============================================================================
+
+Description:
+    Tests the BGP show commands to ensure they produce correct output and
+    handle various scenarios including container name conflicts. Validates
+    that BGP network commands work correctly even when multiple containers
+    with "bgp" in their names exist.
+
+Test Intent:
+    - test_bgp_network_command: Verifies 'show ip/ipv6 bgp network' command
+      output matches vtysh direct command output and validates route counts
+    - test_bgp_commands_with_like_bgp_container: Ensures BGP commands continue
+      to work when containers with "bgp" in their name exist
+
+Topology:
+    t0, t1, m0, mx, m1
+
+Fixtures Used:
+    - duthosts: Multi-DUT fixture
+    - enum_rand_one_per_hwsku_frontend_hostname: Randomly selected frontend DUT
+    - tbinfo: Testbed information fixture
+
+Dependencies:
+    - tests.common.helpers.assertions.pytest_assert
+
+Notes:
+    - Only runs on virtual switch (vs) device types
+    - Tests both IPv4 and IPv6 BGP commands
+    - Validates route and path counts match between commands
+=============================================================================
+"""
+
 import pytest
 import logging
 import re

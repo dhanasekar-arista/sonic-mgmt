@@ -1,3 +1,45 @@
+"""
+=============================================================================
+Module: bgp
+File: test_bgp_route_neigh_learning.py
+=============================================================================
+
+Description:
+    Tests BGP route learning from multiple neighbors. Verifies that routes
+    advertised by neighbor devices are properly learned and installed in the
+    DUT's routing table with all expected next-hops.
+
+Test Intent:
+    - test_bgp_neighbor_route_learnning: Validates routes added on T1 neighbors
+      (both EOS and SONiC) are correctly learned by the DUT and all next-hops
+      are properly populated in the ROUTE_TABLE
+
+Topology:
+    t0
+
+Fixtures Used:
+    - setUp: Filters T1 neighbors, adds test routes, and performs cleanup
+    - duthosts: Multi-DUT fixture
+    - enum_frontend_dut_hostname: Frontend DUT selection
+    - nbrhosts: Neighbor hosts fixture
+
+Dependencies:
+    - tests.common.helpers.assertions.pytest_assert
+    - tests.common.devices.eos.EosHost
+    - tests.common.devices.sonic.SonicHost
+    - tests.common.utilities.wait_until
+
+Notes:
+    - Only runs on virtual switch (vs) device types
+    - Tests IPv4 route learning (77.88.99.1/32)
+    - Supports both EOS and SONiC neighbor types
+    - Uses Loopback1 interface for route advertisement
+    - Validates route propagation using redis ROUTE_TABLE
+    - Cleans up routes and interfaces after test completion
+    - Supports multi-VRF peer configurations
+=============================================================================
+"""
+
 import json
 import pytest
 import logging

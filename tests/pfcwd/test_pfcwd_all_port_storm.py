@@ -1,3 +1,46 @@
+"""
+=============================================================================
+Module: pfcwd
+File: test_pfcwd_all_port_storm.py
+=============================================================================
+
+Description:
+    This test validates PFC Watchdog behavior when PFC storms occur
+    simultaneously on all ports. It verifies that PFCwd can detect and
+    restore from storms across multiple ports concurrently.
+
+Test Intent:
+    - test_all_port_storm_restore: Tests PFC storm detection and restoration
+      on all available ports simultaneously. Verifies that at least 75% of
+      ports successfully detect the storm and 100% of stormed ports restore
+      after the storm ends. Uses background traffic during storm to validate
+      PFCwd functionality.
+
+Topology:
+    any topology (all topologies supported)
+
+Fixtures Used:
+    - setup_pfc_test: Module-scoped PFC test setup
+    - degrade_pfcwd_detection: Module-scoped fixture to relax PFCWD detection
+      logic on Mellanox devices with EOS fanout
+    - stop_pfcwd: Class-scoped autouse fixture to stop/start PFCwd
+    - storm_test_setup_restore: Class-scoped fixture initializing storm parameters
+    - start_background_traffic: Sends background traffic during test
+    - pfc_queue_idx: Queue index for background traffic (hardcoded to 3)
+
+Dependencies:
+    - tests.common.helpers.pfc_storm.PFCMultiStorm: Multi-port storm generation
+    - tests.common.helpers.pfcwd_helper: PFCwd helper functions including
+      storm detection/restoration verification
+    - tests.common.plugins.loganalyzer: Log analysis for storm messages
+
+Notes:
+    - Test uses relaxed thresholds: 75% for storm detection, 100% for restoration
+    - Degrades PFCwd detection on Mellanox DUT with non-Onyx/non-SONiC fanout
+    - Tracks which ports actually enter storm state for restoration verification
+    - Uses a specialized Lua script to lower detection threshold on Mellanox
+=============================================================================
+"""
 import logging
 import os
 import pytest

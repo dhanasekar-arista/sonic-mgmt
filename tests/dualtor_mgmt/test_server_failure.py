@@ -1,3 +1,62 @@
+"""
+=============================================================================
+Module: dualtor_mgmt
+File: test_server_failure.py
+=============================================================================
+
+Description:
+    Test suite for validating dual-ToR behavior during server failures. This module tests
+    mux state transitions and flap counter limits when servers become unreachable due to
+    ICMP responder shutdown or downlink interface shutdown. Tests ensure minimal mux
+    flapping and proper standby state with unhealthy status during server failures.
+
+Test Intent:
+    - test_server_down: Verify mux cable transitions to standby with unhealthy status during server failure and flap counter stays within limits
+
+Topology:
+    - dualtor: Dual-ToR topology with active-standby or active-active cable types
+
+Fixtures Used:
+    - upper_tor_host: Upper ToR DUT host object
+    - lower_tor_host: Lower ToR DUT host object
+    - run_icmp_responder: Runs ICMP responder on PTF for server link health monitoring
+    - run_garp_service: Runs GARP service on PTF for MAC address updates
+    - change_mac_addresses: Changes PTF MAC addresses to match server MACs
+    - cable_type: Cable type fixture (active-standby or active-active)
+    - active_active_ports: Active-active port configuration
+    - active_standby_ports: Active-standby port configuration
+    - simulator_flap_counter: Gets mux flap counter from simulator
+    - simulator_server_down: Simulates server down by shutting down ICMP responder and downlink
+    - simulator_server_down_active_active: Simulates server down for active-active cable type
+    - validate_active_active_dualtor_setup: Validates active-active setup before test
+    - upper_tor_fanouthosts: Upper ToR fanout hosts for downlink control
+    - lower_tor_fanouthosts: Lower ToR fanout hosts for downlink control
+    - fanout_upper_tor_port_control: Controls upper ToR downlink ports via fanout
+    - fanout_lower_tor_port_control: Controls lower ToR downlink ports via fanout
+
+Dependencies:
+    - ICMP responder for link health monitoring
+    - Mux simulator for flap counter tracking
+    - show muxcable status command for state verification
+    - Fanout switch control for downlink interface shutdown
+    - icmp_responder_control for ICMP responder management
+    - LogAnalyzer for expected error log validation
+
+Notes:
+    - Test is marked with @pytest.mark.enable_active_active
+    - Test is marked with @pytest.mark.dualtor_active_standby_toggle_to_upper_tor
+    - Server failure simulated by: 1) Shutting down ICMP responder, 2) Shutting down downlink interface
+    - Expected mux state: standby with health=unhealthy on both ToRs during server down
+    - Flap counter limit: 3 flaps maximum during server failure
+    - Test validates mux doesn't flap excessively (max 3 times)
+    - Test validates mux returns to active state when server recovers
+    - Active-standby: Both ToRs should show standby/unhealthy during server down
+    - Active-active: Similar behavior but uses NIC simulator for server down simulation
+    - LogAnalyzer expects errors: link state down, neighbor unreachable, etc.
+
+=============================================================================
+"""
+
 import logging
 import pytest
 import random

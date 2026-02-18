@@ -1,3 +1,22 @@
+"""
+=============================================================================
+Module: wan/isis
+File: test_isis_lsp_gen_interval.py
+=============================================================================
+
+Description:
+    Validates ISIS LSP generation interval configuration.
+
+Test Intent:
+    - test_isis_lsp_gen_interval: Tests LSP generation timing
+
+Topology:
+    wan-com
+
+Notes:
+    - Controls LSP regeneration rate
+=============================================================================
+"""
 import pytest
 import logging
 import functools

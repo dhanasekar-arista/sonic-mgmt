@@ -1,3 +1,43 @@
+"""
+=============================================================================
+Module: platform_tests
+File: test_ser.py
+=============================================================================
+
+Description:
+    Broadcom-specific test for Soft Error Rate (SER) testing. Validates ASIC's
+    ability to detect and correct memory errors using hardware error correction.
+    Test runs ser_test utility and validates results.
+
+Test Intent:
+    - test_ser: Execute Broadcom SER test utility and validate error detection/correction
+
+Topology:
+    Any topology - Broadcom platforms only
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - rand_one_dut_hostname: Selects one random DUT
+    - localhost: Localhost connection
+    - test_setup_teardown: Module-scoped fixture for SSH timeout management and reboot
+
+Dependencies:
+    - ser_test utility (Broadcom diagnostic tool)
+    - SSH timeout disable/enable for long-running test
+    - /tmp/ser_result.log for test results
+
+Notes:
+    - Test only runs on Broadcom ASIC platforms
+    - Disables SSH timeout to prevent disconnection during long-running SER test
+    - Reboots DUT before test to ensure clean state
+    - SER test validates memory error detection and correction mechanisms
+    - Test results logged to /tmp/ser_result.log
+    - SSH timeout restored after test completion
+    - Loganalyzer disabled (expected error logs during SER testing)
+    - Memory utilization check disabled (test may consume memory)
+    - Test may take significant time to complete
+=============================================================================
+"""
 import time
 import logging
 import pytest

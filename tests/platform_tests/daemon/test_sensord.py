@@ -1,3 +1,47 @@
+"""
+=============================================================================
+Module: platform_tests
+File: test_sensord.py
+=============================================================================
+
+Description:
+    Tests for lm-sensors daemon (sensord) in the PMON container. Validates daemon
+    lifecycle management including start, stop, restart, and signal handling.
+
+Test Intent:
+    - test_sensord_running_status: Verify sensord is running after PMON start
+    - test_sensord_stop_and_start_status: Validate manual stop/start operations
+    - test_sensord_stop_and_restart_status: Test stop followed by restart
+    - test_kill_sensord_sig_term: Verify sensord restarts after SIGTERM
+    - test_kill_sensord_sig_kill: Validate sensord restarts after SIGKILL
+    - test_kill_sensord_sig_hup: Test sensord handles SIGHUP gracefully
+
+Topology:
+    Any topology
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - rand_one_dut_hostname: Selects one random DUT
+    - check_sensord_supported: Module-scoped fixture validating sensord support
+    - sensord_start_and_get_pid: Function-scoped fixture ensuring sensord running
+
+Dependencies:
+    - lm-sensors supervisor task in pmon container
+    - /etc/sensors.d/sensors.conf configuration file
+    - check_sensord_status and start_pmon_sensord_task helpers
+
+Notes:
+    - Test skips if sensors.conf not present for SKU
+    - Test skips if lm-sensors not supported on platform
+    - Uses supervisorctl for daemon lifecycle control
+    - Validates PID changes after restart operations
+    - Signal constants: SIG_KILL (-9), SIG_TERM (-15), SIG_HUP (-1)
+    - Sensord monitors hardware sensors (temperature, voltage, fan speeds)
+    - Daemon should auto-restart after kill signals
+    - Loganalyzer disabled (expected error logs during daemon restarts)
+    - Sanity check skipped for this test suite
+=============================================================================
+"""
 import logging
 import time
 

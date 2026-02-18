@@ -1,3 +1,46 @@
+"""
+=============================================================================
+Module: srv6
+File: test_srv6_basic_sanity.py
+=============================================================================
+
+Description:
+    This test module validates basic SRv6 (Segment Routing over IPv6) functionality
+    on SONiC switches in a multi-node topology. It tests SRv6 packet forwarding,
+    encapsulation/decapsulation, route announcement via BGP, and end-to-end traffic
+    delivery through SRv6 segment paths across PE (Provider Edge) and P (Provider)
+    routers.
+
+Test Intent:
+    - test_srv6_basic_sanity: Validates SRv6 data plane by announcing routes,
+      verifying BGP neighbor establishment, checking SRv6 route installation,
+      recording forwarding chains, and sending test traffic through SRv6 paths
+      to verify packet forwarding and segment processing
+
+Topology:
+    - Supported: ciscovs-7nodes (7-node SRv6 topology)
+    - Test VMs: PE1, PE2, PE3, P2, P3, P4
+    - Requires SRv6-enabled FRR and kernel
+
+Fixtures Used:
+    - Various SRv6-specific fixtures for topology setup and configuration
+
+Dependencies:
+    - srv6_utils: SRv6 route announcement, BGP checking, traffic utilities
+    - common_utils: tcpdump enabling/disabling for packet capture
+    - ptf.testutils: Packet generation and verification
+
+Notes:
+    - Loganalyzer disabled for SRv6-specific testing
+    - DUT health checks skipped during SRv6 operations
+    - Requires --skip_sanity flag to avoid minigraph conflicts
+    - FRR debug mode can be enabled for troubleshooting
+    - Tests verify SRv6 encapsulation, segment list processing, and decapsulation
+    - BGP used for SRv6 route distribution
+    - Traffic validated end-to-end through segment routing paths
+=============================================================================
+"""
+
 import time
 import logging
 import pytest

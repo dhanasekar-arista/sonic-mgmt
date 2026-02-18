@@ -1,3 +1,41 @@
+"""
+=============================================================================
+Module: gnmi
+File: test_gnmi_2038.py
+=============================================================================
+
+Description:
+    Tests gNMI certificate handling for dates beyond the Year 2038 problem.
+    Validates that certificates with expiration dates after 2038 work correctly
+    with gNMI server.
+
+Test Intent:
+    - test_gnmi_capabilities_2038: Creates and validates certificates with
+      expiration dates beyond 2038 (root: 4850 days, server/client: 4800 days)
+      and verifies gNMI capabilities function correctly
+
+Topology:
+    Supports any topology
+
+Fixtures Used:
+    - duthosts: DUT host objects
+    - rand_one_dut_hostname: Randomly selected DUT
+    - localhost: Localhost for certificate preparation
+    - ptfhost: PTF host for certificate copy
+
+Dependencies:
+    - tests.common.helpers.gnmi_utils: Certificate preparation and copy utilities
+    - .helper: apply_cert_config
+    - dateutil: parser for date parsing
+
+Notes:
+    - Log analyzer disabled for these tests
+    - Root cert: 4850 days validity
+    - Server/Client certs: 4800 days validity
+    - Validates certificate dates are after 2038-01-19
+    - Tests Year 2038 Unix timestamp overflow handling
+=============================================================================
+"""
 import pytest
 import logging
 import re

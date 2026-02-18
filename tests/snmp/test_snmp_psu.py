@@ -1,3 +1,53 @@
+"""
+=============================================================================
+Module: snmp
+File: test_snmp_psu.py
+=============================================================================
+
+Description:
+    This test module validates PSU (Power Supply Unit) monitoring via SNMP on
+    SONiC switches. It verifies PSU count accuracy and operational status reporting
+    through SNMP by comparing SNMP MIB data with psuutil commands and Redis STATE_DB
+    PSU information including presence and status fields.
+
+Test Intent:
+    - test_snmp_numpsu: Validates PSU count reported via SNMP matches the number
+      returned by psuutil numpsus command on supervisor nodes
+    - test_snmp_psu_status: Verifies PSU operational status in SNMP MIB correctly
+      reflects actual PSU state from Redis STATE_DB - OK (2) when present and
+      functioning, FUNCTIONING_FAIL (7) when present but not functioning,
+      MODULE_MISSING (8) when not present
+
+Topology:
+    - Supported: any topology
+    - Requires supervisor node with PSU information
+    - KVM testbeds skipped (no PSU hardware)
+
+Fixtures Used:
+    - duthosts: All DUT hosts in testbed
+    - enum_supervisor_dut_hostname: Supervisor node selection for PSU access
+    - localhost: Local connection for SNMP queries
+    - creds_all_duts: SNMP community string credentials
+
+Dependencies:
+    - tests.common.helpers.snmp_helpers: SNMP fact collection
+    - psuutil: PSU utility command for PSU count
+    - Redis STATE_DB: PSU_INFO table with presence and status fields
+    - natsort: Natural sorting for PSU key ordering
+
+Notes:
+    - PSU status values from SNMP MIB: OK=2, FUNCTIONING_FAIL=7, MODULE_MISSING=8
+    - KVM testbeds return rc=2 from psuutil (expected, no chassis)
+    - Test validates at least one PSU has OK status
+    - PSU indices are 1-based in SNMP, 0-based in Redis keys
+    - STATE_DB keys sorted naturally to match SNMP index ordering
+    - Presence=true + status=true → PSU_STATUS_OK
+    - Presence=true + status=false → PSU_STATUS_FUNCTIONING_FAIL
+    - Presence=false → PSU_STATUS_MODULE_MISSING
+    - Tests skipped on virtual switches (vs ASIC type)
+=============================================================================
+"""
+
 import pytest
 import logging
 from tests.common.helpers.assertions import pytest_assert

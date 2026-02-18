@@ -1,3 +1,64 @@
+"""
+Module: tests.dash
+File: test_dash_disable_enable_eni.py
+Description:
+    DASH ENI admin state control test suite for DPU topology. This module validates
+    the dynamic enable/disable functionality of ENI (Elastic Network Interface) and
+    verifies that traffic is properly dropped when ENI is disabled and forwarded
+    when ENI is enabled.
+
+Test Intent:
+    - Validate ENI admin state configuration via gNMI
+    - Verify traffic forwarding when ENI is enabled
+    - Test traffic dropping when ENI is disabled
+    - Validate ASIC_DB ENI admin state attribute updates
+    - Ensure state transitions (enabled -> disabled -> enabled) work correctly
+    - Test end-to-end traffic impact of ENI state changes
+
+Topology:
+    - dpu: DPU topology for DASH testing
+    - Skips "with-underlay-route" scenarios (not needed for ENI state testing)
+
+Fixtures Used:
+    - ptfadapter: PTF adapter for packet injection/verification
+    - localhost: Ansible localhost for configuration management
+    - duthost: Device Under Test (DPU) host object
+    - ptfhost: PTF host for gNMI configuration
+    - apply_vnet_configs: Applies VNET routing configuration
+    - dash_config_info: DASH configuration information dictionary
+    - asic_db_checker: Fixture to verify ASIC DB entries
+    - acl_default_rule: Default ACL rule configuration
+    - skip_underlay_route: Auto-used fixture to skip underlay route tests
+
+Dependencies:
+    - constants: DASH test constants (LOCAL_PTF_INTF, REMOTE_PTF_INTF)
+    - tests.common.plugins.allure_wrapper: Allure reporting with test steps
+    - gnmi_utils: gNMI utilities for configuration application
+    - dash_utils: DASH utility functions (render_template_to_host)
+    - packets: Packet generation utilities (outbound_vnet_packets)
+    - tests.common.utilities: Utility functions (wait_until)
+    - tests.common.helpers.assertions: Assertion helpers (pytest_assert)
+
+Notes:
+    - ENI admin state configured via dash_set_eni_admin_state.j2 template
+    - ASIC_DB key pattern: *ENI:oid*
+    - ASIC_DB attribute: SAI_ENI_ATTR_ADMIN_STATE
+    - Admin state values: "true" (enabled), "false" (disabled)
+    - State verification uses wait_until with 10s timeout, 2s interval
+    - Allure steps provide detailed test phase reporting:
+      1. Verify traffic when ENI enabled
+      2. Disable ENI
+      3. Check ASIC_DB confirms disabled state
+      4. Verify traffic dropped
+      5. Enable ENI
+      6. Check ASIC_DB confirms enabled state
+      7. Verify traffic forwarded
+    - Underlay route scenarios skipped (unnecessary for ENI state control)
+
+Git History (last 1 commit):
+    5db0d1e65 Add a new test to cover the scenario of disable/enable ENI (#12977)
+"""
+
 import logging
 import pytest
 import ptf.testutils as testutils

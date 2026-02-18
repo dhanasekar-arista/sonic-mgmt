@@ -1,3 +1,50 @@
+"""
+=============================================================================
+Module: snmp
+File: test_snmp_queue.py
+=============================================================================
+
+Description:
+    This test module validates SNMP queue MIB reporting on SONiC switches by
+    verifying queue configuration from CONFIG_DB matches SNMP queue facts for
+    all configured interfaces, ensuring proper queue index reporting and egress
+    direction type encoding in SNMP OIDs.
+
+Test Intent:
+    - test_snmp_queues: Validates SNMP queue MIB by reading queue configuration
+      from CONFIG_DB for all interfaces, comparing against SNMP facts to ensure
+      all configured queues are reported via SNMP with correct queue indices,
+      interface associations, and egress direction type (OID direction=2)
+
+Topology:
+    - Supported: any topology, t1-multi-asic
+    - Device type: vs (virtual switch)
+    - Requires queue configuration on interfaces
+
+Fixtures Used:
+    - duthosts: All DUT hosts in testbed
+    - enum_rand_one_per_hwsku_hostname: Randomly selected DUT
+    - localhost: Local connection for SNMP queries
+    - creds_all_duts: SNMP credentials
+    - collect_techsupport_all_duts: Techsupport collection on failure
+
+Dependencies:
+    - tests.common.helpers.snmp_helpers: SNMP fact collection
+    - CONFIG_DB: QUEUE table configuration
+    - Port alias mapping for interface name translation
+
+Notes:
+    - Queue direction type in OID: 2 = egress
+    - Test skipped if no queues configured on any interface
+    - Multi-ASIC: aggregates queues across all namespaces
+    - Port name to alias mapping used for SNMP interface identification
+    - Validates queue indices match CONFIG_DB queue definitions
+    - Queue keys format: QUEUE|<interface>|<queue_index>
+    - SNMP facts include per-queue statistics for all configured queues
+    - Test ensures no configured queue is missing from SNMP reporting
+=============================================================================
+"""
+
 import pytest
 from tests.common.helpers.snmp_helpers import get_snmp_facts
 

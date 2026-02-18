@@ -1,3 +1,55 @@
+"""
+=============================================================================
+Module: container_upgrade
+File: test_container_upgrade.py
+=============================================================================
+
+Description:
+    This test module validates container upgrade functionality across different
+    SONiC OS versions. It orchestrates the upgrade of specific Docker containers
+    (gnmi, bmp, telemetry, restapi) through multiple OS versions, running
+    validation test suites after each upgrade to ensure functionality is preserved.
+
+Test Intent:
+    - test_container_upgrade: Validates that specific containers can be upgraded
+      across multiple SONiC OS versions while maintaining functionality. Tests
+      container image pulling, deployment with proper runtime parameters, and
+      verification through associated test suites. Ensures containers work
+      correctly after OS upgrades and supports retry mechanisms for flaky tests.
+
+Topology:
+    Any topology (pytest.mark.topology('any'))
+
+Fixtures Used:
+    - localhost: Ansible localhost connection for executing pytest commands
+    - duthosts: Multi-DUT fixture providing access to all DUTs
+    - rand_one_dut_hostname: Randomly selected DUT hostname for test execution
+    - tbinfo: Testbed information including configuration name
+    - required_container_upgrade_params: Parametrized fixture containing container
+      specifications, OS versions, image URLs, test cases mapping, and runtime
+      parameters (generated via conftest.py)
+    - creds: Docker registry credentials for pulling container images
+    - request: Pytest request object for accessing configuration and storing results
+
+Dependencies:
+    - container_upgrade_helper: Helper module providing parsing, upgrade, and
+      validation functions (parse_containers, parse_os_versions, create_image_list,
+      create_testcase_mapping, create_parameters_mapping, os_upgrade,
+      pull_run_dockers, store_results)
+    - testcases.json: Mapping of test cases to retry counts
+    - parameters.json: Docker runtime parameters for each container type
+
+Notes:
+    - Skips sanity checks, log analyzer, and DUT health checks during execution
+    - Supports testing across multiple OS versions sequentially
+    - Each test case can have configurable retry counts for handling flaky tests
+    - Stores test results in custom messages for post-test analysis
+    - Backs up and restores Docker proxy configuration across OS upgrades
+    - Supports sidecar containers with IS_V1_ENABLED flag validation
+    - Test results are logged to container_upgrade directory with OS version suffix
+=============================================================================
+"""
+
 import pytest
 import logging
 

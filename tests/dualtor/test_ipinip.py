@@ -1,9 +1,57 @@
 """
-1. Send IPinIP packets from t1 to ToR.
-2. Check that for inner packet that has destination IP as active server IP, the packet
-is decapsulated and forwarded to server port.
-3. Check that for inner packet that has destination IP as standby server IP, the packet
-is not forwarded to server port or re-encapsulated to T1s.
+=============================================================================
+Module: Dual ToR IPinIP Encapsulation/Decapsulation Test
+File: test_ipinip.py
+=============================================================================
+
+Description:
+    This test validates IPinIP tunnel packet handling in dual ToR topology,
+    specifically testing decapsulation behavior on active ToR (forwarding to server)
+    versus standby ToR (dropping packets). It also tests a specific edge case where
+    mirror sessions can cause VLAN tag issues on encapsulated bounced-back traffic.
+
+Test Intent:
+    - test_decap_active_tor: Validates that IPinIP packets sent to active ToR are
+      properly decapsulated and forwarded to the destination server with TTL decremented
+    - test_decap_standby_tor: Validates that IPinIP packets sent to standby ToR are
+      NOT decapsulated or forwarded to server, and NOT re-encapsulated to T1s (dropped)
+    - test_encap_with_mirror_session: Validates bounced-back traffic from standby ToR
+      doesn't have unexpected VLAN tag (4095) when egressing from mirror session monitor
+      port. Tests fix for issue where traffic bounces from standby to T1.
+
+Topology:
+    dualtor - Requires dual ToR topology
+
+Fixtures Used:
+    - build_encapsulated_packet: Builds IPinIP packet with random DSCP/TTL for testing
+    - setup_uplink: Configures single uplink for mirror session test (shuts down others)
+    - setup_mirror_session: Creates dummy mirror session to trigger edge case
+    - setup_active_active_ports: Configures active-active ports for active-standby mode
+    - toggle_all_simulator_ports_to_rand_selected_tor: Sets mux to selected ToR (active)
+    - toggle_all_simulator_ports_to_rand_unselected_tor: Sets mux to unselected ToR (standby)
+    - tunnel_traffic_monitor: Monitors tunnel traffic
+    - run_garp_service: Runs GARP service on PTF
+    - mock_common_setup_teardown: Common mock setup for module
+    - enable_feature_autorestart: Enables autorestart for features during test
+
+Dependencies:
+    - tests.common.dualtor.dual_tor_mock: Dual ToR mocking utilities
+    - tests.common.dualtor.dual_tor_utils: Dual ToR utility functions
+    - tests.common.dualtor.mux_simulator_control: Mux simulator control
+    - tests.common.dualtor.tunnel_traffic_utils: Tunnel traffic monitoring
+    - tests.common.config_reload: Config reload utilities
+
+Notes:
+    - Encapsulated packets built with peer ToR as source, local ToR as destination
+    - Inner packet uses random DSCP (0-32) and TTL (3-64)
+    - Decap test expects TTL decremented by 1 in forwarded packet
+    - Standby test verifies packet NOT forwarded (no traffic on server port)
+    - Mirror session test uses GRE type based on platform (Mellanox: 35145, Cisco: 35006)
+    - Mirror session is dummy (no actual mirroring), just triggers edge case
+    - test_encap_with_mirror_session validates fix for CSP CS00012263713
+    - Setup uplink fixture reduces LAG to single member for deterministic mirror behavior
+    - Config reload performed after mirror test to restore original configuration
+=============================================================================
 """
 import logging
 import pytest

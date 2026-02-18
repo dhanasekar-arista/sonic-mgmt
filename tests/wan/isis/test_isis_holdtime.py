@@ -1,3 +1,38 @@
+"""
+=============================================================================
+Module: wan/isis
+File: test_isis_holdtime.py
+=============================================================================
+
+Description:
+    This test validates ISIS holdtime (hello multiplier) functionality. It
+    verifies that adjacencies are torn down when hello packets stop arriving
+    within the holdtime period.
+
+Test Intent:
+    - test_isis_holdtime: Validates ISIS holdtime by shutting down neighbor
+      interface and verifying adjacency goes down within expected time, then
+      restoring interface and confirming adjacency recovers
+
+Topology:
+    wan-com (WAN common topology)
+
+Fixtures Used:
+    - isis_common_setup_teardown: Sets up ISIS configuration
+    - nbrhosts: Neighbor host objects
+
+Dependencies:
+    - tests.common.utilities: For wait_until polling
+    - tests.common.helpers.assertions: For pytest assertions
+    - isis_helpers: For ISIS configuration helpers
+
+Notes:
+    - Holdtime = hello_interval * hello_multiplier
+    - Adjacency should go down if no hellos received within holdtime
+    - Tests adjacency failure detection and recovery
+    - Waits for neighbor state transitions (Up/Down)
+=============================================================================
+"""
 import pytest
 import logging
 

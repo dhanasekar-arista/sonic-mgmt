@@ -1,3 +1,47 @@
+"""
+=============================================================================
+Module: qos
+File: test_buffer_traditional.py
+=============================================================================
+
+Description:
+    Tests traditional (non-dynamic) buffer management in SONiC. Validates
+    buffer profile behavior, pool allocation, headroom configuration, and
+    buffer reclamation on admin down ports for traditional buffer model.
+
+Test Intent:
+    - test_traditional_buffer_profile: Validates that buffer profiles are
+      correctly configured and referenced in traditional buffer model
+    - test_traditional_buffer_pool: Tests buffer pool configuration including
+      ingress/egress pools and their size allocation
+    - test_traditional_headroom_profiles: Verifies lossless headroom profile
+      configuration and allocation per port/PG
+    - test_traditional_buffer_reclaim: Tests buffer reclamation behavior when
+      ports are set to admin down state (if feature enabled)
+
+Topology:
+    any topology
+
+Fixtures Used:
+    - setup_module: Module-scoped autouse fixture that initializes default
+      lossless profiles and reclaim buffer configuration for traditional
+      buffer model testing
+
+Dependencies:
+    - tests.common.utilities.wait_until: Polling utility for state checks
+    - tests.common.helpers.assertions: Assertion utilities
+
+Notes:
+    - Only applicable to traditional (non-dynamic) buffer model
+    - Skips if DUT is using dynamic buffer management
+    - Uses extract_profile_name() to parse BUFFER_PROFILE strings
+    - Uses extract_pool_name() to parse BUFFER_POOL strings
+    - Global variables: DEFAULT_LOSSLESS_PROFILES, RECLAIM_BUFFER_ON_ADMIN_DOWN
+    - Tests pool name format: ingress_lossless_pool, egress_lossy_pool, etc.
+    - Validates profile references match expected buffer pool assignments
+    - Admin down buffer reclaim is feature-gated and may not be enabled
+=============================================================================
+"""
 import logging
 import os
 import pytest

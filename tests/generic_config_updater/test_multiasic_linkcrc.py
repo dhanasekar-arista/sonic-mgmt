@@ -1,3 +1,34 @@
+"""
+=============================================================================
+Module: generic_config_updater
+File: test_multiasic_linkcrc.py
+=============================================================================
+
+Description:
+    Tests PortChannel member link CRC mitigation configuration on multi-ASIC
+    devices using Generic Config Updater. Validates adding and removing
+    PortChannel members with link_crc_mitigation attribute.
+
+Test Intent:
+    - test_multiasic_link_crc_mitigation: Tests adding link_crc_mitigation to
+      PortChannel member, removing member, then re-adding without attribute
+
+Topology:
+    Supports any topology (multi-ASIC focus)
+
+Fixtures Used:
+    - setup_env: Creates checkpoint for rollback
+
+Dependencies:
+    - tests.common.gu_utils: GCU utilities for patch operations
+
+Notes:
+    - Uses asic0 namespace for multi-ASIC operations
+    - Extracts PortChannel and port from "show interfaces portchannel"
+    - Validates PortChannel member with link_crc_mitigation: "true"
+    - Tests remove then re-add without mitigation attribute
+=============================================================================
+"""
 import json
 import logging
 import pytest

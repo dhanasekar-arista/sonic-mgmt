@@ -1,10 +1,48 @@
 """
-Check daemon status inside PMON container. Each daemon status is checked under the conditions below in this script:
-* Daemon Running Status
-* Daemon Stop status
-* Daemon Restart status
-This script is to cover the test case in the SONiC platform daemon and service test plan:
-https://github.com/sonic-net/sonic-mgmt/blob/master/docs/testplan/PMON-Services-Daemons-test-plan.md
+=============================================================================
+Module: platform_tests
+File: test_chassisd.py
+=============================================================================
+
+Description:
+    Tests for chassisd daemon in the PMON container on modular chassis platforms.
+    Validates daemon lifecycle management, STATE_DB population for modules, and
+    recovery from termination signals.
+
+Test Intent:
+    - test_chassisd_running_status: Verify chassisd is running and STATE_DB populated
+    - test_chassisd_stop_and_start_status: Validate manual stop/start operations
+    - test_chassisd_stop_and_restart_status: Test stop followed by restart
+    - test_kill_chassisd_sig_term: Verify chassisd restarts after SIGTERM
+    - test_kill_chassisd_sig_kill: Validate chassisd restarts after SIGKILL
+
+Topology:
+    T2 modular chassis topology (supervisor + line cards)
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hardware SKU
+    - setup: Module-scoped autofixture validating chassisd enabled status
+    - teardown_module: Module-scoped autofixture for cleanup
+
+Dependencies:
+    - chassisd supervisor task in pmon container
+    - STATE_DB database (DB 6) for chassis/module state
+    - check_pmon_daemon_enable_status helper
+    - wait_critical_processes for stability validation
+    - compose_dict_from_cli parser
+
+Notes:
+    - Test only runs on T2 modular chassis physical devices
+    - Test skips if chassisd not enabled on platform
+    - Expected statuses: RUNNING, STOPPED, EXITED
+    - Signal constants: SIG_TERM (-15), SIG_KILL (-9)
+    - Daemon should auto-restart after kill signals
+    - Validates STATE_DB module entries when daemon running
+    - Uses supervisorctl for daemon lifecycle control
+    - chassisd monitors module insertion/removal events
+    - Test plan: https://github.com/sonic-net/sonic-mgmt/blob/master/docs/testplan/PMON-Services-Daemons-test-plan.md
+=============================================================================
 """
 import logging
 import time

@@ -1,3 +1,49 @@
+"""
+=============================================================================
+Module: ixia/pfc
+File: test_pfc_pause_lossless.py
+=============================================================================
+
+Description:
+    This comprehensive test module validates PFC (Priority Flow Control) pause
+    functionality on lossless priorities. It tests single and multiple lossless
+    priorities, verifies configuration persistence across reboots, and ensures
+    PFC properly pauses lossless traffic without affecting other priorities.
+
+Test Intent:
+    - test_pfc_pause_single_lossless_prio: Validates PFC can pause a single
+      lossless priority without affecting other priorities
+    - test_pfc_pause_multi_lossless_prio: Tests PFC pause on multiple lossless
+      priorities simultaneously
+    - test_pfc_pause_reboot: Verifies PFC configuration and functionality
+      persist across various reboot types (config reload, cold, fast, warm)
+
+Topology:
+    - tgen: Requires IXIA traffic generator topology
+
+Fixtures Used:
+    - ixia_api: IXIA session for traffic generation
+    - ixia_testbed_config: Testbed and port configuration
+    - conn_graph_facts: DUT-to-IXIA connection topology
+    - fanout_graph_facts: Fanout switch information
+    - enum_dut_lossless_prio: Enumerated lossless priority for testing
+    - lossless_prio_list: List of all lossless priorities
+    - all_prio_list: List of all priorities
+    - prio_dscp_map: Priority to DSCP mapping
+
+Dependencies:
+    - files.helper: PFC test execution and warm reboot skip logic
+    - tests.common.cisco_data: Cisco platform detection
+    - tests.common.reboot: Reboot utilities for different reboot types
+
+Notes:
+    - Tests verify PFC pause frames stop lossless traffic
+    - Ensures other priorities continue to forward during PFC pause
+    - Reboot test saves configuration before reboot
+    - Warm reboot may be skipped on some platforms
+    - Validates critical services restart after reboot
+=============================================================================
+"""
 import logging
 import pytest
 

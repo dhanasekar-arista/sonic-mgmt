@@ -1,3 +1,50 @@
+"""
+=============================================================================
+Module: platform_tests
+File: test_kdump.py
+=============================================================================
+
+Description:
+    Tests kdump functionality by triggering kernel panic and validating that the
+    system loads kdump crashkernel, captures crash dump, and reboots successfully.
+
+Test Intent:
+    - test_kernel_panic: Trigger kernel panic and verify kdump crashkernel loads,
+      system recovers, and crash dump is captured
+
+Topology:
+    Any topology
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hardware SKU
+    - localhost: Localhost connection
+    - pdu_controller: PDU controller for recovery
+    - conn_graph_facts: Connection graph for interface validation
+    - xcvr_skip_list: Transceiver skip list
+    - tearDown: Autofixture for cleanup/recovery via PDU if needed
+
+Dependencies:
+    - wait_critical_processes for process health validation
+    - wait_for_startup for reboot completion
+    - check_interfaces_and_services validator
+    - PDU controller for emergency recovery
+
+Notes:
+    - Test triggers kernel panic via 'echo c > /proc/sysrq-trigger'
+    - SSH shutdown timeout: 360 seconds
+    - SSH startup timeout: 420 seconds
+    - SSH states: ABSENT (down), STARTED (up)
+    - Validates kdump crashkernel loads during panic
+    - Checks for crash dump capture after reboot
+    - For supervisor nodes, validates line cards recover properly
+    - Supervisor platforms: Cisco-8800-RP, Nokia-IXR7250E use SUPERVISOR_HEARTBEAT_LOSS reboot type
+    - Other platforms use COLD reboot type for supervisor recovery
+    - Teardown fixture recovers DUT via PDU reboot if needed
+    - Validates critical processes and interfaces post-recovery
+    - Loganalyzer disabled (expected error logs during kernel panic)
+=============================================================================
+"""
 import logging
 import time
 import pytest

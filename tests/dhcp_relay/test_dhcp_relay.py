@@ -1,3 +1,71 @@
+"""
+Module: tests.dhcp_relay.test_dhcp_relay
+File: test_dhcp_relay.py
+
+Description:
+    Comprehensive test suite for DHCPv4 relay functionality in SONiC. This module validates that the
+    DHCP relay agent correctly forwards DHCP packets between clients and servers across different
+    network scenarios including interface binding, link flaps, deployment configurations, and dual-ToR
+    topologies. Tests cover both ISC DHCP relay agent and SONiC native DHCPv4 relay agent implementations.
+
+Test Intent:
+    - Verify DHCP relay agents bind to correct VLAN and uplink interfaces
+    - Validate DHCP packet relay (Discover, Offer, Request, Ack) between client and server
+    - Test DHCP relay functionality with interface state changes (link flaps, cold starts)
+    - Verify source interface IP relay configuration (deployment_id=8, -si flag)
+    - Test DHCP relay with unicast and broadcast MAC addresses
+    - Validate DHCP relay with random client source ports (SNAT scenarios)
+    - Verify DHCP relay on dual-ToR standby hosts
+    - Test dhcpmon counter tracking and validation
+    - Verify DHCP relay checksum validation for malformed packets
+    - Validate ACL drop behavior on dual-ToR standby interfaces
+
+Topology:
+    - t0: Standard leaf-spine topology with T0 switches
+    - m0: Management topology
+    Supports both single-ToR and dual-ToR (active-standby, active-active) configurations
+
+Fixtures Used:
+    - dut_dhcp_relay_data: DHCP relay configuration data for each VLAN interface
+    - validate_dut_routes_exist: Validates routes to DHCP servers via default route
+    - testing_config: Determines single/dual-ToR mode and provides active DUT
+    - enable_source_port_ip_in_relay: Enables/disables -si flag for source interface relay
+    - verify_acl_drop_on_standby_tor: Verifies DHCP packet ACL drops on standby ToR
+    - setup_standby_ports_on_rand_unselected_tor: Sets up standby ports on unselected ToR
+    - toggle_all_simulator_ports_to_rand_selected_tor_m: Toggles mux ports to selected ToR
+    - enable_sonic_dhcpv4_relay_agent: Enables SONiC DHCPv4 relay agent (when applicable)
+    - ignore_expected_loganalyzer_exceptions: Ignores expected error logs during tests
+
+Dependencies:
+    - PTF framework for packet generation and validation
+    - dhcp_relay_test.DHCPTest PTF test suite
+    - dhcp_relay container and dhcpmon/dhcrelay/dhcp4relay processes
+    - CONFIG_DB DEVICE_METADATA deployment_id configuration
+    - Valid routes to DHCP servers via upstream BGP neighbors
+    - Properly configured VLAN interfaces with DHCP server addresses
+
+Notes:
+    - Tests are parameterized to run with both isc-relay-agent and sonic-relay-agent
+    - Source port IP relay requires deployment_id=8 in DEVICE_METADATA
+    - Interface binding tests require interfaces to listen on port 67
+    - Dual-ToR tests validate mux cable ACL behavior and packet forwarding
+    - dhcpmon debug mode is used for counter validation (prints every 18 seconds)
+    - Tests skip on releases 201811, 201911 where dhcpmon is not available
+    - CLIENT_SENT_PACKET_COUNT=7 packets are expected per test run
+
+Git History (last 10 commits):
+    4a239541e DHCPv4 test update for new sonic-dhcpv4-relay design and added functionality
+    3440d4d90 [dhcp_relay] replace typo dhcpcom with dhcpmon
+    216f16513 Add test case test_dhcp_monitor_checksum_validation to verify dhcp monitor IP/UDP checksum validation feature
+    477a69ae1 [dhcp_relay][dualtor] Update cacl verification for dualtor on dhcp_relay test
+    697d47891 [DHCP Relay counter] Add a test case for testing DHCP server sends packets to standby dut of dualtor
+    46b99ab18 [dhcp_relay] Remove useless dhcp_relay counter test
+    8f78537a5 [DHCP relay counter] Add all DHCP packet type for DHCP relay counter tests
+    fdea41626 [dhcp_relay] Verify per-interface counter under stress test
+    58c6767c5 [dhcp_relay] Remove useless release skip in dhcp_relay test
+    e98cd0ea2 [dhcp_relay] Verify per-interface counter in test_dhcp_relay.py
+"""
+
 import pytest
 import random
 import time

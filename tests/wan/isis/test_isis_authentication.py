@@ -1,3 +1,47 @@
+"""
+=============================================================================
+Module: wan/isis
+File: test_isis_authentication.py
+=============================================================================
+
+Description:
+    This test validates ISIS authentication functionality including interface
+    and area password protection. It tests text and MD5 authentication modes
+    to ensure secure ISIS adjacency formation and routing.
+
+Test Intent:
+    - test_isis_no_auth: Validates ISIS neighbor formation without authentication
+    - test_isis_itf_auth: Tests interface-level authentication (text and MD5) and
+      verifies adjacency fails without matching password, succeeds with matching
+    - test_isis_area_auth: Tests area-level authentication (text and MD5) and
+      validates routing works with matching area password
+
+Topology:
+    wan-com (WAN common topology)
+
+Fixtures Used:
+    - isis_common_setup_teardown: Sets up ISIS configuration and provides
+      selected connections
+    - nbrhosts: Neighbor host objects
+    - tbinfo: Testbed information
+
+Dependencies:
+    - tests.common.devices.eos: For EOS host interactions
+    - tests.common.devices.cisco: For Cisco host interactions
+    - tests.common.helpers.assertions: For pytest assertions
+    - tests.common.utilities: For wait_until and wait utilities
+    - isis_helpers: For ISIS configuration and verification helpers
+
+Notes:
+    - Interface auth password: 'itf_auth'
+    - Area auth password: 'area_auth'
+    - Authentication types tested: text, md5
+    - Waits 30 seconds for routing table updates
+    - Resets ISIS configuration between tests
+    - Validates routing table entries to verify connectivity
+    - Tests both positive (matching auth) and negative (no auth) scenarios
+=============================================================================
+"""
 import pytest
 import re
 
@@ -12,13 +56,6 @@ from isis_helpers import config_nbr_isis
 from isis_helpers import remove_nbr_isis_config
 from isis_helpers import remove_sonic_isis_config
 from isis_helpers import get_nbr_name
-
-DOCUMENTATION = '''
-short_description: Test SONiC authentication password protection
-description:
-    - Config area password or interface password before ISIS connection established.
-    - Verify connectivity to neighbors by checking routing table.
-'''
 
 pytestmark = [
     pytest.mark.topology('wan-com'),

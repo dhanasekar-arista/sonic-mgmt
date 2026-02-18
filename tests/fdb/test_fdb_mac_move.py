@@ -1,3 +1,50 @@
+"""
+=============================================================================
+Module: fdb
+File: test_fdb_mac_move.py
+=============================================================================
+
+Description:
+    This module tests FDB MAC address movement across different ports in a
+    SONiC switch. It validates that when a MAC address moves from one port
+    to another, the FDB table is updated correctly and packets are forwarded
+    to the new port location.
+
+Test Intent:
+    - test_fdb_mac_move: Validates MAC address movement across VLAN member
+      ports by repeatedly moving MAC addresses between ports and verifying
+      FDB table updates correctly. Tests run multiple iterations based on
+      completeness level (debug=1, basic=10, confident=50, thorough=100,
+      diagnose=200) to stress test MAC learning and movement.
+
+Topology:
+    Supports t0 topology
+
+Fixtures Used:
+    - get_function_completeness_level: Determines test iteration count
+    - rotate_syslog: Rotates syslog to prevent filling during long tests
+    - ptfadapter: PTF adapter for sending/receiving packets
+    - duthosts: Provides DUT host objects
+    - rand_one_dut_hostname: Randomly selected DUT for testing
+    - fanouthosts: Fanout switch hosts for port control
+    - ptfhost: PTF host for traffic generation
+
+Dependencies:
+    - tests.common.utilities: wait_until utility for polling
+    - tests.common.helpers.assertions: pytest_assert for validations
+    - .utils: MacToInt, IntToMac, fdb_cleanup, get_crm_resources,
+      send_arp_request, get_fdb_dynamic_mac_count utilities
+
+Notes:
+    - Uses base MAC address format "02:11:22:{port_index}:00:00"
+    - Generates up to 12000 total FDB entries for stress testing
+    - MAC addresses are moved between ports using ARP requests
+    - Test validates FDB table consistency after each MAC move
+    - CRM resources are monitored to ensure no resource leaks
+    - Completeness level controls iteration count for different test depths
+    - Syslog rotation prevents disk space issues during long-running tests
+=============================================================================
+"""
 import logging
 import time
 import math

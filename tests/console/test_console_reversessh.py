@@ -1,3 +1,52 @@
+"""
+=============================================================================
+Module: console
+File: test_console_reversessh.py
+=============================================================================
+
+Description:
+    This test validates the reverse SSH functionality of the console switch feature.
+    Reverse SSH allows administrators to access serial consoles of connected devices
+    by SSH'ing to the DUT using a special username format (user:line_number). The
+    tests verify proper session establishment, line state tracking, and forced
+    session termination capabilities.
+
+Test Intent:
+    - test_console_reversessh_connectivity: Validates that reverse SSH sessions can
+      be established to console lines, verifies line state transitions (IDLE->BUSY->IDLE),
+      and tests graceful session exit using escape sequences (Ctrl-A Ctrl-X)
+    - test_console_reversessh_force_interrupt: Validates that active reverse SSH
+      sessions can be forcibly terminated from the DUT using 'sonic-clear line'
+      command, ensuring proper session cleanup and line state recovery
+
+Topology:
+    any
+
+Fixtures Used:
+    - duthost: DUT host fixture for executing commands on the device under test
+    - creds: Credentials fixture providing sonicadmin username and password
+    - skip_if_os_not_support: Auto-fixture that skips tests on unsupported OS versions
+      (201803, 201807, 201811, 201911)
+    - skip_if_console_feature_disabled: Auto-fixture that skips tests when console
+      switch feature is disabled
+    - console_facts: Provides console configuration and state information from DUT
+
+Dependencies:
+    - pexpect: For interactive SSH session control and automation
+    - tests.common.helpers.assertions: pytest_assert for test validation
+    - tests.common.utilities: wait_until for polling line state changes
+    - conftest.py: Module-level fixtures for OS version and feature checks
+
+Notes:
+    - Tests are parametrized to run on console lines 1 and 2
+    - Reverse SSH username format is 'username:line_number'
+    - Escape sequence Ctrl-A Ctrl-X exits reverse SSH sessions gracefully
+    - Line state is tracked as IDLE (available) or BUSY (in use)
+    - Force interrupt test uses 'sonic-clear line N' to terminate active sessions
+    - Sessions should terminate within 5-10 seconds after clear command
+=============================================================================
+"""
+
 import pytest
 import pexpect
 import random

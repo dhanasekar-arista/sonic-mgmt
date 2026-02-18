@@ -1,3 +1,43 @@
+"""
+=============================================================================
+Module: bgp
+File: test_bgp_gr_helper.py
+=============================================================================
+
+Description:
+    Tests BGP Graceful Restart (GR) Helper mode functionality. Validates that
+    the DUT preserves routes from neighbors undergoing graceful restart and
+    properly handles route retention during neighbor BGP process restarts.
+
+Test Intent:
+    - test_bgp_gr_helper_routes_perserved: Verifies all routes learned from
+      a neighbor are preserved during that neighbor's graceful restart, ensuring
+      traffic continuity during maintenance windows
+
+Topology:
+    any
+
+Fixtures Used:
+    - setup_bgp_graceful_restart: Configures graceful restart on neighbor devices
+    - duthosts: Multi-DUT fixture
+    - rand_one_dut_hostname: Randomly selected DUT
+    - nbrhosts: Neighbor hosts fixture
+    - tbinfo: Testbed information
+
+Dependencies:
+    - tests.common.helpers.assertions.pytest_assert
+    - tests.common.utilities: wait_until, is_ipv4_address, is_ipv6_only_topology
+
+Notes:
+    - Only runs on virtual switch (vs) device types
+    - Tests both IPv4 and IPv6 route preservation
+    - Validates route counts before and after neighbor BGP restart
+    - Ensures routes remain in RIB during graceful restart period
+    - Supports multi-ASIC configurations
+    - Uses vtysh commands to inspect BGP RIB and neighbor routes
+=============================================================================
+"""
+
 import pytest
 import logging
 import ipaddress

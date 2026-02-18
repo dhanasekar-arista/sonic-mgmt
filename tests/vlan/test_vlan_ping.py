@@ -1,3 +1,53 @@
+"""
+=============================================================================
+Module: vlan
+File: test_vlan_ping.py
+=============================================================================
+
+Description:
+    This test validates Layer 3 connectivity across VLANs by testing ICMP
+    packet forwarding between PTF hosts and VMs. It verifies that static
+    ARP/NDP entries are properly added, removed, and that packet forwarding
+    works correctly in both IPv4 and IPv6 scenarios, including dualtor topologies.
+
+Test Intent:
+    - test_vlan_ping: Verifies bidirectional ICMP connectivity between PTF ports
+      (VLAN members) and VM hosts by:
+        * Adding static IPv4 and IPv6 neighbor entries
+        * Testing ICMP packet forwarding in both directions
+        * Flushing and re-adding neighbor entries in different orders
+        * Confirming connectivity persists after neighbor table updates
+        * Supporting both regular and dualtor-aa topologies
+
+Topology:
+    t0, t0-52, m0, mx, t0-2vlans
+
+Fixtures Used:
+    - vlan_ping_setup: Sets up VM and PTF host information including MAC addresses,
+      IPv4/IPv6 addresses, VLAN IDs, and port indices; cleans up neighbor entries
+      on teardown
+    - toggle_all_simulator_ports_to_rand_selected_tor_m: For dualtor topologies,
+      ensures consistent mux port state
+    - populate_mac_table: Restarts arp_update to ensure MAC table is populated
+    - lower_tor_host: Identifies lower ToR in dualtor-aa setups
+
+Dependencies:
+    - ptf.testutils: For packet generation and verification
+    - ptf.packet (scapy): For packet manipulation
+    - tests.common.dualtor: For dualtor-specific utilities
+    - ipaddress: For IP address calculations
+    - tests.vlan.test_vlan: For MAC table population
+
+Notes:
+    - Supports both IPv4 and IPv6 testing (adapts to available IP versions)
+    - For dualtor topologies, uses VLAN interface MAC for packet forwarding
+    - In dualtor-aa, neighbor entries are flushed to avoid issue #12302
+    - Test validates both upstream (to VM) and downstream (from VM) traffic
+    - Static neighbor entries are added using 'arp -s' and 'ip -6 neigh add'
+    - Requires at least 2 VLAN members for proper testing
+    - MAC address source verification skipped for dualtor-aa upstream packets
+=============================================================================
+"""
 import random
 import pytest
 import ipaddress

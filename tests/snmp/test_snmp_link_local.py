@@ -1,3 +1,51 @@
+"""
+=============================================================================
+Module: snmp
+File: test_snmp_link_local.py
+=============================================================================
+
+Description:
+    This test module validates SNMP functionality over IPv6 link-local addresses
+    on SONiC switches. It configures eth0's link-local IP as snmpagentaddress,
+    performs SNMP queries over the link-local address from within the SNMP
+    docker container, and verifies successful retrieval of system description.
+
+Test Intent:
+    - test_snmp_link_local_ip: Configures SNMP agent to listen on eth0 link-local
+      IPv6 address, performs SNMP query using link-local IP from SNMP container,
+      validates sysDescr retrieval, and ensures SNMP agent binds to link-local
+      address correctly
+
+Topology:
+    - Supported: t0, t1, t2, m0, mx, m1, t1-multi-asic, lt2, ft2
+    - Device type: vs (virtual switch)
+
+Fixtures Used:
+    - duthosts: All DUT hosts in testbed
+    - enum_rand_one_per_hwsku_frontend_hostname: Randomly selected frontend DUT
+    - nbrhosts: Neighbor hosts
+    - tbinfo: Testbed information
+    - localhost: Local connection
+    - creds_all_duts: SNMP credentials
+    - config_reload_after_test: Auto-use module fixture performing config reload
+      after test completion
+
+Dependencies:
+    - tests.common.helpers.snmp_helpers: SNMP fact gathering
+    - tests.common.config_reload: Configuration reload utilities
+    - IPv6 link-local address discovery on eth0 interface
+
+Notes:
+    - Link-local IP extracted from eth0 interface (fe80::/10 prefix)
+    - SNMP agent address configured via CONFIG_DB SNMP|LOCATION
+    - Config reload performed after test to restore original configuration
+    - SNMP LLDP readiness check after config reload (300 second timeout)
+    - SNMP query executed from within snmp docker container
+    - Validates snmpagent listening on link-local IP via ss command
+    - Uses zone ID syntax for link-local addressing (e.g., fe80::1%eth0)
+=============================================================================
+"""
+
 import pytest
 from tests.common.helpers.snmp_helpers import get_snmp_facts
 from tests.common import config_reload

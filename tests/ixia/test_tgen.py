@@ -1,3 +1,45 @@
+"""
+=============================================================================
+Module: ixia
+File: test_tgen.py
+=============================================================================
+
+Description:
+    This test module validates all-to-all traffic patterns using Open Traffic
+    Generator (OTG) API with IXIA. It creates mesh traffic between all ports
+    and verifies proper forwarding and statistics collection.
+
+Test Intent:
+    - test_tgen: Creates all-to-all traffic flows between IXIA ports, starts
+      traffic, validates packet transmission/reception, and verifies flow
+      statistics are correctly collected
+
+Topology:
+    - tgen: Requires IXIA/OTG-compatible traffic generator
+
+Fixtures Used:
+    - ixia_api: IXIA/OTG API session
+    - ixia_testbed_config: Testbed and port configuration
+    - conn_graph_facts: DUT-to-IXIA connection mapping
+    - fanout_graph_facts: Fanout topology
+    - prio_dscp_map: Priority to DSCP mapping for QoS
+
+Dependencies:
+    - abstract_open_traffic_generator: OTG API for traffic generation
+    - tests.common.ixia.port: Port selection utilities
+    - tests.common.ixia.ixia_fixtures: IXIA infrastructure fixtures
+    - tests.common.ixia.qos_fixtures: QoS-related fixtures
+
+Notes:
+    - Uses Open Traffic Generator (OTG) API
+    - Creates full mesh traffic pattern (all ports to all ports)
+    - Tests packet forwarding across all port pairs
+    - Validates flow statistics and counters
+    - Log analyzer disabled
+    - Default: 100% line rate distributed across flows, 2-second duration
+    - Packet size: 1024 bytes
+=============================================================================
+"""
 import time
 import pytest
 

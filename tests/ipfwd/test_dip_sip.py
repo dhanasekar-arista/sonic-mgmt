@@ -1,3 +1,44 @@
+"""
+=============================================================================
+Module: ipfwd
+File: test_dip_sip.py
+=============================================================================
+
+Description:
+    This test module validates IP forwarding behavior for packets with matching
+    destination IP (DIP) and source IP (SIP) addresses. It tests that the DUT
+    correctly processes packets where DIP equals SIP, ensuring proper handling
+    according to RFC specifications.
+
+Test Intent:
+    - test_dip_sip_match_drop_ipv4: Verifies that IPv4 packets where destination
+      IP equals source IP are dropped (not forwarded)
+    - test_dip_sip_match_drop_ipv6: Validates that IPv6 packets with matching
+      DIP and SIP are properly dropped by the DUT
+
+Topology:
+    - t0, t1, t2, m0, mx, m1, lt2, ft2: Tests work on standard topologies
+
+Fixtures Used:
+    - lldp_setup: Module-scoped fixture to patch/unpatch LLDP for testing
+    - setup_static_route: Function-scoped fixture that adds static routes for
+      test traffic and removes them after test completion
+    - gather_facts: Provides network facts including router IPs and MACs
+    - change_mac_addresses: Modifies PTF MAC addresses for testing
+    - remove_ip_addresses: Removes IP addresses from PTF interfaces
+
+Dependencies:
+    - tests.common.fixtures.ptfhost_utils: PTF configuration utilities
+    - ptf.testutils: PTF packet testing utilities
+
+Notes:
+    - Tests validate RFC-compliant behavior for DIP==SIP packets
+    - Static routes are configured to destination hosts before testing
+    - LLDP is patched during test execution to avoid interference
+    - Uses DEFAULT_HLIM_TTL of 64 for packet crafting
+    - Packet timeout is 5 seconds for expected packet verification
+=============================================================================
+"""
 import pytest
 import ptf.testutils as testutils
 import logging

@@ -1,3 +1,43 @@
+"""
+=============================================================================
+Module: radv
+File: test_radv_restart.py
+=============================================================================
+
+Description:
+    Tests that restarting the radv (Router Advertisement) service does not
+    inadvertently cause the swss (Switch State Service) to restart. Validates
+    service independence and proper restart behavior.
+
+Test Intent:
+    - test_radv_swss: Verifies that restarting radv.service does NOT trigger
+      a restart of swss.service (or swss@{asic}.service on multi-ASIC).
+      Compares ActiveEnterTimestamp before and after radv restart to confirm
+      swss remained running throughout the radv restart operation.
+
+Topology:
+    any topology
+
+Fixtures Used:
+    - duthost: AnsibleHost instance for DUT operations
+
+Dependencies:
+    - datetime module: For parsing and comparing service activation timestamps
+    - systemctl: For querying service status and timestamps
+
+Notes:
+    - Disables loganalyzer globally for this test
+    - Addresses issue: https://github.com/sonic-net/sonic-mgmt/issues/6042
+    - Uses systemctl show to get ActiveState and ActiveEnterTimestamp
+    - For multi-ASIC: checks all swss@{asic_index}.service instances
+    - For single-ASIC: checks swss.service
+    - Timestamp format: "%a %Y-%m-%d %H:%M:%S %Z" (e.g., "Tue 2022-08-09 10:30:58 UTC")
+    - parse_service_status() converts systemctl output to dictionary
+    - Validates: datetime_swss < datetime_radv (swss started before radv)
+    - Validates: datetime_swss == datetime_swss_before (swss not restarted)
+    - Test ensures proper service isolation and restart independence
+=============================================================================
+"""
 from datetime import datetime
 import pytest
 

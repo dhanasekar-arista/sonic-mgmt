@@ -1,3 +1,37 @@
+"""
+=============================================================================
+Module: generic_config_updater
+File: test_vlan_interface.py
+=============================================================================
+
+Description:
+    Tests VLAN interface configuration using Generic Config Updater. Validates
+    adding, removing, and replacing IPv4/IPv6 addresses on VLAN interfaces with
+    proper verification via show commands.
+
+Test Intent:
+    - test_vlan_interface_ip_add_remove: Adds then removes VLAN IP
+    - test_vlan_interface_add_duplicate_ip: Tests error for duplicate IP
+    - test_vlan_interface_invalid_vlan_intf: Tests error for non-existent VLAN
+    - test_vlan_interface_ip_replace: Replaces existing VLAN IP address
+
+Topology:
+    Supports t0, m0, mx topologies
+
+Fixtures Used:
+    - ensure_dut_readiness: Creates checkpoint, ignores expected log errors
+
+Dependencies:
+    - tests.common.gu_utils: GCU utilities including create_path, check_show_ip_intf
+
+Notes:
+    - Existing VLAN: Vlan1000
+    - New VLAN for testing: Vlan1001
+    - Tests both IPv4 (192.168.0.1/21 or /24) and IPv6 (fc02:1000::1/64)
+    - Ignores expected IPv6 address add/remove errors in logs
+    - Validates via "show ip interfaces" and "show ipv6 interfaces"
+=============================================================================
+"""
 import ipaddress
 import logging
 import sys

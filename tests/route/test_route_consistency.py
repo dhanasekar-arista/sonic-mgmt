@@ -1,3 +1,54 @@
+"""
+=============================================================================
+Module: route
+File: test_route_consistency.py
+=============================================================================
+
+Description:
+    This test module validates route consistency across multiple DUTs and ASICs
+    in distributed systems, particularly for chassis and VoQ architectures. It
+    takes snapshots of route tables from ASIC_DB before and after disruptive
+    operations (BGP process restarts), verifying that route prefixes remain
+    consistent. The tests ensure routing integrity is maintained during control
+    plane recovery scenarios.
+
+Test Intent:
+    - test_route_table_consistency_after_bgp_flap: Captures route prefix snapshots
+      from all frontend DUT ASICs before killing BGP processes, waits for BGP
+      recovery and route convergence, then verifies route consistency by comparing
+      prefix counts and ensuring divergence is within acceptable thresholds (5%)
+
+Topology:
+    - Supported: any topology
+    - Particularly relevant for chassis, VoQ, and multi-ASIC systems
+    - Tests all frontend nodes and their ASIC instances
+
+Fixtures Used:
+    - duthosts: All DUT hosts in the testbed for multi-DUT validation
+    - enum_dut_hostname: Enumerated DUT hostname for test execution
+    - tbinfo: Testbed information fixture
+    - loganalyzer: Log analysis fixture (ignores expected BGP and route_check errors)
+    - ignore_expected_loganalyzer_exceptions: Auto-use fixture for expected error patterns
+
+Dependencies:
+    - threading: Parallel route snapshot retrieval from multiple ASICs
+    - queue: Inter-thread communication for snapshot completion signaling
+    - tests.common.helpers.dut_utils: Process status checking and management
+    - tests.common.utilities: Process killing and wait_until utilities
+    - re: Regular expression for extracting route destination IPs from ASIC_DB keys
+
+Notes:
+    - Route snapshots are taken in parallel via threading for efficiency
+    - Each ASIC instance is tracked separately (dut.hostname-asic_index)
+    - VoQ/chassis topologies: First upstream LC marked specially for comparison
+    - BGP recovery timeout: 5 minutes for all neighbor sessions to establish
+    - Route convergence timeout: dynamically calculated based on route count
+    - Acceptable divergence: 5% of maximum prefix count across all instances
+    - Test verifies both route presence and consistency across distributed system
+    - Expected log errors: bgpd termination, route_check failures during recovery
+=============================================================================
+"""
+
 import pytest
 import logging
 import threading

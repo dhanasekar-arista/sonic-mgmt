@@ -1,3 +1,45 @@
+"""
+=============================================================================
+Module: pc
+File: test_po_update.py
+=============================================================================
+
+Description:
+    This test suite validates PortChannel update operations in SONiC for VOQ (Virtual
+    Output Queue) architectures. Tests verify that PortChannel changes (member additions,
+    IP changes, etc.) are properly synchronized across system databases and that traffic
+    continues to flow correctly during and after updates. Includes tests for concurrent
+    operations and reboot scenarios.
+
+Test Intent:
+    - Verify PortChannel member updates are reflected in all databases (CONFIG_DB, APPL_DB, ASIC_DB)
+    - Test PortChannel IP address updates and database synchronization
+    - Validate traffic forwarding during PortChannel updates
+    - Test concurrent PortChannel operations don't cause race conditions
+    - Verify PortChannel configuration persists across reboots
+
+Topology:
+    any - Can run on any topology (VS device type)
+
+Fixtures Used:
+    - ignore_expected_loganalyzer_exceptions: Ignores expected syncd errors during LAG updates
+    - duthosts: All DUT hosts
+    - ptfadapter: PTF adapter for traffic verification
+
+Dependencies:
+    - tests.common.helpers.sonic_db.VoqDbCli: VOQ database CLI utilities
+    - tests.common.helpers.voq_helpers: VOQ-specific helper functions
+    - tests.common.reboot: Reboot utilities
+    - ptf: PTF testutils for packet verification
+
+Notes:
+    - Tests are specific to VOQ architectures (multi-ASIC chassis systems)
+    - Uses threading and queues for concurrent operation testing
+    - Verifies FDB entries, route entries, and nexthop consistency
+    - Expected syncd errors about invalid OIDs during FDB updates are ignored
+    - Traffic verification uses PTF packet injection and capture
+=============================================================================
+"""
 import random
 import threading
 import time

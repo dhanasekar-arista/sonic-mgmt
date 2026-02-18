@@ -1,3 +1,49 @@
+"""
+=============================================================================
+Module: Dual ToR Standalone Tunnel Route Test
+File: test_standalone_tunnel_route.py
+=============================================================================
+
+Description:
+    This test validates tunnel route creation for standalone (unreachable) server
+    IP addresses in dual ToR topology. It verifies that traffic to non-existent
+    servers is properly tunneled to the active ToR without creating valid neighbor
+    entries, ensuring correct behavior for IP addresses in the VLAN subnet that
+    have no corresponding physical servers.
+
+Test Intent:
+    - test_standalone_tunnel_route: Verifies that traffic to a standalone IP address
+      (IP in VLAN subnet without a server) is properly encapsulated in a tunnel and
+      forwarded to the active ToR. Also validates that the neighbor entry remains in
+      FAILED or INCOMPLETE state, and tests mode transitions for active-active cables.
+
+Topology:
+    dualtor - Requires dual ToR topology with both active-standby and active-active support
+
+Fixtures Used:
+    - cable_type: Identifies cable type (active-standby or active-active)
+    - constants: Provides test constants including target IP addresses (IPv4 and IPv6)
+    - upper_tor_host: Upper ToR device host object
+    - lower_tor_host: Lower ToR device host object
+    - ptfadapter: PTF adapter for sending/receiving test packets
+    - toggle_all_simulator_ports_to_upper_tor: Sets mux simulator ports to upper ToR
+    - tunnel_traffic_monitor: Monitors and validates tunnel traffic
+    - cleanup_neighbors: Cleans up ARP and NDP entries before test
+
+Dependencies:
+    - tests.common.dualtor.dual_tor_common: Dual ToR common utilities
+    - tests.common.dualtor.dual_tor_utils: Dual ToR utility functions
+    - tests.common.dualtor.mux_simulator_control: Mux simulator control utilities
+    - tests.common.dualtor.tunnel_traffic_utils: Tunnel traffic monitoring utilities
+
+Notes:
+    - Test uses IP addresses 500 hops above the VLAN subnet base (e.g., 192.168.0.244)
+    - Validates both IPv4 and IPv6 tunnel routes
+    - For active-active cables, additionally tests standby mode transitions
+    - Sends packets in two rounds to allow tunnel setup time
+    - Expects neighbor state to be FAILED or INCOMPLETE (not REACHABLE)
+=============================================================================
+"""
 import json
 import ipaddress
 import pytest

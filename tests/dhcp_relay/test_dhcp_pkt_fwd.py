@@ -1,3 +1,71 @@
+"""
+Module: tests.dhcp_relay.test_dhcp_pkt_fwd
+File: test_dhcp_pkt_fwd.py
+
+Description:
+    DHCP packet forwarding validation test suite for T1 topology. This module verifies that DHCP
+    packets (Discover, Offer, Request, Ack) are correctly forwarded through T1 devices between
+    downstream (T0/MX) and upstream (T2/M1) neighbors. Tests validate proper L2 and L3 packet
+    transformations during forwarding, including MAC address rewriting and TTL decrementation.
+
+Test Intent:
+    - Verify DHCP Discover packets are forwarded from downstream to upstream ports
+    - Validate DHCP Offer packets are forwarded from upstream to downstream ports
+    - Test DHCP Request packets are forwarded from downstream to upstream ports
+    - Verify DHCP Ack packets are forwarded from upstream to downstream ports
+    - Validate proper MAC address rewriting (src set to router_mac, dst updated)
+    - Test TTL decrementation during L3 forwarding
+    - Verify DHCP relay agent information (giaddr) is preserved
+    - Validate packet forwarding through LAG member ports
+    - Test static route creation for DHCP server and relay IP reachability
+
+Topology:
+    - t1: T1 topology with T0 (downstream) and T2 (upstream) neighbors
+    - m0: Management topology with MX (downstream) and M1 (upstream) neighbors
+    - m1: Management M1 topology
+    T1 device acts as DHCP relay forwarding packets between T0/T2 or MX/M1
+
+Fixtures Used:
+    - dutPorts: Dictionary of upstream and downstream ports on DUT
+    - testPorts: Selected test ports (LAG members) for upstream and downstream
+    - duthosts, rand_one_dut_hostname: DUT host selection
+    - tbinfo: Testbed information including topology type
+    - ptfadapter: PTF adapter for packet transmission and verification
+
+Dependencies:
+    - PTF framework for packet generation and verification
+    - BGP configuration with T0/T2 or MX/M1 neighbors
+    - Static routes to DHCP server and relay IPs via BGP peers
+    - PortChannel (LAG) support for multi-member link aggregation
+    - Minigraph facts for port/neighbor information
+
+Notes:
+    - Tests run on T1 and M0 topologies only (skipped on other topologies)
+    - DHCP client MAC: 00:11:22:33:44:55, IP: 10.10.10.1
+    - DHCP relay MAC: 22:33:44:55:00:11, IP: 20.20.20.1, Loopback: 10.0.0.33
+    - DHCP server MAC: 44:55:00:11:22:33, IP: 30.30.30.30
+    - DHCP client port: 68, server port: 67
+    - DHCP lease time: 86400 seconds (1 day)
+    - Minimum BOOTP packet length: 300 bytes (padded if needed)
+    - Broadcast bit set (0x8000) in BOOTP flags
+    - GIADDR set to relay IP in relayed packets
+    - Static routes added/removed via vtysh during test setup/teardown
+    - Packet forwarding validated using PTF Mask for flexible field matching
+    - Tests use scapy for DHCP packet construction and parsing
+
+Git History (last 10 commits):
+    ca9f91a1d [topo] Clear m2 m3 topo
+    d537254a4 [M1/M2/M3] Add pytest mark for M1/M2/M3 topo
+    dab77c420 Remove TACACS fixture from none TACACS test cases
+    07f328770 Enable TACACS on test cases
+    b238474d1 [dhcp_relay][m0] Add support for in test_dhcp_pkt_fwd for m0-2vlan
+    efb25e571 [Python3 migration]sonic-mgmt repo first batch Python3 migration
+    f7fd5b7e7 Revert "sonic-mgmt repo Python2 to Python3 migration (#7697)"
+    97c89590d sonic-mgmt repo Python2 to Python3 migration
+    3e8c217c8 [pre-commit] Fix style issues in test scripts under tests/decap, tests/dhcp_relay, tests/disk folder
+    5990a1885 [m0] Add support for m0 in test_dhcp_pkt_fwd
+"""
+
 import logging
 import random
 import ipaddr

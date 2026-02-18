@@ -1,3 +1,93 @@
+"""
+=============================================================================
+Module: tacacs
+File: test_authorization.py
+=============================================================================
+
+Description:
+    This comprehensive test file validates TACACS+ per-command authorization
+    functionality in SONiC. It tests various authorization scenarios including
+    TACACS-only mode, local-only mode, mixed mode with fallback, server failures,
+    wildcard matching, backward compatibility, and remote address tracking to
+    ensure command authorization works correctly under all conditions.
+
+Test Intent:
+    - test_authorization_tacacs_only: Validates TACACS-only authorization by
+      attempting various commands and verifying they are properly authorized or
+      rejected based on TACACS server rules, confirming authorization requests
+      are sent to the TACACS server.
+    - test_authorization_tacacs_only_some_server_down: Tests authorization works
+      when some TACACS servers are down by verifying commands still succeed using
+      available servers.
+    - test_authorization_tacacs_only_then_server_down_after_login: Validates that
+      after SSH login, if TACACS servers go down, authorization fails and commands
+      are rejected.
+    - test_authorization_tacacs_and_local: Tests mixed TACACS+local mode where
+      TACACS is primary and local is fallback, verifying proper authorization
+      behavior when TACACS is available.
+    - test_authorization_tacacs_and_local_then_server_down_after_login: Validates
+      fallback to local authorization when TACACS servers become unavailable after
+      login in mixed mode.
+    - test_authorization_local: Tests local-only authorization mode by disabling
+      TACACS and verifying commands are authorized locally without TACACS requests.
+    - test_bypass_authorization: Validates authorization bypass for local users
+      (admin) by confirming commands execute without TACACS authorization checks.
+    - test_backward_compatibility_disable_authorization: Tests backward compatibility
+      by disabling authorization feature and verifying commands execute without
+      authorization checks.
+    - test_tacacs_authorization_wildcard: Validates wildcard command matching in
+      TACACS authorization rules by testing commands that match wildcard patterns.
+    - test_stop_request_next_server_after_reject: Verifies that after TACACS server
+      explicitly rejects authorization, the system does NOT try additional servers.
+    - test_fallback_to_local_authorization_with_config_reload: Tests that authorization
+      configuration persists across config reload and fallback to local works correctly.
+    - test_tacacs_authorization_commands_during_login: Validates that commands
+      executed during SSH login (like ~/.bashrc commands) are properly authorized
+      via TACACS without blocking login.
+    - test_send_remote_address: Verifies that TACACS authorization requests include
+      the remote client IP address for auditing and policy enforcement.
+
+Topology:
+    any, t1-multi-asic (works with multiple topology types)
+
+Fixtures Used:
+    - duthosts: Provides access to all DUT hosts
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hwsku
+    - localhost: Local host object for operations
+    - ptfhost: PTF host for TACACS server
+    - tacacs_creds: Provides TACACS credentials
+    - check_tacacs: Validates TACACS service is running
+    - check_tacacs_v6: Validates IPv6 TACACS support
+    - setup_authorization_tacacs_only: Configures TACACS-only authorization
+    - setup_authorization_tacacs_local: Configures TACACS+local authorization
+    - setup_authorization_local: Configures local-only authorization
+    - setup_authorization_with_config_reload: Sets up authorization with reload test
+    - remote_user_client: SSH client for TACACS authorization user
+    - remote_rw_user_client: SSH client for TACACS RW user
+    - cleanup_tacacs_log: Cleans TACACS server logs
+    - ensure_tacacs_server_running_after_ut: Ensures TACACS server cleanup
+
+Dependencies:
+    - pytest: Test framework
+    - paramiko: For SSH connections
+    - tests.common.helpers.tacacs.tacacs_helper: TACACS helper functions
+    - tests.tacacs.utils: TACACS test utilities
+    - tests.common.utilities: Various utility functions
+
+Notes:
+    - Test is marked to disable log analyzer and work with 'vs' device types
+    - Requires SONiC version supporting per-command authorization (202205+)
+    - Authorization methods: tacacs+, local
+    - Server timeout: 5 seconds
+    - Command timeout limit: 240 seconds
+    - Tests verify authorization requests in TACACS server logs
+    - Supports multiple TACACS servers with priority ordering
+    - Tests both IPv4 and IPv6 TACACS servers
+    - Validates proper error messages for denied commands
+    - Config backup/restore ensures clean state after tests
+    - Uses SSH retry logic to handle network instability
+=============================================================================
+"""
 import logging
 import paramiko
 import pytest

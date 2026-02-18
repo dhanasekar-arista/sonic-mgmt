@@ -1,3 +1,66 @@
+"""
+=============================================================================
+Module: platform_tests
+File: test_psu.py
+=============================================================================
+
+Description:
+    Validates Platform API functionality for PSU (Power Supply Unit) class.
+    Tests PSU metadata, status monitoring, voltage/current/power measurements,
+    temperature sensors, fan enumeration, and LED control.
+
+Test Intent:
+    - test_get_name: Verify PSU name retrieval matches platform.json
+    - test_get_presence: Confirm PSU presence detection
+    - test_get_model: Validate PSU model string retrieval
+    - test_get_serial: Verify PSU serial number retrieval
+    - test_get_revision: Test PSU hardware revision retrieval
+    - test_get_status: Validate PSU operational status (powered on/off)
+    - test_get_position_in_parent: Verify position value is an integer
+    - test_is_replaceable: Confirm replaceable status is boolean
+    - test_get_voltage: Test voltage measurement retrieval
+    - test_get_current: Validate current measurement retrieval
+    - test_get_power: Verify power measurement retrieval
+    - test_get_powergood_status: Test power good signal status
+    - test_get_voltage_high_threshold: Validate voltage high threshold
+    - test_get_voltage_low_threshold: Verify voltage low threshold
+    - test_get_temperature: Test PSU temperature sensor
+    - test_get_temperature_high_threshold: Validate temperature high threshold
+    - test_get_maximum_supplied_power: Verify maximum power capacity
+    - test_get_num_fans: Test PSU fan count matches platform.json
+    - test_get_all_fans: Validate PSU fan list retrieval
+    - test_status_led: Test LED color control (green/amber/red/off)
+    - test_status_master_led: Verify master LED control for multi-PSU systems
+
+Topology:
+    Any topology - tests run on all platforms with PSUs
+
+Fixtures Used:
+    - platform_api_conn: Platform API service connection
+    - setup: Function-scoped autofixture validating PSU count and building skip list
+    - duthosts: Multi-DUT host fixture
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hardware SKU
+
+Dependencies:
+    - tests.common.helpers.platform_api (chassis, psu)
+    - platform.json (PSU metadata including thresholds and LED configuration)
+    - skip_absent_psu helper to skip missing/unplugged PSUs
+
+Notes:
+    - Test skips if no PSUs found on device
+    - PSU skip list built from platform.json to skip absent PSUs
+    - Status LED tests skip PSUs where LED not controllable
+    - LED tests respect platform-specific supported colors list
+    - Mellanox platforms don't support 'off' LED color
+    - Master LED controls overall PSU status indication
+    - Voltage/current/power thresholds are platform-specific
+    - Temperature monitoring skips PSUs without temperature sensors
+    - Fan count derived from platform.json fans array
+    - Tests skip PSUs marked in psu_skip_list
+    - Newer releases (202106+) include revision field
+    - wait_until helper validates LED changes with retry logic
+=============================================================================
+"""
 import logging
 import pytest
 

@@ -1,3 +1,41 @@
+"""
+=============================================================================
+Module: generic_config_updater
+File: test_eth_interface.py
+=============================================================================
+
+Description:
+    Tests Ethernet interface configuration using Generic Config Updater.
+    Validates FEC mode, MTU, speed, and admin status changes with proper
+    verification via show commands.
+
+Test Intent:
+    - test_eth_add_init_config: Adds initial Ethernet interface configuration
+    - test_eth_add_duplicate_config: Tests error for duplicate config add
+    - test_eth_add_remove_config: Adds then removes interface configuration
+    - test_eth_replace_mtu: Replaces MTU value
+    - test_eth_replace_speed: Replaces interface speed
+    - test_eth_replace_admin_status: Changes admin up/down status
+    - test_eth_replace_fec: Replaces FEC mode
+    - test_eth_invalid_fec_config: Tests error for invalid FEC setting
+
+Topology:
+    Supports any topology
+
+Fixtures Used:
+    - ensure_dut_readiness: Creates checkpoint for rollback
+
+Dependencies:
+    - tests.common.gu_utils: GCU utilities for patch operations
+    - tests.common.utilities: wait_until for polling
+
+Notes:
+    - Validates FEC operational status via "show interfaces fec status"
+    - Tests MTU, speed, admin status, and FEC mode changes
+    - Supports various FEC modes: rs, fc, none
+    - Randomly selects Ethernet interface for testing
+=============================================================================
+"""
 import logging
 import pytest
 import re

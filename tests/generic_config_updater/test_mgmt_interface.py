@@ -1,3 +1,37 @@
+"""
+=============================================================================
+Module: generic_config_updater
+File: test_mgmt_interface.py
+=============================================================================
+
+Description:
+    Tests management interface configuration using Generic Config Updater.
+    Validates adding, removing, and modifying management IP addresses with
+    gateway and forced management route configurations.
+
+Test Intent:
+    - test_mgmt_ip_add_remove: Adds then removes management IP address
+    - test_mgmt_forced_route_add_remove: Adds then removes forced mgmt routes
+    - test_mgmt_ip_add_forced_route_add: Adds IP then forced routes
+    - test_mgmt_ip_replace: Replaces existing management IP address
+
+Topology:
+    Supports any topology
+
+Fixtures Used:
+    - ensure_dut_readiness: Creates checkpoint for rollback
+
+Dependencies:
+    - tests.common.gu_utils: GCU utilities including create_path
+    - tests.common.utilities: wait_for_file_changed, FORCED_MGMT_ROUTE_PRIORITY
+
+Notes:
+    - Tests both IPv4 and IPv6 management addresses
+    - Validates forced management routes with priority
+    - Checks /etc/network/interfaces file for changes
+    - Validates gwaddr and forced_mgmt_routes configuration
+=============================================================================
+"""
 import ipaddress
 import logging
 import pytest

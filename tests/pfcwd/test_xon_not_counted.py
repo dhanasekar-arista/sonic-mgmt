@@ -1,3 +1,42 @@
+"""
+=============================================================================
+Module: pfcwd
+File: test_xon_not_counted.py
+=============================================================================
+
+Description:
+    This test verifies that PFC XON frames (class enable = 0) and XOFF frames
+    do not incorrectly increment the RX_DROPS counter on the DUT port. This
+    ensures proper PFC frame handling and counter accuracy.
+
+Test Intent:
+    - test_xon_xoff_not_counted_rx_drop: Sends XON frames (class enable = 0)
+      and XOFF frames (queues 3 and 4) from fanout to DUT, then verifies that
+      RX_DROP counter does not increase significantly (<=10 drops allowed as
+      margin). Validates that PFC pause frames are properly handled without
+      being counted as dropped packets.
+
+Topology:
+    lt2, ft2 topologies
+
+Fixtures Used:
+    - setup_fanouthost: Module-scoped fixture that finds an active DUT port
+      with valid fanout connection, copies pfc_gen.py to fanout, and provides
+      DUT port, fanout port, and fanout host information
+
+Dependencies:
+    - tests.common.platform.device_utils: Interface name conversion functions
+      (eos_to_linux_intf, nxos_to_linux_intf, sonic_to_linux_intf)
+    - pfc_gen.py: PFC frame generation script on fanout
+
+Notes:
+    - Test uses hardcoded queue 0 for XON frames
+    - Sends 1000 frames per test
+    - Allows up to 10 drops as acceptable margin
+    - Uses generic pfc_gen.py (not platform-specific version)
+    - Reads counters directly from COUNTERS_DB using sonic-db-cli
+=============================================================================
+"""
 # tests/counter/test_xon_xoff.py
 import time
 import pytest

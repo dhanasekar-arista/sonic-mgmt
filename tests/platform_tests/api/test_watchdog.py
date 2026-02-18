@@ -1,3 +1,53 @@
+"""
+=============================================================================
+Module: platform_tests
+File: test_watchdog.py
+=============================================================================
+
+Description:
+    Validates Platform API functionality for hardware watchdog timer. Tests
+    watchdog arming/disarming, timeout configuration, and remaining time retrieval
+    to ensure proper system reboot protection.
+
+Test Intent:
+    - test_is_armed: Verify watchdog armed/disarmed state detection
+    - test_get_remaining_time: Validate remaining time retrieval accuracy
+    - test_arm_disarm_states: Test watchdog arm/disarm state transitions
+    - test_arm_different_timeout: Verify arming with platform-specific timeout values
+    - test_arm_invalid_timeout: Ensure invalid timeouts are rejected
+    - test_remaining_time: Validate countdown timer accuracy during armed period
+    - test_periodic_arm: Test watchdog periodic re-arming (keepalive)
+
+Topology:
+    Any topology - physical devices only
+
+Fixtures Used:
+    - platform_api_conn: Platform API service connection
+    - watchdog_not_running: Function-scoped autofixture ensuring clean watchdog state
+    - conf: Module-scoped fixture loading platform-specific watchdog configuration
+    - add_platform_api_server_port_nat_for_dpu: DPU-specific port NAT setup
+    - duthosts: Multi-DUT host fixture
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hardware SKU
+
+Dependencies:
+    - tests.common.helpers.platform_api.watchdog
+    - watchdog.yml (platform/hwsku-specific timeout configuration)
+    - Nokia/DPU platforms: watchdogutil CLI for special handling
+
+Notes:
+    - Test skips on virtual/simulator topologies (device_type: physical)
+    - watchdog.yml defines valid_timeout per platform/hwsku
+    - Nokia IXS7215 platforms require special cpu_wdt.service handling
+    - DPU platforms require watchdogutil CLI for arm/disarm
+    - Each test starts with watchdog disarmed (watchdog_not_running fixture)
+    - Test waits TEST_WAIT_TIME_SECONDS=2 to validate timeout countdown
+    - TIMEOUT_DEVIATION=2 seconds allows for timing measurement variance
+    - Invalid timeout test validates platform rejects out-of-range values
+    - Periodic arm test simulates watchdog daemon keepalive behavior
+    - Config file supports regex matching for platform and hwsku
+    - valid_timeout must be > TEST_WAIT_TIME_SECONDS * 2 to prevent accidental reboot
+=============================================================================
+"""
 import os
 import re
 import time

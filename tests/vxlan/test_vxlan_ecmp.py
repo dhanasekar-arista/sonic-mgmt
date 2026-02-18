@@ -1,54 +1,59 @@
+"""
+=============================================================================
+Module: vxlan
+File: test_vxlan_ecmp.py
+=============================================================================
+
+Description:
+    This comprehensive test suite validates VXLAN ECMP functionality with
+    optional BFD monitoring. It tests encapsulation, decapsulation, route
+    programming, ECMP load balancing, endpoint monitoring, and various scale
+    scenarios across different IP version combinations.
+
+Test Intent:
+    - test_vxlan_single_endpoint: Validates basic VXLAN with single endpoint
+    - test_vnet_single_vni: Tests single VNI configuration
+    - test_vxlan_ecmp: Validates ECMP load balancing across multiple endpoints
+    - test_ecmp_bfd_down: Tests ECMP behavior when BFD session goes down
+    - test_ecmp_bfd_static_route_del: Validates static route deletion impact
+    - test_ecmp_endpoint_mac_change: Tests endpoint MAC address changes
+    - test_ecmp_endpoint_flap: Validates endpoint up/down scenarios
+    - test_vxlan_single_vlan: Tests VXLAN with single VLAN configuration
+    - (Additional entropy and hash distribution tests)
+
+Topology:
+    t1, t1-64-lag, t1-56-lag, t1-lag
+
+Fixtures Used:
+    - encap_type: Parametrized fixture for encapsulation types (v4_in_v4,
+      v4_in_v6, v6_in_v4, v6_in_v6)
+    - setUp: Module-scoped fixture for VXLAN configuration
+    - copy_ptftests_directory: Copies PTF test scripts
+    - _ignore_route_sync_errlogs: Auto-use fixture to ignore expected errors
+
+Dependencies:
+    - tests.ptf_runner: For running PTF dataplane tests
+    - tests.common.vxlan_ecmp_utils: For VXLAN ECMP utilities
+    - tests.common.fixtures.ptfhost_utils: For PTF utilities
+
+Notes:
+    - Supported encap types: v4_in_v4, v4_in_v6, v6_in_v4, v6_in_v6
+    - Destination prefix: 150, Nexthop prefix: 100
+    - Configurable parameters:
+      * ecmp_nhs_per_destination: ECMP paths per destination
+      * total_number_of_endpoints: Endpoint pool size (default: 2)
+      * total_number_of_nexthops: Max nexthops combined
+      * vxlan_port: VXLAN UDP port (default: 4789)
+      * bfd: Enable BFD monitoring (default: False)
+      * include_long_tests: Include entropy/hash tests (default: False)
+      * keep_temp_files: Keep temporary config files (default: False)
+      * debug_enabled: Enable debug mode (default: False)
+      * dut_hostid: Host ID for DUT IP addresses (1-100, default: 1)
+    - PTF tests validate encap/decap and ECMP distribution
+    - Supports scale testing up to 32000 nexthops and 1024 endpoints
+=============================================================================
+"""
 #! /usr/bin/env python3
-
-'''
-    Script to automate the cases listed in VxLAN HLD document:
-    https://github.com/sonic-net/SONiC/blob/8ca1ac93c8912fda7b09de9bfd51498e5038c292/doc/vxlan/Overlay%20ECMP%20with%20BFD.md#test-cases
-
-    To test functionality:
-    ./run_tests.sh -n ucs-m5-2 -d mth64-m5-2 -O -u -e -s \
-        -m individual -p /home/vxr/vxlan/logs/ -c 'vxlan/test_vxlan_ecmp.py'
-
-    To test ECMP with 2 paths per destination:
-    ./run_tests.sh -n ucs-m5-2 -d mth64-m5-2 -O -u -e -s -m individual \
-            -p /home/vxr/vxlan/logs/ -c 'vxlan/test_vxlan_ecmp.py' \
-            -e '--nhs_per_destination=2'
-
-    To test ECMP+Scale(for all 4 types of encap):
-    ./run_tests.sh -n ucs-m5-2 -d mth64-m5-2 -O -u -e -s -m individual \
-    -p /home/vxr/vxlan/logs/ \
-    -c 'vxlan/test_vxlan_ecmp.py::Test_VxLAN_route_tests::\
-       test_vxlan_single_endpoint' \
-    -e '--ecmp_nhs_per_destination=128 --total_number_of_nexthops=32000' \
-    -e '--total_number_of_endpoints=1024'
-
-    To keep the temporary config files created in the DUT:
-    ./run_tests.sh -n ucs-m5-2 -d mth64-m5-2 -O -u -e -s -e --keep_temp_files \
-            -c 'vxlan/test_vxlan_ecmp.py'
-
-    Other options:
-        keep_temp_files             : Keep the temporary files created in the
-                                      DUT. Default: False
-        debug_enabled               : Enable debug mode, for debugging
-                                      script. The temp files will
-                                      not have timestamped names.
-                                      Default: False
-        dut_hostid                  : An integer in the range of 1 - 100 to be
-                                      used as the host
-                                      part of the IP address for DUT. Default:1
-        ecmp_nhs_per_destination    : Number of ECMP next-hops per destination.
-        total_number_of_endpoints   : Number of Endpoints (a pool of this
-                                      number of ip addresses will used for
-                                      next-hops). Default:2
-        total_number_of_nexthops    : Maximum number of all nexthops for every
-                                      destination combined(per encap_type).
-        vxlan_port                  : Global vxlan port (UDP port) to be used
-                                      for the DUT. Default: 4789
-        bfd                         : Set it to True if you want to run all
-                                      VXLAN cases with BFD Default: False
-        include_long_tests          : Include the entropy, random-hash
-                                      testcases, that take longer time.
-                                      Default: False
-'''
 
 import time
 import logging

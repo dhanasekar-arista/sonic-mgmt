@@ -1,3 +1,55 @@
+"""
+=============================================================================
+Module: cacl
+File: test_cacl_function.py
+=============================================================================
+
+Description:
+    This functional test validates end-to-end Control Plane ACL (CACL)
+    functionality by temporarily applying restrictive ACL rules that block
+    SSH, SNMP, and NTP access to verify proper ACL enforcement and restoration.
+
+Test Intent:
+    - test_cacl_function: Verifies control plane ACL enforcement by running
+      config_service_acls.sh script that temporarily blocks management traffic
+      to an unused IP range, confirming that SSH, SNMP, and NTP connections
+      are properly rejected during enforcement and restored after the script
+      completes its cleanup phase.
+
+Topology:
+    any, t1-multi-asic - Test runs on any topology including multi-ASIC
+    configurations
+
+Fixtures Used:
+    - duthosts: Multi-DUT fixture providing access to all DUT hosts
+    - enum_rand_one_per_hwsku_hostname: Randomly selects one DUT per hardware SKU
+    - localhost: Ansible localhost fixture for wait_for operations
+    - creds: Device credentials including SNMP community strings
+
+Dependencies:
+    - pytest: Test framework
+    - logging: Python logging module
+    - ntplib: NTP client library (optional, warning issued if not installed)
+    - tests.common.helpers.assertions: pytest_assert for enhanced error messages
+    - tests.common.helpers.snmp_helpers: SNMP fact gathering utilities
+    - tests.common.utilities: get_data_acl and recover_acl_rule for ACL management
+    - scripts/config_service_acls.sh: Shell script that applies and reverts test ACLs
+
+Notes:
+    - Test is restricted to Virtual Switch (vs) device type only
+    - Loganalyzer disabled to prevent false positives during ACL changes
+    - The config_service_acls.sh script runs in background (nohup) to survive
+      SSH session termination
+    - Script automatically reverts ACL changes after ~3 minutes
+    - SSH connection is expected to fail during restrictive ACL period
+    - SNMP and NTP services should timeout when ACLs are restrictive
+    - For chassis-packet devices, SNMP timeout is reduced to 5 seconds
+    - Total test duration includes 210-second timeout for ACL restoration
+    - Data ACL rules are recovered at test completion to restore original state
+    - Test validates three phases: initial access, blocked access, restored access
+=============================================================================
+"""
+
 import pytest
 import logging
 from tests.common.helpers.assertions import pytest_assert

@@ -1,3 +1,51 @@
+"""
+=============================================================================
+Module: dhcp_server
+File: test_dhcp_server_multi_vlans.py
+=============================================================================
+
+Description:
+    Test suite for validating SONiC DHCP server functionality across multiple VLANs. This
+    module tests DHCP server behavior when serving multiple independent VLANs simultaneously,
+    including single IP and range-based assignments, ensuring proper isolation between VLANs
+    and correct configuration management across VLAN boundaries.
+
+Test Intent:
+    - test_single_ip_assignment: Verify DHCP server can assign single IPs to clients across multiple VLANs (4 VLANs) simultaneously
+    - test_range_ip_assignment: Verify DHCP server can assign IPs from ranges across multiple VLANs (2 VLANs) simultaneously
+
+Topology:
+    - mx: Management extended topology with DHCP relay and server containers
+
+Fixtures Used:
+    - setup_multiple_vlans_and_teardown: Module-level fixture that splits single VLAN into 4 VLANs with different subnets and members
+    - enable_sonic_dhcpv4_relay_agent: Enables SONiC DHCPv4 relay agent (isc-relay-agent or sonic-relay-agent)
+    - dhcp_server_setup_teardown: Module-level setup to enable dhcp_server feature (inherited from conftest)
+    - clean_dhcp_server_config_after_test: Function-level cleanup (inherited from conftest)
+
+Dependencies:
+    - PTF framework for packet generation and validation
+    - dhcp_server_test_common: Helper functions for DHCP configuration and testing
+    - CONFIG_DB tables: VLAN, VLAN_INTERFACE, VLAN_MEMBER for VLAN setup
+    - CONFIG_DB tables: DHCP_SERVER_IPV4, DHCP_SERVER_IPV4_RANGE, DHCP_SERVER_IPV4_PORT for DHCP config
+    - dhcp_server container with kea-dhcp4 process
+    - dhcp_relay container with dhcprelayd process
+
+Notes:
+    - Tests are parameterized with relay_agent (isc-relay-agent or sonic-relay-agent)
+    - Fixture creates 4 VLANs (Vlan400, Vlan401, Vlan402, Vlan403) from single original VLAN
+    - Fourth VLAN uses smaller /30 subnet to test edge cases with limited IP space
+    - VLANs are split by dividing original subnet with prefixlen_diff=2 (creates 4 equal subnets)
+    - VLAN members are distributed evenly across 4 VLANs (requires at least 8 members)
+    - Setup requires original VLAN subnet with at least 12 IP addresses
+    - Each VLAN has independent gateway, subnet, and IP assignment pool
+    - Tests verify VLAN isolation (clients in VLAN1 don't receive IPs from VLAN2 config)
+    - Configuration uses GCU (Generic Config Updater) JSON patches for VLAN and DHCP setup
+    - All VLAN and DHCP configuration is cleaned up after module execution
+
+=============================================================================
+"""
+
 import logging
 import ipaddress
 import pytest

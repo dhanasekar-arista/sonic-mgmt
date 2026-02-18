@@ -1,3 +1,53 @@
+"""
+=============================================================================
+Module: route
+File: test_forced_mgmt_route.py
+=============================================================================
+
+Description:
+    This test module validates forced management route functionality on SONiC
+    switches. Forced management routes ensure management traffic uses the default
+    routing table with a specific priority, allowing management access even when
+    management VRF is not configured. Tests verify route addition/removal based
+    on management port status and configuration changes.
+
+Test Intent:
+    - test_forced_mgmt_route_add_and_remove_by_mgmt_port_status: Verifies that
+      forced management routes (IPv4 and IPv6) are added to the default route
+      table when management port is up, and removed when port goes down
+    - test_forced_mgmt_route_add_and_remove_by_configuration_change: Validates
+      forced management routes are correctly added when management interface is
+      configured and removed when interface configuration is deleted
+
+Topology:
+    - Supported: t0, t2, lt2, ft2
+    - Device type: vs (virtual switch)
+    - Skip on multi-ASIC (config format differences)
+    - Skip when management VRF is enabled
+
+Fixtures Used:
+    - duthosts: All DUT hosts in the testbed
+    - enum_rand_one_per_hwsku_hostname: Randomly selected DUT
+    - backup_restore_config: Fixture that backs up and restores config_db.json
+
+Dependencies:
+    - ipaddress: IP address and network manipulation
+    - tests.common.helpers.syslog_helpers: Management VRF detection
+    - tests.common.utilities: Config backup/restore, file change monitoring
+
+Notes:
+    - Forced management route priority: defined in FORCED_MGMT_ROUTE_PRIORITY constant
+    - Routes added with: priority=FORCED_MGMT_ROUTE_PRIORITY, table='default'
+    - Test uses eth1 as test management interface (skipped if in use or missing)
+    - IPv4 test address: 172.17.1.1/24, IPv6: 2000:1:2:3:4:5:6:7/64
+    - Port status verification: waits up to 10 seconds for status change
+    - Route verification: checks ip rule list for matching priority, dst, and table
+    - Config changes applied via config_db.json override
+    - Loganalyzer disabled due to expected configuration change warnings
+    - Config restored after test completion via fixture
+=============================================================================
+"""
+
 import ipaddress
 import json
 import logging

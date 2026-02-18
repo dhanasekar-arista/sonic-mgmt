@@ -1,3 +1,53 @@
+"""
+=============================================================================
+Module: srv6
+File: test_srv6_vlan_forwarding.py
+=============================================================================
+
+Description:
+    This test module validates SRv6 traffic forwarding across VLAN interfaces
+    on SONiC switches, testing both upstream (with SRH) and downstream (without
+    SRH) traffic patterns to ensure proper VLAN-based SRv6 packet handling and
+    forwarding between VLAN members.
+
+Test Intent:
+    - test_srv6_vlan_forwarding_upstream_traffic: Validates SRv6 upstream traffic
+      (with SRH header) is correctly forwarded from VLAN member port to another
+      VLAN member port based on inner IPv6 destination
+    - test_srv6_vlan_forwarding_downstream_traffic: Tests downstream traffic
+      (without SRH) forwarding across VLAN interfaces, ensuring standard IPv6
+      forwarding works alongside SRv6 configuration
+
+Topology:
+    - Supported: t0 topology
+    - ASIC types: Mellanox, Broadcom, vs
+    - Requires VLAN configuration with multiple member ports
+
+Fixtures Used:
+    - duthosts: All DUT hosts in testbed
+    - enum_frontend_dut_hostname: Frontend DUT selection
+    - ptfadapter: PTF adapter for packet injection and verification
+    - ptfhost: PTF host for management operations
+    - tbinfo: Testbed information
+
+Dependencies:
+    - srv6_utils: SRv6 utilities for packet handling and MAC resolution
+    - scapy: Packet generation with IPv6 and SRH support
+    - ptf.testutils: PTF packet utilities
+
+Notes:
+    - Upstream traffic: includes SRH with segment list
+    - Downstream traffic: regular IPv6 without SRH
+    - Test uses random payload generation for packet uniqueness
+    - VLAN member ports selected from minigraph VLAN configuration
+    - Verifies proper MAC address resolution for VLAN neighbors
+    - Tests require at least 2 VLAN member ports for forwarding validation
+    - Packet verification ensures correct ingress and egress ports
+    - SRH segment left field indicates current active segment
+    - Inner frame: IPv6 packet with UDP payload on port 4791
+=============================================================================
+"""
+
 import random
 import string
 import ipaddress

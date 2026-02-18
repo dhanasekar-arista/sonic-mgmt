@@ -1,3 +1,38 @@
+"""
+=============================================================================
+Module: ixia/ixanvl
+File: test_bgp_conformance.py
+=============================================================================
+
+Description:
+    This test module runs IXIA ANVL (Automated Network Validation Library)
+    BGP conformance tests on SONiC switches. It executes BGP protocol conformance
+    testing using IXIA's ANVL tool running on PTF host.
+
+Test Intent:
+    - test_anvl_bgp_run: Executes IXIA ANVL BGP4 conformance test suite or
+      specific test cases to validate BGP protocol implementation compliance
+
+Topology:
+    - tgen: Requires IXIA traffic generator topology
+
+Fixtures Used:
+    - ptfhost: PTF host where IXIA ANVL container runs
+    - testnum: Optional test number to run specific ANVL test case
+
+Dependencies:
+    - paramiko: SSH client for remote command execution
+    - scp: Secure copy for file transfer from ANVL container
+    - IXIA ANVL: BGP conformance testing tool
+
+Notes:
+    - Log analyzer is disabled for this test
+    - Test connects to IXIA ANVL container running on PTF
+    - Can run full BGP test suite or specific test case via --testnum option
+    - Results are logged to bgp4.log and transferred back via SCP
+    - Requires ANVL installed at /opt/Ixia/IxANVL on PTF
+=============================================================================
+"""
 import logging
 import paramiko
 import pytest

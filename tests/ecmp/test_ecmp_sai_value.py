@@ -1,3 +1,53 @@
+"""
+=============================================================================
+Module: ecmp
+File: test_ecmp_sai_value.py
+=============================================================================
+
+Description:
+    Test suite for validating ECMP hash seed and offset values on Broadcom ASICs. This
+    module tests that RTAG7 hash seed and port-based hash offset values persist correctly
+    across config reloads, cold reboots, and warm reboots on various Broadcom platforms
+    (TH, TH2, TD2, TD3, TH3).
+
+Test Intent:
+    - test_hash_seed_config_reload: Verify RTAG7 hash seed values remain consistent after config reload
+    - test_hash_seed_cold_reboot: Verify RTAG7 hash seed values persist after cold reboot
+    - test_hash_seed_warm_reboot: Verify RTAG7 hash seed values persist after warm reboot
+    - test_hash_offset_config_reload: Verify port-based hash offset values remain consistent after config reload
+    - test_hash_offset_cold_reboot: Verify port-based hash offset values persist after cold reboot
+    - test_hash_offset_warm_reboot: Verify port-based hash offset values persist after warm reboot
+
+Topology:
+    - t0, t1, m1: Standard leaf-spine topologies
+
+Fixtures Used:
+    - duthost: DUT host object for executing commands
+    - duthosts: All DUT hosts in the testbed
+    - enum_rand_one_per_hwsku_frontend_hostname: Random frontend DUT per HWSKU
+    - localhost: Localhost object for local operations
+    - enable_container_autorestart: Ensures container autorestart is enabled for test
+
+Dependencies:
+    - Broadcom ASIC (TH, TH2, TD2, TD3, TH3 platforms)
+    - bcmcmd for Broadcom register access
+    - RTAG7 hash registers for ECMP/LAG hashing
+    - SAI hash seed and offset configuration
+
+Notes:
+    - Test is marked with pytest.mark.asic('broadcom')
+    - Test is marked with pytest.mark.disable_loganalyzer
+    - Supported platforms: TH, TH2, TD2, TD3, TH3, TH4
+    - Hash seed registers: RTAG7_HASH_SEED_A, RTAG7_HASH_SEED_B (per pipe on multi-pipe ASICs)
+    - Hash offset register: RTAG7_PORT_BASED_HASH OFFSET_ECMP
+    - TD2 has 1 pipe, TD3 has 1 pipe, TH/TH2 has 4 pipes, TH3/TH4 has 8 pipes
+    - Test validates seed values remain constant after disruptions
+    - Test validates offset values remain constant after disruptions
+    - Container autorestart is required for warm reboot test
+
+=============================================================================
+"""
+
 import pytest
 import re
 import logging

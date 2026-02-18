@@ -1,3 +1,62 @@
+"""
+=============================================================================
+Module: vlan
+File: test_vlan.py
+=============================================================================
+
+Description:
+    This comprehensive test suite validates VLAN functionality including
+    tagged/untagged packet forwarding, broadcast/unicast behavior, QinQ
+    support, and VLAN membership handling. Tests cover packet egress behavior
+    based on PVID and permit_vlanid configurations across regular ports and
+    portchannels.
+
+Test Intent:
+    - test_vlan_tc1_send_untagged: Verifies untagged packets egress without
+      tag on ports with matching PVID, and with tag on ports with different PVID
+    - test_vlan_tc2_send_tagged: Verifies tagged packets egress correctly
+      based on PVID matching (untagged) vs non-matching (tagged)
+    - test_vlan_tc3_send_invalid_vid: Verifies packets with invalid VLAN ID
+      (4095) are dropped and not forwarded to any port
+    - test_vlan_tc4_tagged_unicast: Verifies bidirectional unicast communication
+      between two tagged ports in the same VLAN
+    - test_vlan_tc5_untagged_unicast: Verifies bidirectional unicast communication
+      between two untagged ports in the same VLAN
+    - test_vlan_tc6_tagged_untagged_unicast: Verifies bidirectional communication
+      between tagged and untagged ports, with proper VLAN tag insertion/removal
+    - test_vlan_tc7_tagged_qinq_switch_on_outer_tag: Verifies QinQ (802.1ad)
+      packets are switched based on outer VLAN tag and MAC addresses
+
+Topology:
+    t0
+
+Fixtures Used:
+    - populate_mac_table: Restarts arp_update to ensure MAC table is populated,
+      preventing unwanted flooding (auto-use)
+    - ignore_expected_loganalyzer_exceptions: Ignores expected orchagent errors
+      during test execution (auto-use)
+    - toggle_all_simulator_ports_to_rand_selected_tor_m: For dualtor topologies
+    - ports_list: Provides list of ports for testing
+    - vlan_intfs_dict: Dictionary of VLAN interfaces
+    - setup_po2vlan: Sets up portchannel to VLAN conversion if needed
+
+Dependencies:
+    - ptf.testutils: For packet generation and verification
+    - ptf.packet (scapy): For packet manipulation and masking
+    - tests.common.dualtor: For dualtor-specific configuration
+    - tests.common.helpers.portchannel_to_vlan: For VLAN/portchannel utilities
+
+Notes:
+    - Tests are marked with @pytest.mark.bsl for baseline test suite
+    - Tests are marked with @pytest.mark.po2vlan for portchannel conversion tests
+    - Dualtor topologies skip broadcast tests (not supported)
+    - Some tests skip when no portchannels are detected
+    - PTF_PORT_MAPPING_MODE set to "use_orig_interface" for t0-backend
+    - Supports both IPv4 and IPv6 VLAN testing
+    - QinQ test uses outer VLAN tag for switching decisions
+    - Packet verification includes retry logic for reliability
+=============================================================================
+"""
 import pytest
 import ptf.packet as scapy
 import ptf.testutils as testutils

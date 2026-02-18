@@ -1,3 +1,50 @@
+"""
+=============================================================================
+Module: platform_tests
+File: test_check_sfp_eeprom.py
+=============================================================================
+
+Description:
+    Mellanox and NVIDIA Bluefield specific test validating SFP EEPROM data consistency
+    between CLI commands and direct hardware access via PCI configuration space. Tests
+    DOM (Digital Optical Monitoring) support detection and EEPROM field validation.
+
+Test Intent:
+    - test_check_sfp_eeprom_and_dom_status: Verify SFP EEPROM data from CLI matches PCI reads
+    - test_sfp_page_read_write: Validate SFP page read/write operations (if supported)
+
+Topology:
+    Any topology - Mellanox and NVIDIA Bluefield platforms only
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - rand_one_dut_hostname: Selects one random DUT
+    - conn_graph_facts: Connection graph for interface mapping
+    - xcvr_skip_list: Transceiver skip list
+    - get_sw_control_ports: Software control port list
+    - sfp_test_intfs_to_dom_map: Module-scoped fixture mapping interfaces to DOM support
+
+Dependencies:
+    - show interface transceiver eeprom CLI
+    - sfputil show eeprom CLI
+    - PCI configuration space access (pciconf0 or pci_cr0)
+    - parse_sfp_eeprom_infos helper
+    - check_sfp_eeprom_info validator
+
+Notes:
+    - Test only runs on Mellanox/NVIDIA Bluefield ASIC platforms
+    - Validates EEPROM data consistency between multiple sources
+    - DPU platforms use pciconf0, others use pci_cr0 for PCI access
+    - Tests both 'show interface transceiver eeprom' and 'sfputil show eeprom' commands
+    - DOM support detected per-interface based on cable type
+    - Skips interfaces in xcvr_skip_list
+    - Skips software-controlled ports (get_sw_control_ports)
+    - Only tests connected interfaces from conn_graph_facts
+    - PMON uptime check ensures daemon stability during test
+    - Allure test reporting integration
+    - wait_until helper validates asynchronous operations
+=============================================================================
+"""
 import pytest
 import allure
 

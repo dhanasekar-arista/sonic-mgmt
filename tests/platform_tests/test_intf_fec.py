@@ -1,3 +1,41 @@
+"""
+=============================================================================
+Module: platform_tests
+File: test_intf_fec.py
+=============================================================================
+
+Description:
+    Tests Forward Error Correction (FEC) configuration on high-speed interfaces (50G+).
+    Validates that FEC mode can be configured and operational status matches configuration.
+
+Test Intent:
+    - test_change_fec_mode: Verify FEC mode configuration (RS, FC, None) on eligible interfaces
+      and validate operational mode matches configured mode
+
+Topology:
+    Any topology
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hardware SKU
+    - is_supported_platform: Autofixture validating platform FEC support
+
+Dependencies:
+    - get_fec_eligible_interfaces helper to identify FEC-capable interfaces
+    - show interfaces fec status CLI command
+
+Notes:
+    - Supported platforms: mlnx_msn, 8101_32fh, 8111_32eh, arista, x86_64-nvidia, etc.
+    - Supported speeds: 50G, 100G, 200G, 400G, 800G, 1600G
+    - Skips old releases: 201811, 201911, 202012, 202205, 202211, 202305
+    - Skips unsupported platforms
+    - FEC modes tested: rs (Reed-Solomon), fc (FireCode), none
+    - wait_until helper validates FEC mode change with timeout
+    - Loganalyzer disabled (expected warnings during FEC changes)
+    - Test iterates through all eligible interfaces
+    - Validates post-change FEC operational mode matches configuration
+=============================================================================
+"""
 import logging
 import pytest
 import time

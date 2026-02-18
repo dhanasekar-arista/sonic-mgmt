@@ -1,3 +1,59 @@
+"""
+=============================================================================
+Module: ecmp
+File: test_fgnhg.py
+=============================================================================
+
+Description:
+    Test suite for Fine Grained Next Hop Group (FG-NHG) functionality on Mellanox platforms.
+    This module validates FG-ECMP hash distribution, next hop reachability detection, bank
+    hashing behavior, and IPv4/IPv6 traffic forwarding with multiple next hops using VXLAN
+    encapsulation and ARP/NDP resolution.
+
+Test Intent:
+    - test_fgnhg_hash: Verify FG-ECMP hash distribution is balanced across next hops
+    - test_fgnhg_nh_reachability: Verify unreachable next hop detection and traffic redistribution
+
+Topology:
+    - t0: Standard T0 leaf-spine topology
+
+Fixtures Used:
+    - duthost: DUT host object
+    - ptfhost: PTF host for traffic generation
+    - tbinfo: Testbed information
+    - copy_ptftests_directory: Copies PTF tests to PTF host
+    - change_mac_addresses: Changes PTF MAC addresses
+    - remove_ip_addresses: Removes IP addresses from PTF interfaces
+    - copy_arp_responder_py: Copies ARP responder script to PTF
+    - fgnhg_ptf_test_params: Module-level fixture providing PTF test parameters
+    - fgnhg_setup: Module-level fixture for FG-NHG configuration setup and teardown
+
+Dependencies:
+    - Mellanox ASIC with FG-ECMP support
+    - PTF framework for traffic generation and verification
+    - fg_ecmp.FgEcmpTest PTF test module
+    - VXLAN configuration for encapsulation
+    - FG_ECMP CONFIG_DB configuration
+    - ARP/NDP responder for next hop resolution
+
+Notes:
+    - Test is marked with pytest.mark.asic('mellanox')
+    - Test is marked with pytest.mark.disable_loganalyzer
+    - Default configuration: 8 next hops (NUM_NHs=8)
+    - VXLAN port: 13330
+    - Default VLAN: 1000 (200.200.200.0/28 for IPv4, 200:200:200:200::/124 for IPv6)
+    - Test prefixes: 3 IPv4 prefixes, 3 IPv6 prefixes
+    - Traffic flows: 1000 flows (NUM_FLOWS=1000)
+    - FG-ECMP uses bank 0 and bank 1 for hash distribution
+    - Next hops distributed across two banks for redundancy
+    - Hash distribution tolerance: ±10% from ideal distribution
+    - Next hop reachability tracked via ARP/NDP neighbor entries
+    - Inner hashing not used (USE_INNER_HASHING=False)
+    - Configuration file: /tmp/fg_ecmp.json
+
+=============================================================================
+"""
+
 import pytest
 
 import logging

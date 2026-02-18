@@ -1,3 +1,52 @@
+"""
+=============================================================================
+Module: Dual ToR Switchover Failure Scenarios Test
+File: test_switchover_failure.py
+=============================================================================
+
+Description:
+    This test validates mux switchover behavior in failure scenarios, specifically
+    testing MAC move events that occur during mid-switchover. It ensures that
+    switchover operations complete successfully even when FDB (Forwarding Database)
+    MAC moves happen while orchagent is processing mux state changes.
+
+Test Intent:
+    - test_mac_move_during_switchover: Validates switchover completion when MAC
+      address moves between ports during the switchover process. Tests the race
+      condition where syncd is paused causing orchagent to hang, then a MAC move
+      is triggered. Verifies switchover completes successfully after unpausing.
+
+Topology:
+    dualtor - Requires dual ToR topology with active-active support
+
+Fixtures Used:
+    - common_setup_teardown: Provides test setup including server IP, MAC, VLAN info,
+      and mux interfaces. Parametrized for IPv4 and IPv6 testing.
+    - neigh_learn_pkt: Generates neighbor learning packet (ARP reply or NA)
+    - ip_pkt: Generates generic IPv4/IPv6 packet for triggering MAC moves
+    - toggle_all_simulator_ports_to_rand_unselected_tor: Sets simulator to unselected ToR
+    - run_icmp_responder: Runs ICMP responder on PTF
+    - run_garp_service: Runs GARP service on PTF
+    - config_facts: Provides device configuration facts
+
+Dependencies:
+    - tests.common.dualtor.control_plane_utils: Control plane verification utilities
+    - tests.common.dualtor.mux_simulator_control: Mux simulator control utilities
+    - tests.common.dualtor.dual_tor_common: Dual ToR common utilities (cable_type)
+
+Notes:
+    - Test uses fixed test server MAC: 3a:2c:62:dd:92:11
+    - Server IP is selected as one IP above highest mux cable server IP
+    - Test pauses syncd process to simulate mid-switchover state
+    - Test pauses orchagent to allow MAC move processing
+    - For active-standby: toggles from standby to active
+    - For active-active: toggles from active to standby
+    - Verifies final mux states using verify_tor_states utility
+    - Test restarts swss if it fails (assumes services stuck in bad state)
+    - Uses control_process to pause/unpause syncd and orchagent
+    - Waits for critical services to fully start after restart
+=============================================================================
+"""
 import ipaddress
 import logging
 import ptf.testutils as testutils

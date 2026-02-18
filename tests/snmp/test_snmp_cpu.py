@@ -1,3 +1,49 @@
+"""
+=============================================================================
+Module: snmp
+File: test_snmp_cpu.py
+=============================================================================
+
+Description:
+    This test module validates SNMP CPU utilization reporting on SONiC switches
+    by inducing CPU load with shell processes and verifying SNMP reports CPU
+    usage within an acceptable difference threshold (< 2%) compared to system
+    CPU statistics.
+
+Test Intent:
+    - test_snmp_cpu: Induces CPU load by spawning 'yes' processes per vCPU,
+      compares SNMP-reported CPU utilization (ChStackUnitCpuUtil5sec) against
+      shell-based CPU usage calculation, and validates difference is less than
+      2% allowing for float-to-int rounding on each measurement
+
+Topology:
+    - Supported: any topology
+    - Device type: vs (virtual switch)
+
+Fixtures Used:
+    - duthosts: All DUT hosts in testbed
+    - enum_rand_one_per_hwsku_hostname: Randomly selected DUT
+    - localhost: Local connection for SNMP queries
+    - creds_all_duts: SNMP credentials
+
+Dependencies:
+    - tests.common.helpers.snmp_helpers: SNMP fact gathering with Dell extensions
+    - nproc: CPU count detection
+    - yes command: CPU load generation
+    - top command: CPU usage measurement
+
+Notes:
+    - CPU count detected via ansible_processor_vcpus or nproc command
+    - Load generation: spawns 'yes > /dev/null' per vCPU
+    - SNMP OID: ChStackUnitCpuUtil5sec (5-second average CPU utilization)
+    - System CPU measured via 'top -bn2 -d1' (2 iterations, 1 second delay)
+    - Acceptable difference: < 2% (accounts for rounding errors)
+    - Cleanup: kills all 'yes' processes after test
+    - Wait period: 1 second after load generation before SNMP query
+    - Dell-specific SNMP extension used for CPU monitoring
+=============================================================================
+"""
+
 import pytest
 import time
 import logging

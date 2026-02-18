@@ -1,3 +1,77 @@
+"""
+=============================================================================
+Module: telemetry
+File: test_telemetry.py
+=============================================================================
+
+Description:
+    This comprehensive test file validates gNMI (gRPC Network Management Interface)
+    telemetry functionality in SONiC. It tests configuration parameters, streaming
+    telemetry capabilities, on-change updates, database subscriptions, memory usage,
+    and various telemetry data paths to ensure proper operation of the telemetry
+    service for network monitoring and management.
+
+Test Intent:
+    - test_config_db_parameters: Validates telemetry configuration in CONFIG_DB
+      by verifying gnmi and certs tables exist with required parameters (port,
+      client_auth, log_level, ca_crt, server_crt, server_key).
+    - test_telemetry_enabledbydefault: Confirms telemetry docker container is
+      enabled by default and running on the DUT.
+    - test_telemetry_ouput: Tests basic gNMI get operation by retrieving COUNTERS
+      data and validating the output format and content.
+    - test_telemetry_queue_buffer_cnt: Validates queue buffer counter retrieval
+      via gNMI for both regular and COUNTERS_DB paths, verifying data consistency
+      across database updates.
+    - test_osbuild_version: Tests gNMI retrieval of OS build version information
+      from STATE_DB and validates the output format.
+    - test_sysuptime: Validates system uptime retrieval via gNMI streaming with
+      SAMPLE mode at 5-second intervals, verifying monotonically increasing values.
+    - test_virtualdb_table_streaming: Tests streaming telemetry from virtual
+      database (EVENTS) table to ensure gNMI can subscribe to and receive updates
+      from virtual tables.
+    - test_on_change_updates: Validates ON_CHANGE subscription mode by modifying
+      interface admin status and verifying telemetry updates are received only
+      when values change.
+    - test_mem_spike: Tests telemetry process memory usage stability by monitoring
+      memory for 60 seconds and ensuring no memory spikes or leaks occur during
+      normal operation.
+
+Topology:
+    any, t1-multi-asic (works with multiple topology types)
+
+Fixtures Used:
+    - duthosts: Provides access to all DUT hosts
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hwsku
+    - ptfhost: PTF host for running gNMI client
+    - gnxi_path: Path to gNMI client tools on PTF
+    - setup_streaming_telemetry: Configures streaming telemetry for testing
+    - localhost: Local host object for operations
+
+Dependencies:
+    - pytest: Test framework
+    - tests.common.helpers.assertions: For test assertions
+    - tests.common.utilities: Utility functions including wait_until
+    - tests.common.helpers.gnmi_utils: gNMI environment and utilities
+    - tests.common.helpers.telemetry_helper: Telemetry setup helper
+    - telemetry_utils: Custom utilities for telemetry testing
+    - tests.common.config_reload: For config reload operations
+
+Notes:
+    - gNMI default port varies by version (8080 or 50051)
+    - Client authentication modes: true/false
+    - Subscription modes: SAMPLE, ON_CHANGE
+    - Sample interval: 5000ms (5 seconds) for uptime test
+    - Memory checker runs for 60 cycles at 1-second intervals
+    - Maximum unicast queue count: 7
+    - Certificate paths: /etc/sonic/telemetry/
+    - Config DB path: /etc/sonic/config_db.json
+    - Tests support multi-ASIC platforms
+    - Skips tests on 201911 and older versions
+    - Memory spike threshold configurable for different platforms
+    - Uses threading for continuous memory monitoring
+    - Virtual DB table: EVENTS (for event streaming tests)
+=============================================================================
+"""
 import time
 import threading
 import logging

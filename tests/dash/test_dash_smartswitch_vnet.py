@@ -1,3 +1,62 @@
+"""
+Module: tests.dash
+File: test_dash_smartswitch_vnet.py
+Description:
+    DASH (Disaggregated API for SONiC Hosts) SmartSwitch VNET-to-VNET test suite.
+    This test module validates outbound VNET traffic transformation on SmartSwitch topology,
+    verifying the complete data path from VM to PE (Provider Edge) through DPU and NPU.
+
+Test Intent:
+    - Validate SmartSwitch outbound VNET traffic transformation
+    - Verify packet encapsulation/decapsulation through DPU-NPU dataplane
+    - Test VXLAN UDP source port range configuration on DPU
+    - Ensure proper routing of packets from local VMs to remote endpoints
+    - Validate inner packet types (UDP, TCP, ICMP echo request/reply)
+
+Topology:
+    - smartswitch: SmartSwitch topology with DPU-NPU architecture
+    - Requires DPU-NPU dataplane interface IP assignments
+    - Test traffic flows: VM -> DPU -> NPU -> PE
+
+Fixtures Used:
+    - localhost: Ansible localhost for configuration management
+    - duthost: Device Under Test (NPU) host object
+    - ptfhost: PTF (Packet Test Framework) host
+    - ptfadapter: PTF adapter for packet injection/verification
+    - dpuhosts: List of DPU host objects
+    - dpu_index: Index of DPU to use for testing
+    - dash_smartswitch_vnet_config: VNET configuration for SmartSwitch
+    - skip_config: Flag to skip configuration application
+    - skip_cleanup: Flag to skip cleanup after tests
+    - skip_dataplane_checking: Flag to skip dataplane verification
+    - inner_packet_type: Type of inner packet (udp/tcp/echo_request/echo_reply)
+    - set_vxlan_udp_sport_range: Fixture to configure VXLAN UDP source port range
+    - add_npu_static_routes_vnet: Fixture to add static routes on NPU
+    - dpu_setup_vnet: Fixture to setup DPU for VNET testing
+    - common_setup_teardown: Main setup/teardown fixture for test configuration
+
+Dependencies:
+    - constants: DASH test constants for interface/IP configuration
+    - gnmi_utils: gNMI utilities for configuration application
+    - dash_utils: DASH-specific utility functions
+    - packets: Packet generation utilities
+    - tests.common.config_reload: Configuration reload utilities
+
+Notes:
+    - Uses gNMI API for configuration by default (ENABLE_GNMI_API = True)
+    - Requires 180-second sleep workaround for initial DASH object configuration
+    - Related GitHub issue: https://github.com/sonic-net/sonic-swss-common/pull/1068
+    - Config reload used for cleanup due to route rule removal bug
+    - Related GitHub issue: https://github.com/sonic-net/sonic-buildimage/issues/23590
+    - Test validates multiple inner packet types via parameterization
+    - VXLAN UDP source port range is configurable per DPU type (Pensando workaround included)
+
+Git History (last 3 commits):
+    195f5706a [SmartSwitch] Restore dash smartswitch vnet after protobuf updates (#20998)
+    2c20c10f5 [DASH] Need to avoid skipping the dash tests on smartswitch (#20958)
+    48edf5b91 add smartswitch vnet2vnet DASH tests (#17042)
+"""
+
 import logging
 import pytest
 import ptf.testutils as testutils
@@ -22,11 +81,6 @@ pytestmark = [
     pytest.mark.disable_loganalyzer,
     pytest.mark.skip_check_dut_health
 ]
-
-"""
-Test prerequisites:
-- Assign IPs to DPU-NPU dataplane interfaces
-"""
 
 
 @pytest.fixture(scope="module", autouse=True)

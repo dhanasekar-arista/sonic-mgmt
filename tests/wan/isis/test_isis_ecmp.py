@@ -1,3 +1,36 @@
+"""
+=============================================================================
+Module: wan/isis
+File: test_isis_ecmp.py
+=============================================================================
+
+Description:
+    This test validates ISIS ECMP (Equal-Cost Multi-Path) functionality. It
+    verifies that ISIS can establish multiple equal-cost paths and correctly
+    install them in the routing table for load balancing.
+
+Test Intent:
+    - test_isis_ecmp: Validates ISIS ECMP by checking that multiple equal-cost
+      routes are present in the routing table and traffic can be load-balanced
+
+Topology:
+    wan-ecmp (WAN ECMP topology with multiple paths)
+
+Fixtures Used:
+    - common_setup_teardown: Module-scoped fixture for setup/teardown
+    - duthosts: Multi-DUT fixture
+
+Dependencies:
+    - tests.common.utilities: For wait_until polling
+
+Notes:
+    - Tests route 202.2.1.0/24 for ECMP
+    - Tests route 7.7.7.7/32 for source routing
+    - Validates BGP container is running
+    - Waits for routes to appear in routing table
+    - ECMP provides load balancing across multiple paths
+=============================================================================
+"""
 import pytest
 
 import time

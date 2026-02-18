@@ -1,4 +1,47 @@
-"""Test script to verify the test infrastructure mux port setup functionality."""
+"""
+=============================================================================
+Module: dualtor_mgmt
+File: test_dualtor_setup_mux_ports.py
+=============================================================================
+
+Description:
+    Test suite to verify the test infrastructure's mux port setup functionality. This module
+    validates that the mux simulator and DUT correctly initialize mux port states and
+    configurations during test setup, ensuring proper active/standby state assignment for
+    both active-standby and active-active cable types.
+
+Test Intent:
+    - test_verify_mux_status: Verify mux simulator sets correct initial mux status (active/standby) on selected ToR
+    - test_verify_mux_config: Verify mux config mode is correctly set to 'auto' on all mux ports
+
+Topology:
+    - dualtor: Dual-ToR topology with active-standby or active-active cable types
+
+Fixtures Used:
+    - upper_tor_host: Upper ToR DUT host object
+    - lower_tor_host: Lower ToR DUT host object
+    - toggle_all_simulator_ports_to_rand_selected_tor: Randomly selects ToR and sets all mux ports to that ToR
+    - cable_type: Cable type fixture (active-standby or active-active)
+    - active_active_ports: Active-active port configuration
+    - active_standby_ports: Active-standby port configuration
+
+Dependencies:
+    - Mux simulator control for port state initialization
+    - show muxcable status command for mux state verification
+    - show muxcable config command for mux config verification
+
+Notes:
+    - Tests are marked with pytest.mark.topology("dualtor")
+    - Test verifies infrastructure setup, not functional behavior
+    - Mux status should be 'active' on selected ToR, 'standby' on other ToR
+    - Mux config mode should always be 'auto' after setup
+    - Test validates both simulator state and DUT state consistency
+    - Uses show_muxcable_status helper to parse 'show muxcable status --json'
+    - Uses show_muxcable_config helper to parse 'show muxcable config --json'
+    - Ensures test infrastructure correctly prepares mux ports before test execution
+
+=============================================================================
+"""
 import logging
 import json
 import pytest

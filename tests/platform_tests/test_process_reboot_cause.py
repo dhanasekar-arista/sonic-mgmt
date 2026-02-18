@@ -1,3 +1,45 @@
+"""
+=============================================================================
+Module: platform_tests
+File: test_process_reboot_cause.py
+=============================================================================
+
+Description:
+    Tests process-reboot-cause.service functionality. Validates that the service
+    properly processes reboot cause files, handles malformed JSON, and generates
+    reboot cause history correctly.
+
+Test Intent:
+    - test_process_reboot_cause_success: Verify service processes valid reboot cause JSON
+    - test_process_reboot_cause_failure: Validate service handles malformed JSON gracefully
+
+Topology:
+    Any topology - physical devices only
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hardware SKU
+    - loganalyzer: Log analyzer fixture for syslog validation
+    - ignore_expected_loganalyzer_errors: Autofixture ignoring expected errors
+
+Dependencies:
+    - process-reboot-cause.service systemd service
+    - /host/reboot-cause/history/ directory for reboot cause files
+    - journalctl for service log retrieval
+    - systemctl for service management
+
+Notes:
+    - Test validates reboot cause history file generation
+    - Reboot types: warm-reboot, fast-reboot, soft-reboot, reboot, Power loss, Watchdog, etc.
+    - Bad JSON test validates exception handling and expected syslog message
+    - Good JSON test validates successful processing
+    - Service status checked via systemctl show
+    - Journalctl retrieves service logs by PID
+    - Test identifier: "process-reboot-cause-test" in comment field
+    - Cleanup removes test reboot cause files
+    - Test skips if release doesn't support process-reboot-cause service
+=============================================================================
+"""
 import os
 import logging
 import time

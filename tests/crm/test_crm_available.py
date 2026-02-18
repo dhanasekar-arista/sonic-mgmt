@@ -1,3 +1,45 @@
+"""
+Module: tests.crm.test_crm_available
+File: test_crm_available.py
+
+Description:
+    This module contains tests for validating CRM (Critical Resource Monitoring)
+    nexthop group resource availability across different hardware SKUs. It ensures
+    that the total available nexthop groups meet platform-specific thresholds.
+
+Test Intent:
+    - Verify that the total count of nexthop groups (used + available) meets or
+      exceeds platform-specific minimum thresholds
+    - Validate that different hardware SKUs have appropriate nexthop group capacity
+    - Ensure CRM resource reporting is accurate for nexthop group resources
+    - Test platform-specific resource constraints (e.g., Arista, Nokia SKUs)
+
+Topology:
+    Supported topologies: t0, t1, m0, mx, m1
+    - Requires at least one frontend DUT with active interfaces
+    - No specific neighbor or link requirements
+
+Fixtures Used:
+    - duthosts: Fixture providing access to all DUTs in the testbed
+    - enum_rand_one_per_hwsku_frontend_hostname: Randomly selects one frontend DUT
+      per hardware SKU for test execution
+    - crm_resources: Module-scoped fixture that retrieves CRM resource statistics
+      from 'crm show resources all' command
+
+Dependencies:
+    - tests.common.helpers.assertions: For pytest assertions
+    - CRM daemon must be running and reporting valid statistics
+    - Platform-specific SKU thresholds defined in SKU_NEXTHOP_THRESHOLDS
+
+Notes:
+    - SKU_NEXTHOP_THRESHOLDS defines platform-specific minimum nexthop group counts
+    - Default threshold is 256 if SKU is not in the defined mapping
+    - Test validates total capacity (used + available), not just available count
+    - Case-insensitive SKU matching is performed for threshold lookup
+    - History: Added nexthop threshold tests for various Arista and Nokia platforms
+    - Recent changes include support for 7215A1, 7050C SKUs and enhanced M1 support
+"""
+
 import pytest
 import logging
 from tests.common.helpers.assertions import pytest_assert

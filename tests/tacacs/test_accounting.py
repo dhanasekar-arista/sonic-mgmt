@@ -1,3 +1,76 @@
+"""
+=============================================================================
+Module: tacacs
+File: test_accounting.py
+=============================================================================
+
+Description:
+    This test file validates TACACS+ per-command accounting functionality in SONiC,
+    which logs all commands executed by users to TACACS servers and/or local syslog
+    for security auditing. It tests various accounting modes including TACACS-only,
+    local-only, and mixed mode with different server availability scenarios to ensure
+    command execution is properly tracked.
+
+Test Intent:
+    - test_accounting_tacacs_only: Validates TACACS-only accounting mode by executing
+      commands via SSH as TACACS user, verifying commands are logged to TACACS server
+      accounting log (tac_plus.acct), and confirming no commands from other users
+      appear in the logs.
+    - test_accounting_tacacs_only_all_tacacs_server_down: Tests that when all TACACS
+      servers are down in TACACS-only mode, commands are NOT logged to local syslog
+      (accounting disabled), verifying proper failure behavior.
+    - test_accounting_tacacs_only_some_tacacs_server_down: Validates that accounting
+      still works when some TACACS servers are down by logging to available servers.
+    - test_accounting_local_only: Tests local-only accounting mode by configuring
+      local accounting, executing commands, and verifying they appear in local
+      syslog (/var/log/syslog) via auditd instead of TACACS server.
+    - test_accounting_tacacs_and_local: Validates mixed TACACS+local mode where
+      commands are logged to both TACACS server and local syslog simultaneously
+      for redundancy.
+    - test_accounting_tacacs_and_local_all_tacacs_server_down: Tests fallback to
+      local accounting when all TACACS servers are down in mixed mode, verifying
+      commands still logged locally.
+    - test_send_remote_address: Verifies that TACACS accounting logs include the
+      remote client IP address for security auditing and tracking.
+
+Topology:
+    any, t1-multi-asic (works with multiple topology types)
+
+Fixtures Used:
+    - duthosts: Provides access to all DUT hosts
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hwsku
+    - localhost: Local host object for operations
+    - ptfhost: PTF host running TACACS server
+    - tacacs_creds: Provides TACACS credentials
+    - check_tacacs: Validates TACACS service is running
+    - setup_accounting_tacacs_only: Configures TACACS-only accounting
+    - setup_accounting_local_only: Configures local-only accounting
+    - setup_accounting_tacacs_and_local: Configures TACACS+local accounting
+    - remote_user_client: SSH client for TACACS user
+    - cleanup_tacacs_log: Cleans TACACS server accounting logs
+    - ensure_tacacs_server_running_after_ut: Ensures TACACS server cleanup
+
+Dependencies:
+    - pytest: Test framework
+    - tests.common.devices.ptf: PTF host functionality
+    - tests.common.helpers.tacacs.tacacs_helper: TACACS helper functions
+    - tests.tacacs.utils: TACACS test utilities
+    - tests.common.utilities: Utility functions
+
+Notes:
+    - Test is marked to disable log analyzer and work with 'vs' device types
+    - Requires SONiC version supporting per-command accounting (202205+)
+    - TACACS accounting log: /var/log/tac_plus.acct on PTF
+    - Local accounting log: /var/log/syslog on DUT via auditd
+    - Wait timeout for logs: 80 seconds with 1-second intervals
+    - Log flush uses HUP signal to rsyslogd and sync command
+    - Accounting log format includes: timestamp, username, command
+    - Tests verify logs using sed pattern matching
+    - Server down scenarios test graceful degradation
+    - Admin user commands are excluded from accounting
+    - Uses SSH retry logic for reliable connections
+=============================================================================
+"""
 import logging
 import time
 import pytest

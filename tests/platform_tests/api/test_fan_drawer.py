@@ -1,3 +1,48 @@
+"""
+=============================================================================
+Module: platform_tests
+File: test_fan_drawer.py
+=============================================================================
+
+Description:
+    Validates Platform API functionality for the FanDrawer class. Tests fan drawer
+    metadata retrieval, fan enumeration, LED control, and power consumption monitoring
+    for drawer-based cooling systems.
+
+Test Intent:
+    - test_get_name: Verify fan drawer name retrieval and match with platform.json
+    - test_get_presence: Confirm all fan drawers are present
+    - test_get_model: Validate fan drawer model string retrieval
+    - test_get_serial: Verify fan drawer serial number retrieval
+    - test_get_status: Test fan drawer operational status
+    - test_get_position_in_parent: Validate position value is an integer
+    - test_is_replaceable: Verify replaceable status is boolean
+    - test_get_num_fans: Confirm fan count matches platform.json
+    - test_get_all_fans: Validate fan list retrieval for each drawer
+    - test_set_fan_drawers_led: Test LED color control (fault/normal/off) per drawer
+    - test_get_maximum_consumed_power: Verify maximum power consumption retrieval
+
+Topology:
+    Any topology with fan drawer support (typically modular or high-density platforms)
+
+Fixtures Used:
+    - platform_api_conn: Platform API service connection
+    - setup: Function-scoped autofixture validating fan drawer count
+    - duthost: DUT host fixture
+    - enum_rand_one_per_hwsku_hostname: Selects one DUT per hardware SKU
+
+Dependencies:
+    - tests.common.helpers.platform_api (chassis, fan_drawer)
+    - platform.json (fan drawer metadata)
+
+Notes:
+    - Test skips if no fan drawers found on device
+    - LED tests skip drawers where LED not controllable or lacks supported colors
+    - Mellanox platforms don't support 'off' LED color
+    - Maximum consumed power test skips drawers not supporting this feature
+    - Fan count derived from platform.json num_fans field or fans array length
+=============================================================================
+"""
 import logging
 
 import pytest

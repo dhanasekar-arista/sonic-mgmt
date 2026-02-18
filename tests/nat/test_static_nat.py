@@ -1,3 +1,69 @@
+"""
+=============================================================================
+Module: nat
+File: test_static_nat.py
+=============================================================================
+
+Description:
+    This test suite validates static Network Address Translation (NAT and NAPT) functionality
+    in SONiC. Static NAT provides fixed one-to-one IP address mapping, while static NAPT
+    (Network Address Port Translation) provides fixed IP:port to IP:port mapping. Tests verify
+    bidirectional traffic, configuration persistence across reboots, CRUD operations, iptables
+    integration, Redis database synchronization, and zone-based NAT for TCP, UDP, and ICMP.
+
+Test Intent:
+    - test_nat_static_basic: Verify basic static NAT translation for TCP/UDP in both directions
+    - test_nat_static_basic_icmp: Verify basic static NAT translation for ICMP packets
+    - test_nat_static_napt: Verify static NAPT (port-based) translation for TCP/UDP
+    - test_nat_clear_statistics_static_basic: Verify clearing statistics works for static NAT
+    - test_nat_clear_statistics_static_napt: Verify clearing statistics works for static NAPT
+    - test_nat_clear_translations_static_basic: Verify static NAT translations persist after clear command
+    - test_nat_clear_translations_static_napt: Verify static NAPT translations persist after clear command
+    - test_nat_crud_static_nat: Verify create/read/update/delete operations for static NAT configuration
+    - test_nat_crud_static_napt: Verify CRUD operations for static NAPT configuration
+    - test_nat_reboot_static_basic: Verify static NAT configuration persists across cold/fast reboots
+    - test_nat_reboot_static_napt: Verify static NAPT configuration persists across cold/fast reboots
+    - test_nat_static_zones_basic_snat: Verify static NAT works correctly with zone configuration for SNAT
+    - test_nat_static_zones_basic_icmp_snat: Verify zones work for ICMP static NAT SNAT direction
+    - test_nat_static_zones_napt_dnat_and_snat: Verify zones work for static NAPT in both DNAT and SNAT directions
+    - test_nat_static_iptables_add_remove: Verify iptables rules are properly added/removed with NAT configuration
+    - test_nat_static_global_double_add: Verify error handling when adding overlapping global IP entries
+    - test_nat_static_interface_add_remove_interface_ip: Verify NAT behavior when interface IPs are removed/restored
+    - test_nat_static_interface_add_remove_interface: Verify NAT behavior when interfaces are disabled/enabled
+    - test_nat_redis_global_pool_binding: Verify CONFIG_DB and APP_DB synchronization for global/pool/binding config
+    - test_nat_static_redis_napt: Verify CONFIG_DB and APP_DB synchronization for static NAPT entries
+    - test_nat_static_redis_asic: Verify APP_DB and ASIC_DB synchronization for NAT entries
+    - test_nat_same_static_and_dynamic_rule: Verify static NAT takes precedence when overlapping with dynamic NAT
+
+Topology:
+    t0 - Requires T0 topology with host-tor and leaf-tor connectivity
+
+Fixtures Used:
+    - setup_test_env: Provides interface configuration and network setup information
+    - protocol_type: Parametrized fixture for TCP/UDP protocols
+    - ptfhost: PTF host for traffic generation and handshake operations
+    - ptfadapter: PTF adapter for packet injection and verification
+    - duthost: Device under test host object
+    - tbinfo: Testbed information
+    - localhost: Localhost for reboot operations
+    - reload_dut_config: Fixture to reload DUT configuration after test
+
+Dependencies:
+    - nat_helpers: Comprehensive NAT helper functions for configuration and traffic verification
+    - tests.common.reboot: Reboot functionality for testing configuration persistence
+    - tests.common.helpers.assertions: Assertion helpers
+
+Notes:
+    - Static NAT provides fixed IP-to-IP mappings that persist until explicitly removed
+    - Static NAPT provides fixed IP:port-to-IP:port mappings
+    - Clear translations command does NOT remove static NAT entries (unlike dynamic NAT)
+    - Tests verify synchronization across CONFIG_DB, APP_DB, and ASIC_DB Redis databases
+    - NAT zones (0 and 1) distinguish between inside and outside interfaces
+    - iptables rules must be properly configured with SNAT/DNAT for NAT to function
+    - Static NAT takes precedence over dynamic NAT when rules overlap
+    - Configuration must persist across cold, fast, and warm reboots
+=============================================================================
+"""
 import copy
 import time
 import json

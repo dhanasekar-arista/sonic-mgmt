@@ -1,3 +1,44 @@
+"""
+=============================================================================
+Module: ixia/pfc
+File: test_pfc_congestion.py
+=============================================================================
+
+Description:
+    This test module validates that lossless traffic is not dropped during
+    network congestion when PFC is properly functioning. It creates congestion
+    scenarios and verifies PFC prevents packet loss on lossless priorities.
+
+Test Intent:
+    - test_pfc_congestion: Tests that lossless traffic experiences zero packet
+      loss during congestion while PFC pause frames are being generated,
+      ensuring PFC backpressure mechanism works correctly
+
+Topology:
+    - tgen: Requires IXIA traffic generator topology
+
+Fixtures Used:
+    - ixia_api: IXIA session for traffic generation
+    - ixia_testbed_config: Testbed and port configuration
+    - conn_graph_facts: DUT-to-IXIA connection topology
+    - fanout_graph_facts: Fanout switch information
+    - lossless_prio_list: List of lossless priorities
+    - all_prio_list: List of all priorities
+    - prio_dscp_map: Priority to DSCP mapping
+
+Dependencies:
+    - files.pfc_congestion_helper: PFC congestion test implementation
+    - tests.common.cisco_data: Cisco platform detection
+    - tests.common.ixia.ixia_fixtures: IXIA infrastructure
+    - tests.common.ixia.qos_fixtures: QoS test fixtures
+
+Notes:
+    - Creates congestion by overwhelming egress with high traffic rate
+    - Verifies PFC pause frames are generated correctly
+    - Ensures lossless queues have zero packet loss
+    - Validates lossy queues may drop packets as expected
+=============================================================================
+"""
 import pytest
 
 from .files.pfc_congestion_helper import run_pfc_congestion

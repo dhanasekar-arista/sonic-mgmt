@@ -1,3 +1,42 @@
+"""
+=============================================================================
+Module: gnmi_e2e
+File: test_telemetry_auth.py
+=============================================================================
+
+Description:
+    End-to-end tests for telemetry service authentication. Validates certificate
+    common name based authentication for telemetry gNMI interface using PTF-based
+    Python gNMI client.
+
+Test Intent:
+    - test_telemetry_authorize_passed_with_valid_cname: Validates telemetry
+      get request succeeds with valid client certificate CN
+    - test_telemetry_authorize_failed_with_invalid_cname: Verifies telemetry
+      rejects requests with invalid CN returning "Unauthenticated"
+
+Topology:
+    Supports any topology
+
+Fixtures Used:
+    - duthosts: DUT host objects
+    - rand_one_dut_hostname: Randomly selected DUT
+    - ptfhost: PTF host for gNMI client
+    - setup_invalid_client_cert_cname: Sets up invalid client cert
+    - telemetry_enabled: Ensures telemetry feature is enabled
+
+Dependencies:
+    - tests.common.plugins.allure_wrapper: allure for test reporting
+    - tests.gnmi_e2e.helper: telemetry_enabled, setup_invalid_client_cert_cname
+    - tests.common.helpers.gnmi_utils: GNMIEnvironment
+
+Notes:
+    - Log analyzer disabled for these tests
+    - Uses py_gnmicli.py from PTF for gNMI operations
+    - Tests DEVICE_METADATA/localhost from CONFIG_DB
+    - 30 second timeout for gNMI operations
+=============================================================================
+"""
 import pytest
 import logging
 

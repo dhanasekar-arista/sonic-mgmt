@@ -1,3 +1,40 @@
+"""
+=============================================================================
+Module: gnmi
+File: test_gnmi_smartswitch.py
+=============================================================================
+
+Description:
+    Tests gNMI operations specific to SmartSwitch platforms including DPU
+    operations and DASH VNET table management via protocol buffer encoding.
+
+Test Intent:
+    - test_gnmi_appldb_01: Tests DASH_VNET_TABLE operations on SmartSwitch DPU:
+      1. Locates first online DPU
+      2. Adds VNET entry using protobuf encoding
+      3. Validates entry creation
+      4. Deletes VNET entry
+
+Topology:
+    Supports any topology (SmartSwitch platforms only)
+
+Fixtures Used:
+    - duthosts: DUT host objects
+    - rand_one_dut_hostname: Randomly selected DUT
+    - ptfhost: PTF host for gNMI client operations
+
+Dependencies:
+    - .helper: gnmi_set for gNMI operations
+    - dash_api.vnet_pb2: Vnet protobuf for DASH operations
+
+Notes:
+    - Log analyzer disabled for these tests
+    - Only runs on LeafRouter with SmartSwitch subtype
+    - Uses DPU0-DPU7 for operations
+    - Protobuf encoding for VNET with VNI and GUID
+    - Tests online DPU status validation
+=============================================================================
+"""
 import json
 import logging
 import pytest

@@ -1,5 +1,46 @@
 """
-This test file is created for T2 chassis specific reboot test, need to skip for all T0/T1
+=============================================================================
+Module: platform_tests
+File: test_chassis_reboot.py
+=============================================================================
+
+Description:
+    T2 modular chassis specific reboot tests. Validates chassis-wide cold reboot,
+    supervisor reboot, and line card reboot operations. Ensures proper module
+    state synchronization and recovery.
+
+Test Intent:
+    - test_chassis_cold_reboot: Validate full chassis cold reboot
+    - test_supervisor_reboot: Test supervisor module reboot and line card recovery
+    - test_linecard_reboot: Verify individual line card reboot
+
+Topology:
+    T2 modular chassis topology only
+
+Fixtures Used:
+    - duthosts: Multi-DUT host fixture
+    - localhost: Localhost connection
+    - conn_graph_facts: Connection graph for interface validation
+    - xcvr_skip_list: Transceiver skip list
+
+Dependencies:
+    - reboot helpers (wait_for_startup, wait_for_shutdown, sync_reboot_history_queue_with_dut)
+    - check_interfaces_and_services validator
+    - Core dump detection utilities
+
+Notes:
+    - Test skips on T0/T1 topologies (T2 chassis only)
+    - Uses ThreadPool for asynchronous reboot operations
+    - Syncs reboot cause history queue across chassis
+    - Tracks reboot type history in REBOOT_TYPE_HISTOYR_QUEUE
+    - Shutdown wait: 10 delay, 300 timeout
+    - Validates all line cards recover post-supervisor reboot
+    - Checks for core dumps after reboot
+    - Verifies interfaces and critical services post-reboot
+    - Loganalyzer disabled (expected error logs during reboot)
+    - Test waits for line card startup and critical processes
+    - Random line card selection for individual reboot tests
+=============================================================================
 """
 import pytest
 import random

@@ -1,3 +1,35 @@
+"""
+=============================================================================
+Module: generic_config_updater
+File: test_mmu_dynamic_threshold_config_update.py
+=============================================================================
+
+Description:
+    Tests MMU (Memory Management Unit) dynamic threshold configuration using
+    Generic Config Updater. Validates updating alpha values for buffer pools
+    and queue groups with verification in APPL_DB.
+
+Test Intent:
+    - test_mmu_dynamic_threshold_config_update: Updates MMU dynamic threshold
+      alpha values for egress lossless pool and queue groups
+
+Topology:
+    Supports t0, t1, m0, mx, m1 topologies
+
+Fixtures Used:
+    - ensure_dut_readiness: Verifies orchagent and creates checkpoint
+
+Dependencies:
+    - tests.common.helpers.dut_utils: verify_orchagent_running_or_assert
+    - tests.common.gu_utils: GCU utilities for patch operations
+
+Notes:
+    - Reads APPL_DB with 480s timeout, 20s interval
+    - Tests alpha value updates for buffer pools and queue groups
+    - Validates BUFFER_POOL_TABLE and BUFFER_PG_TABLE in APPL_DB
+    - Module-level checkpoint for test efficiency
+=============================================================================
+"""
 import logging
 import pytest
 import re

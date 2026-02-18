@@ -1,5 +1,69 @@
 """
-Test the feature of container_checker
+=============================================================================
+Module: container_checker
+File: test_container_checker.py
+=============================================================================
+
+Description:
+    This module tests the container checker feature in SONiC which monitors
+    Docker containers using Monit service. It verifies that Monit correctly
+    detects when containers are stopped and generates appropriate alerting
+    messages in syslog. The tests temporarily modify Monit configuration to
+    reduce monitoring intervals for faster test execution.
+
+Test Intent:
+    - test_container_checker: Validates that Monit container checker detects
+      stopped containers and logs expected alerting messages to syslog. Tests
+      by explicitly stopping containers and verifying alert generation within
+      the monitoring window.
+    - test_container_checker_telemetry: Specifically validates container checker
+      behavior for the telemetry container when enabled in FEATURE table but
+      not actually running, ensuring no false alerts are generated.
+
+Topology:
+    - Supports: any, t1-multi-asic
+    - Skips: radv container on non-T0/M0 topologies and dualtor-aa setups
+    - Marks: disable_loganalyzer, disable_memory_utilization, dualtor_skip_setup_mux_ports
+
+Fixtures Used:
+    - config_reload_after_tests: Module-scoped fixture that reloads config and
+      verifies BGP neighbor states after all tests complete
+    - check_image_version: Module-scoped fixture that skips tests on 201911 or
+      older SONiC versions (kernel < 4.9.0)
+    - update_monit_service: Module-scoped fixture that reduces Monit monitoring
+      interval from 5 minutes to 1 minute and restarts Monit service with 10s delay
+    - enum_rand_one_per_hwsku_hostname: Randomly selects one hostname per hardware SKU
+    - enum_rand_one_asic_index: Enumerates ASIC indices for multi-ASIC testing
+    - enum_dut_feature: Enumerates features/services to test across containers
+    - rand_one_dut_hostname: Randomly selects a single DUT hostname
+    - disable_container_autorestart: Disables container auto-restart feature
+    - duthosts: Collection of all DUT hosts in the testbed
+    - tbinfo: Testbed topology and configuration information
+
+Dependencies:
+    - pytest: Test framework and parametrization
+    - pkg_resources: Version parsing for kernel version checks
+    - tests.common.config_reload: Safe config reload functionality
+    - tests.common.helpers.assertions: pytest_assert, pytest_require
+    - tests.common.helpers.dut_utils: Container state checking utilities
+    - tests.common.plugins.loganalyzer.loganalyzer: LogAnalyzer for syslog validation
+    - tests.common.utilities: wait_until retry mechanism
+    - tests.common.helpers.multi_thread_utils: Thread pool execution
+
+Notes:
+    - Test requires kernel version > 4.9.0 (post-201911 images)
+    - Monit configuration is temporarily modified during tests:
+      * Monitoring interval reduced from 60s to 10s
+      * Start delay reduced from 300s to 10s
+      * Container checker alert cycle reduced to 1 minute
+    - Original Monit configuration is backed up and restored after tests
+    - Uses 30s threshold for container stop verification
+    - Uses 180s threshold for container restart verification
+    - Container autorestart must be disabled for accurate testing
+    - Skips disabled containers and radv on non-T0/M0 topologies
+    - Sleep times (70-80s) ensure Monit has sufficient time to generate alerts
+    - Test performs parallel config reload across multiple DUTs for efficiency
+=============================================================================
 """
 import time
 import logging

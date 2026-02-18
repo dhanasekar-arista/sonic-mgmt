@@ -1,3 +1,38 @@
+"""
+=============================================================================
+Module: generic_config_updater
+File: test_lo_interface.py
+=============================================================================
+
+Description:
+    Tests loopback interface configuration using Generic Config Updater.
+    Validates adding, removing, and replacing IPv4/IPv6 addresses on Loopback0
+    with proper verification in show commands.
+
+Test Intent:
+    - test_lo_interface_ip_add_remove: Adds then removes loopback IP
+    - test_lo_interface_ip_add: Adds new loopback IP addresses
+    - test_lo_interface_ip_replace: Replaces existing loopback IP
+    - test_lo_interface_invalid_ip_add: Tests error for invalid IP
+
+Topology:
+    Supports t0, t1, m0, mx, m1 topologies
+
+Fixtures Used:
+    - lo_intf: Provides loopback interface information
+    - ensure_dut_readiness: Creates checkpoint for rollback
+
+Dependencies:
+    - tests.common.gu_utils: GCU utilities including create_path, check_show_ip_intf
+    - tests.common.config_reload: config_reload utility
+
+Notes:
+    - Default loopback: Loopback0
+    - Tests both IPv4 (10.1.0.x/32) and IPv6 (FC00:1::x/128)
+    - Validates via "show ip interfaces" and "show ipv6 interfaces"
+    - Checks VRF routes for interface addresses
+=============================================================================
+"""
 import logging
 import pytest
 import ipaddress

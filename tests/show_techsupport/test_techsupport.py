@@ -1,3 +1,55 @@
+"""
+=============================================================================
+Module: show_techsupport
+File: test_techsupport.py
+=============================================================================
+
+Description:
+    This test module validates the 'show techsupport' command functionality on
+    SONiC switches. It tests tarball generation, file inclusion, command execution,
+    ACL rule capture, mirror session configuration capture, and platform-specific
+    dumps. Tests ensure techsupport files contain necessary diagnostic information
+    for troubleshooting and support operations.
+
+Test Intent:
+    - test_techsupport_generation: Validates techsupport tarball is created successfully
+    - test_techsupport_files: Verifies tarball contains minimum required files (50+)
+    - test_techsupport_commands: Checks all expected diagnostic commands are executed
+    - test_techsupport_acl_rules: Tests ACL rule configuration is captured in techsupport
+    - test_techsupport_mirror_session: Validates mirror session configuration capture
+    - test_techsupport_platform_dump: Verifies platform-specific diagnostic files (DPU)
+    - test_techsupport_since: Tests techsupport with --since time filtering option
+
+Topology:
+    - Supported: any topology
+    - Platform-specific tests for DPU and BMC-enabled devices
+
+Fixtures Used:
+    - duthosts: All DUT hosts in testbed
+    - rand_one_dut_hostname: Randomly selected DUT
+    - platform_api_conn: Platform API connection for BMC operations
+    - creds: Credentials for authentication
+
+Dependencies:
+    - tech_support_cmds: Expected commands list for validation
+    - tests.common.plugins.loganalyzer: Log analysis for ACL/mirror operations
+    - tests.common.platform.device_utils: Platform API utilities
+    - allure: Test reporting framework
+
+Notes:
+    - Minimum expected files: 50 in techsupport tarball
+    - ACL tests create temporary rules and verify capture in techsupport
+    - Mirror session tests configure EVERFLOW and validate inclusion
+    - DPU platform tests verify specific dump files (sysfs_tree, dmidecode, etc.)
+    - Tests support IPv6-only topologies with appropriate IP selection
+    - Techsupport tarballs cleaned up after test execution
+    - Log analyzer used to verify ACL rule create/remove events
+    - Mirror session cleanup uses specific log message patterns
+    - Platform dump verification for BMC-enabled devices
+    - --since option validates time-based log filtering
+=============================================================================
+"""
+
 import os
 import pprint
 import pytest

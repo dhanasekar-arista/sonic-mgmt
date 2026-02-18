@@ -1,4 +1,73 @@
-"""Test cases to support the Everflow IPv6 Mirroring feature in SONiC."""
+"""
+=============================================================================
+Module: everflow
+File: test_everflow_ipv6.py
+=============================================================================
+
+Description:
+    This module tests the Everflow ERSPAN mirroring feature for IPv6 traffic
+    in SONiC. It validates IPv6 ACL match criteria including source/destination
+    addresses, L4 ports, TCP flags, DSCP, ICMPv6 parameters, and various
+    combinations to ensure proper IPv6 packet mirroring.
+
+Test Intent:
+    - test_src_ipv6_mirroring: Validates matching on IPv6 source addresses
+    - test_dst_ipv6_mirroring: Validates matching on IPv6 destination addresses
+    - test_next_header_mirroring: Tests matching on IPv6 next header field
+    - test_l4_src_port_mirroring: Verifies L4 source port matching
+    - test_l4_dst_port_mirroring: Verifies L4 destination port matching
+    - test_l4_src_port_range_mirroring: Tests L4 source port range matching
+    - test_l4_dst_port_range_mirroring: Tests L4 destination port range matching
+    - test_tcp_flags_mirroring: Validates TCP flags matching in ACL rules
+    - test_dscp_mirroring: Tests DSCP field matching for QoS-based mirroring
+    - test_l4_range_mirroring: Verifies combined source and destination port ranges
+    - test_tcp_response_mirroring: Tests SYN -> SYN-ACK pattern matching
+    - test_tcp_application_mirroring: Validates TCP handshake between client/server
+    - test_udp_application_mirroring: Tests UDP traffic mirroring between endpoints
+    - test_any_protocol: Ensures protocol-agnostic matching when not specified
+    - test_any_transport_protocol: Validates port matching across TCP and UDP
+    - test_invalid_tcp_rule: Verifies ASIC doesn't reject invalid TCP flag rules
+    - test_source_subnet: Tests matching on IPv6 source subnet
+    - test_dest_subnet: Tests matching on IPv6 destination subnet
+    - test_both_subnets: Validates matching on both source and destination subnets
+    - test_fuzzy_subnets: Tests non-standard subnet sizes
+    - test_icmpv6_type: Verifies ICMPv6 type field matching
+    - test_icmpv6_code: Verifies ICMPv6 code field matching
+    - test_ip_type_any: Tests IP type "any" matching
+    - test_ip_type_ip: Tests IP type "ip" matching
+    - test_ip_type_ipv6any: Tests IP type "ipv6any" matching
+
+Topology:
+    Supports t0, t1, t2, lt2, ft2, m0, m1 topologies
+
+Fixtures Used:
+    - dest_port_type: Determines traffic direction based on topology
+    - setup_mirror_session_dest_ip_route: Configures routing for mirror destination
+    - add_dest_routes: Sets up routes for egress ACL testing
+    - everflow_dut: Provides the DUT for testing
+    - everflow_direction: Provides traffic direction for the topology
+    - background_traffic: Generates background IPv6 traffic during tests
+    - setup_acl_table: Creates and applies MIRRORV6 ACL table and rules
+    - setup_info: Topology and port configuration
+    - setup_mirror_session: Mirror session configuration
+    - erspan_ip_ver: ERSPAN encapsulation IP version (IPv4 or IPv6)
+
+Dependencies:
+    - everflow_test_utilities: Core Everflow utilities including BaseEverflowTest
+    - ptf.testutils: PTF packet utilities for packet crafting and verification
+    - tests.common.dualtor: Dual ToR mux simulator control
+    - tests.common.macsec: MACsec information for capability checks
+
+Notes:
+    - Tests are organized into two classes: TestIngressEverflowIPv6 and
+      TestEgressEverflowIPv6 for different ACL stages
+    - Background traffic prevents packet drops caused by ICMPv6 neighbor
+      solicitation packets overwhelming the PTF container
+    - IPv6 mirroring restricted to TCP packets to avoid ICMPv6 interference
+    - MACsec-enabled topologies skip egress mirroring tests
+    - Tests validate both IPv4 and IPv6 ERSPAN encapsulation
+=============================================================================
+"""
 import threading
 import time
 import pytest

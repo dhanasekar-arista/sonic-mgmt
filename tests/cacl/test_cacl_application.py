@@ -1,3 +1,75 @@
+"""
+=============================================================================
+Module: cacl
+File: test_cacl_application.py
+=============================================================================
+
+Description:
+    This comprehensive test suite validates Control Plane ACL (CACL) application
+    and management on SONiC devices. It verifies that caclmgrd correctly translates
+    ACL configuration into iptables/ip6tables rules for both IPv4 and IPv6 traffic,
+    covering single-ASIC, multi-ASIC, and DualToR topologies.
+
+Test Intent:
+    - test_cacl_application_nondualtor: Validates CACL rules on standard (non-dualtor)
+      topologies, ensuring iptables/ip6tables match expected configuration
+    - test_cacl_application_dualtor: Tests CACL on DualToR topologies, including
+      standby/active ToR scenarios with DHCP packet marking rules
+    - test_multiasic_cacl_application: Verifies CACL application on multi-ASIC
+      platforms with namespace-specific rules and NAT table validation
+    - test_cacl_scale_rules_ipv4: Tests scalability with 50 IPv4 ACL rules across
+      SNMP-ACL, SSH-ONLY, and NTP-ACL tables
+    - test_cacl_scale_rules_ipv6: Tests scalability with 50 IPv6 ACL rules across
+      multiple ACL tables
+    - test_cacl_acl_loader: Validates acl-loader correctly applies rules from JSON
+      configuration files, verifying rule contents via 'show acl rule'
+    - test_caclmgrd_syslog: Ensures caclmgrd logs iptables commands to syslog and
+      remains active after restart
+
+Topology:
+    any - Tests run on all topology types with specific variations for dualtor
+    and multi-ASIC platforms
+
+Fixtures Used:
+    - disable_port_toggle: Module-scoped fixture that sets mux mode to manual on
+      DualToR to prevent port state changes during tests
+    - duthost_dualtor: Function-scoped parametrized fixture providing active_tor
+      or standby_tor for DualToR testing
+    - expected_dhcp_rules_for_standby: Generates expected DHCP mark iptable rules
+      for standby ToR interfaces based on mux cable state
+    - docker_network: Module-scoped fixture extracting Docker bridge and container
+      IP addresses for validating container-to-container traffic rules
+    - collect_ignored_rules: Collects pre-existing iptables rules to exclude from
+      scale test validation
+    - clean_scale_rules: Cleanup fixture that removes scale test ACL files and
+      reloads configuration after tests
+    - dummy_acl_rules: Generates and applies test ACL rules with mixed IPv4/IPv6
+      addresses and ACCEPT/DROP actions for acl-loader validation
+
+Dependencies:
+    - ipaddress: IP address manipulation and network calculations
+    - json: ACL configuration file parsing
+    - re: Regular expression matching for syslog validation
+    - tests.common.config_reload: Configuration reload utilities
+    - tests.common.utilities: wait_until for asynchronous operations
+    - tests.common.dualtor: DualToR-specific utilities and fixtures
+    - tests.common.helpers.assertions: pytest_assert for enhanced assertions
+
+Notes:
+    - Loganalyzer disabled globally to prevent false positives during ACL changes
+    - Scale tests generate 50 rules per table (SNMP-ACL, SSH-ONLY, NTP-ACL)
+    - Special handling for DualToR topologies with DHCP packet marking
+    - Multi-ASIC platforms require NAT table validation for namespace-to-host
+      forwarding (SNMP, SSH services)
+    - SSH keep-alive mechanism used during ACL updates to prevent session timeout
+    - Rule application order is indeterminate for block_ip2me rules (pending fix)
+    - Supports various SONiC branches (201911, 202012, 202111) with version-specific
+      rules for BGP and LDP traffic
+    - Smart switch chassis midplane IP (169.254.200.254) is automatically allowed
+    - WAN topologies include additional LDP (Label Distribution Protocol) rules
+=============================================================================
+"""
+
 import ipaddress
 import json
 import logging
